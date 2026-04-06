@@ -222,11 +222,9 @@ Recommended siblings on disk (what `StorageIndex` assumes by default):
 general comments
 
 <ul>
-<li>fractal_zip was only tested on windows 8.</li>
 <li><strong>.fzc pipeline:</strong> per-file payloads and the shared fractal (or lazy) string are encoded as an inner container (<strong><code>FZC2</code></strong> when safe, else <strong><code>FZC1</code></strong>; legacy <code>serialize()</code> still decodes). That inner blob is passed through <code>adaptive_compress</code>: it competes <strong>gzip-9</strong> against staged <strong>7-Zip</strong> (and optional zstd/brotli/FreeArc when available), keeping the smallest outer wrapper. On Linux/macOS, install <strong>p7zip</strong> and ensure <code>7z</code> is on <code>PATH</code>. Override with env <code>FRACTAL_ZIP_FORCE_OUTER=gzip</code> or <code>FRACTAL_ZIP_SKIP_7Z=1</code>. After writing the file, <code>fractal_zip::$last_written_container_codec</code> records the chosen outer codec.</li>
 <li>fractal_zip is currently very slow. Other compression code is clearly superior in speed (for the test files fractal_zip alternatives takes an insignificant amount of time ~1 second while fractal zip takes a significant amount of time). There are various reasons for this: it is unoptimized and it is written in PHP and it is doing more than the others. Outer 7z adds subprocess cost per candidate blob but often improves size versus gzip alone.</li>
 <li>fractal_zip is currently very basic. The only operation it uses is substring and more operations (translation, rotation, scaling, etc.) would surely add to its compressability.</li>
-<li>If fractal_zip used freearc internally as well as 7-zip it would probably be better.</li>
 <li>Currently, the file metadata (path, date modified, packed size, etc.) is wastefully encoded twice since fractal_zip does this and 7-zip does this independantly. So, currently, in order to compress more, fractal_zip has to overcome this extra obstacle.</li>
 <li>It's funny how compression code is effectively fractal in its development (whether known or unknown to the developers) itself. freearc uses 7-zip and RAR while fractal_zip currently uses 7-zip which uses LZMA which uses...</li>
 </ul>
