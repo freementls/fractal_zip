@@ -15,7 +15,7 @@ php benchmarks/run_benchmarks.php --only=<corpus> --json --no-baseline-cache
 | test_files11 | 29076 | 280 | 340 | 244 | 154 | fzc | Two `.bmp` images (variant of `test_files10`). |
 | test_files13 | 62870 | 7789 | 7199 | 6281 | 6207 | fzc | Many `.html` pages (numeric filenames). |
 | test_files28 | 9498 | 1102 | 1115 | 1009 | 921 | fzc | Single small `.bmp`. |
-| test_files29 | 1277926 | 7970 | 7726 | 273 | 209 | fzc | Single huge highly repetitive `.txt` (pathological / demo). |
+| test_files29 | 1277926 | 7970 | 7726 | 273 | 209 | fzc | Single huge fractal `.txt` |
 | test_files35 | 4149414 | 1254372 | 976020 | 976568 | 797611 | fzc | Single large `.bmp` (photo stress). |
 | test_files49 | 85083 | 23821 | 21849 | 20395 | 20336 | fzc | Single `phpinfo` `.html` (your export will not match byte-for-byte). |
 | test_files50 | 932 | 1172 | 997 | 1056 | 519 | fzc | Synthetic micro-corpus: hundreds of tiny files. |
