@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# fractal_zip CLI wrapper — run from any directory.
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+exec php "$ROOT/fractal_zip_cli.php" "$@"

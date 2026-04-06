@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<storage version="1">
+	<meta updated="2026-03-29"/>
+	<containers>
+		<container id="c-demo-1" physical="containers/demo_batch.fzc" byte_size="8333" updated="2026-03-29"/>
+	</containers>
+	<files>
+		<file id="f1" logical_path="demo/readme.txt" storage="loose" physical="loose/demo/readme.txt" raw_bytes="2048" updated="2026-03-29"/>
+		<file id="f2" logical_path="demo/notes/alpha.txt" storage="container" physical="" container_id="c-demo-1" member_path="demo/notes/alpha.txt" raw_bytes="1100" updated="2026-03-29"/>
+		<file id="f3" logical_path="demo/notes/beta.txt" storage="container" physical="" container_id="c-demo-1" member_path="demo/notes/beta.txt" raw_bytes="1100" updated="2026-03-29"/>
+		<file id="f4" logical_path="demo/tiny_marker.dat" storage="loose" physical="loose/demo/tiny_marker.dat" raw_bytes="32" updated="2026-03-29"/>
+	</files>
+</storage>

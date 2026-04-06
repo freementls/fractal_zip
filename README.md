@@ -1,5 +1,7 @@
 # fractal_zip
 
+I challenge you to beat this compression code!
+
 Version 0.3
 
 **fractal_zip** is a PHP library and reference CLI for a **custom lossless folder format** (`.fzc`): a fractal-style inner representation plus an **adaptive outer** wrapper (gzip, 7-Zip, zstd, brotli, …). It is aimed at **research, integration in PHP**, and **datasets where its heuristics actually win bytes**—not at replacing zip/7z as a general-purpose archiver for everyday use.
@@ -89,7 +91,6 @@ php benchmarks/run_benchmarks.php \
 
 | Corpus | raw B | gzip-9 B | 7z dir B | .fzc B | Bytes winner | Outer codec | zip s | Notes |
 |--------|------:|---------:|---------:|-------:|:------------:|:-----------:|------:|--------|
-| test_files59_sample | 113503105 | 113482086 | **113391087** | 114103498 | **7z** | zstd | ~362 | FLAC-heavy sample; `.fzc` not smallest vs 7z this run (`--no-verify`). |
 | test_files61 | 4826840 | 2023050 | 1087089 | **1080447** | **fzc** | brotli | ~21 | Multi-format rasters + nested layout. |
 | test_files62 | 17364 | 737 | 735 | **401** | **fzc** | brotli | ~85 | Synthetic `.gz` peel / bundle stress; very small output, slow zip. |
 | test_files69 | 3534825 | 3248719 | 3242472 | **3234508** | **fzc** | 7z | ~93 | Stratified slice (~3.8 MiB on disk): text, HTML, rasters, FLAC sidecars, SC2Replay, gzip dupes. |

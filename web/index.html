@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1"/>
+	<title>Fractal storage</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com"/>
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+	<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet"/>
+	<link rel="stylesheet" href="assets/app.css"/>
+</head>
+<body>
+	<div class="shell">
+		<header class="hero">
+			<h1>Fractal file storage</h1>
+			<p>
+				Logical files, physical layout under the sibling <code>files/</code> directory (beside <code>fractal_zip</code>), and <code>.fzc</code> containers.
+				Live metrics and compaction hints from the storage index.
+			</p>
+		</header>
+
+		<div id="err" class="error" hidden></div>
+
+		<section class="grid" id="stats" aria-live="polite"></section>
+
+		<section class="panel">
+			<h2>Containers</h2>
+			<div id="containers"></div>
+		</section>
+
+		<section class="panel">
+			<h2>Files</h2>
+			<div style="overflow-x:auto">
+				<table class="files" id="file-table">
+					<thead>
+						<tr>
+							<th>Path</th>
+							<th>Storage</th>
+							<th>Raw size</th>
+							<th>Container</th>
+						</tr>
+					</thead>
+					<tbody></tbody>
+				</table>
+			</div>
+		</section>
+
+		<section class="panel">
+			<h2>Compaction suggestions</h2>
+			<p style="color:var(--muted);margin:0 0 1rem;font-size:0.9rem">
+				Score ≈ space saved minus weighted latency cost (full-container decode in the current stack).
+				Tune weights server-side in <code>web/api/storage_stats.php</code>.
+			</p>
+			<div id="suggestions"></div>
+		</section>
+
+		<footer>
+			Serve this folder with PHP enabled so <code>api/storage_stats.php</code> can read <code>storage/storage_index.xml</code>.
+			Set <code>STORAGE_INDEX_XML</code> or <code>FRACTAL_FILES_ROOT</code> in the environment for production paths.
+		</footer>
+	</div>
+
+	<script>
+		function fmtBytes(n) {
+			if (n < 1024) return n + " B";
+			if (n < 1048576) return (n / 1024).toFixed(1) + " KiB";
+			return (n / 1048576).toFixed(2) + " MiB";
+		}
+
+		function el(tag, cls, text) {
+			const e = document.createElement(tag);
+			if (cls) e.className = cls;
+			if (text !== undefined) e.textContent = text;
+			return e;
+		}
+
+		async function load() {
+			const err = document.getElementById("err");
+			err.hidden = true;
+			try {
+				const r = await fetch("api/storage_stats.php");
+				if (!r.ok) throw new Error("HTTP " + r.status);
+				const data = await r.json();
+				render(data);
+			} catch (e) {
+				err.textContent = "Could not load storage stats. Run a local PHP server from the web/ directory (e.g. php -S localhost:8080 -t web).";
+				err.hidden = false;
+			}
+		}
+
+		function render(data) {
+			const t = data.totals;
+			const stats = document.getElementById("stats");
+			stats.innerHTML = "";
+			const cards = [
+				["Logical files", String(t.logical_files), "Indexed entries"],
+				["Containers", String(t.containers), fmtBytes(t.container_disk_bytes) + " on disk"],
+				["Raw (all)", fmtBytes(t.raw_bytes_all), "Uncompressed logical total"],
+				["Loose vs packed", fmtBytes(t.raw_bytes_loose) + " / " + fmtBytes(t.raw_bytes_in_containers), "By backing"],
+			];
+			for (const [label, value, sub] of cards) {
+				const d = el("div", "stat");
+				d.appendChild(el("div", "label", label));
+				d.appendChild(el("div", "value", value));
+				d.appendChild(el("div", "sub", sub));
+				stats.appendChild(d);
+			}
+
+			const cdiv = document.getElementById("containers");
+			cdiv.innerHTML = "";
+			if (!data.containers.length) {
+				cdiv.appendChild(el("p", null, "No containers in index."));
+			} else {
+				data.containers.forEach((c) => {
+					const p = el("div", "suggestion");
+					p.appendChild(el("div", "row", null));
+					const row = p.querySelector(".row");
+					row.appendChild(el("strong", null, c.id));
+					row.appendChild(el("span", "paths", c.physical + " · " + fmtBytes(c.byte_size)));
+					cdiv.appendChild(p);
+				});
+			}
+
+			const tb = document.querySelector("#file-table tbody");
+			tb.innerHTML = "";
+			data.files.forEach((f) => {
+				const tr = el("tr");
+				tr.appendChild(el("td", null, f.logical_path));
+				const tdSt = el("td");
+				const b = el("span", "badge " + (f.storage === "loose" ? "loose" : "fzc"), f.storage);
+				tdSt.appendChild(b);
+				tr.appendChild(tdSt);
+				tr.appendChild(el("td", null, fmtBytes(f.raw_bytes)));
+				tr.appendChild(el("td", null, f.container_id || "—"));
+				tb.appendChild(tr);
+			});
+
+			const sdiv = document.getElementById("suggestions");
+			sdiv.innerHTML = "";
+			data.compaction_suggestions.forEach((s, i) => {
+				const box = el("div", "suggestion");
+				const row = el("div", "row");
+				row.appendChild(el("strong", null, "Cluster " + (i + 1)));
+				row.appendChild(el("span", "rec " + (s.recommend_compact ? "yes" : "no"), s.recommend_compact ? "Compact" : "Keep loose"));
+				row.appendChild(el("span", "score", "score " + s.score + " · Δbytes est " + s.bytes_saved_est + " · latency u " + s.latency_units));
+				box.appendChild(row);
+				box.appendChild(el("div", "paths", s.candidate_ids.join(", ")));
+				box.appendChild(el("div", "paths", s.notes));
+				sdiv.appendChild(box);
+			});
+		}
+
+		load();
+	</script>
+</body>
+</html>

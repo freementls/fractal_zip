@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+# Extract a .fzc archive (same as: fz extract <file.fzc> [out_dir]).
+ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+exec php "$ROOT/fractal_zip_cli.php" extract "$@"
