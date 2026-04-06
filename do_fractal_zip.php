@@ -9,7 +9,7 @@ include('fractal_zip.php');
 //$fractal_zip = new fractal_zip(1.1);
 //$fractal_zip = new fractal_zip(10, 20000);
 //$fractal_zip = new fractal_zip(10, 1000); // improvement factor is now sort of dynamic
-$fractal_zip = new fractal_zip(140);
+$fractal_zip = new fractal_zip();
 //$fractal_zip = new fractal_zip(1000);
 
 //$fractal_zip->create_fractal_file('test_files21' . DS . '2Dfractal.txt', '<l9><0"35><0"35><35"35><0"35><35"35><70"35><35"35><70"35><70"35>', 'aaa<s15>aaa<s15>aaa<s15>aaa<s15>aaabbb<s15>bbb<s15>bbb<s15>bbb<s15>bbbccc<s15>ccc<s15>ccc<s15>ccc<s15>ccc');
