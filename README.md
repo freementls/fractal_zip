@@ -34,7 +34,7 @@ Version 0.3
 
 **Where it can help**
 
-- On **some structured or repetitive trees**, benchmarks show **smaller archives than gzip-9 or 7z directory mode** (see the **[unified benchmark table](#benchmark-results-all-corpora)**; e.g. `test_files61`, `test_files62`, `test_files69`).
+- On **some structured or repetitive trees**, benchmarks show **smaller archives than gzip-9 or 7z directory mode**; e.g. `test_files61`, `test_files62`, `test_files69`).
 - It understands **folders as first-class data**: paths, per-member encoding, optional **literal transforms**, **image PAC**, **gzip peel**, **multi-FLAC merge (FZCD)** when codecs match—features a raw “tar + gzip” stack does not replicate.
 - The format is **interesting for experimentation** and for **pipelines already in PHP** where you control both sides (encode + decode).
 
@@ -100,8 +100,6 @@ php fractal_zip_cli.php help
 Tuning env vars (`FRACTAL_ZIP_SEGMENT_LENGTH`, `FRACTAL_ZIP_MULTIPASS`, `FRACTAL_ZIP_FLACPAC`, etc.) apply the same here as in PHP or benchmarks.
 
 ## Benchmark results (all corpora)
-
-Single table for every `test_files*` tree referenced in docs or the benchmark driver. **—** in a numeric column means that figure is not filled in for this README (run the commands below and paste from JSON). **best ext** is the min-ext tarball tournament (omit `--no-best-ext` when measuring). **Notes** describe what *kinds of files* each corpus contains, not how to run the bench.
 
 **How to reproduce / refresh:** snapshot runs (e.g. `59_sample`, `61`, `62`, `69`) used `--no-verify` and `--no-best-ext`; outer wrapper and zip time live in JSON as `outer_codec` and `zip_seconds`. For huge trees use **`--with-huge-corpora`** or **`--only=…`**; add **`--large`** / **`--no-case-timeout`** when the driver would otherwise skip or shorten a case. On the snapshot recorded here, **`test_files59_sample`** had **7z** (dir) smaller than **`.fzc`** on bytes; **`test_files60`** is worth re-measuring when you care about FZCD vs best-ext.
 
