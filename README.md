@@ -1,6 +1,30 @@
 # fractal_zip
 
-I challenge you to beat this compression code!
+**I challenge you to beat this compression code!**
+
+```bash
+php benchmarks/run_benchmarks.php --only=<corpus> --json --no-baseline-cache
+```
+
+| Corpus | raw B | gzip-9 B | 7z dir B | best ext B | .fzc B | winner | Notes |
+|--------|------:|---------:|---------:|-----------:|-------:|:------:|--------|
+| test_files | 1098 | 89 | 247 | 204 | 77 | fzc | Eight short `.txt` files. |
+| test_files2 | 1100 | 135 | 296 | 254 | 122 | fzc | Eight short `.txt` files (layout like `test_files`, different strings). |
+| test_files4 | 85 | 113 | 244 | 202 | 104 | fzc | Two tiny `.txt` files. |
+| test_files10 | 29076 | 274 | 331 | 230 | 147 | fzc | Two `.bmp` images (incl. patterned squares). |
+| test_files11 | 29076 | 280 | 340 | 244 | 154 | fzc | Two `.bmp` images (variant of `test_files10`). |
+| test_files13 | 62870 | 7789 | 7199 | 6281 | 6207 | fzc | Many `.html` pages (numeric filenames). |
+| test_files28 | 9498 | 1102 | 1115 | 1009 | 921 | fzc | Single small `.bmp`. |
+| test_files29 | 1277926 | 7970 | 7726 | 273 | 209 | fzc | Single huge highly repetitive `.txt` (pathological / demo). |
+| test_files35 | 4149414 | 1254372 | 976020 | 976568 | 797611 | fzc | Single large `.bmp` (photo stress). |
+| test_files49 | 85083 | 23821 | 21849 | 20395 | 20336 | fzc | Single `phpinfo` `.html` (your export will not match byte-for-byte). |
+| test_files50 | 932 | 1172 | 997 | 1056 | 519 | fzc | Synthetic micro-corpus: hundreds of tiny files. |
+| test_files51 | 597 | 884 | 769 | 872 | 313 | fzc | Synthetic micro-corpus: hundreds of tiny files. |
+| test_files52 | 380 | 766 | 535 | 582 | 92 | fzc | Hundreds of numbered `.txt` slices. |
+| test_files53 | 940298 | 121338 | 93727 | 80997 | 80820 | fzc | Single large `.csv` (e.g. product export). |
+| test_files61 | 4826840 | 2023050 | 1087089 | — | 1080447 | fzc | Multi-format rasters (PNG/GIF/WebP/JPEG, etc.) and nested folders. |
+| test_files62 | 17364 | 737 | 735 | — | 401 | fzc | Synthetic tree of `.gz` members (gzip peel / literal-bundle stress). |
+| test_files69 | 3534825 | 3248719 | 3242472 | — | 3234508 | fzc | Stratified mix: text, HTML, nested HTML, phpinfo, rasters, FLAC+m3u, SC2Replay path, gzip-peel dupes. |
 
 Version 0.3
 
@@ -77,9 +101,11 @@ Tuning env vars (`FRACTAL_ZIP_SEGMENT_LENGTH`, `FRACTAL_ZIP_MULTIPASS`, `FRACTAL
 
 ## Benchmark results (all corpora)
 
-Single table for every `test_files*` tree referenced in docs or the benchmark driver. **—** means that column was not recorded for this README row (run the commands below and paste JSON). **best ext** is the min-ext tarball tournament (omit `--no-best-ext` when measuring). **outer** / **zip s** come from JSON `outer_codec` and `zip_seconds` when the snapshot command was used; legacy rows use **—** there until re-run.
+Single table for every `test_files*` tree referenced in docs or the benchmark driver. **—** in a numeric column means that figure is not filled in for this README (run the commands below and paste from JSON). **best ext** is the min-ext tarball tournament (omit `--no-best-ext` when measuring). **Notes** describe what *kinds of files* each corpus contains, not how to run the bench.
 
-**Snapshot command** (outer + zip s; leaves **best ext** empty unless you re-run without `--no-best-ext`):
+**How to reproduce / refresh:** snapshot runs (e.g. `59_sample`, `61`, `62`, `69`) used `--no-verify` and `--no-best-ext`; outer wrapper and zip time live in JSON as `outer_codec` and `zip_seconds`. For huge trees use **`--with-huge-corpora`** or **`--only=…`**; add **`--large`** / **`--no-case-timeout`** when the driver would otherwise skip or shorten a case. On the snapshot recorded here, **`test_files59_sample`** had **7z** (dir) smaller than **`.fzc`** on bytes; **`test_files60`** is worth re-measuring when you care about FZCD vs best-ext.
+
+**Snapshot command:**
 
 ```bash
 FRACTAL_ZIP_BENCH_MEMORY_LIMIT=2G \
@@ -90,47 +116,9 @@ php benchmarks/run_benchmarks.php \
   --only=<corpus> --large --no-verify --no-case-timeout --no-baseline-cache --no-best-ext --json
 ```
 
-**Legacy / best-ext command** (fill **best ext** and **verify**):
+**Legacy / best-ext command** (fills **best ext** column):
 
-```bash
-php benchmarks/run_benchmarks.php --only=<corpus> --json --no-baseline-cache
-```
 
-Add **`--large`** for `test_files35` and heavy names; **`--no-case-timeout`** if the default cap skips a case; **`--with-huge-corpora`** for `test_files54`–`test_files59` full trees. Re-run before publishing; tool versions move **best ext** slightly.
-
-| Corpus | raw B | gzip-9 B | 7z dir B | best ext B | .fzc B | winner | outer | zip s | verify | Notes |
-|--------|------:|---------:|---------:|-----------:|-------:|:------:|:-----:|------:|:------:|--------|
-| test_files | 1098 | 89 | 247 | 204 | 77 | fzc | — | — | ok | Legacy row; re-run snapshot for outer/zip. |
-| test_files2 | 1100 | 135 | 296 | 254 | 122 | fzc | — | — | ok | Same. |
-| test_files4 | 85 | 113 | 244 | 202 | 104 | fzc | — | — | ok | Same. |
-| test_files10 | 29076 | 274 | 331 | 230 | 147 | fzc | — | — | ok | Same. |
-| test_files11 | 29076 | 280 | 340 | 244 | 154 | fzc | — | — | ok | Same. |
-| test_files13 | 62870 | 7789 | 7199 | 6281 | 6207 | fzc | — | — | ok | Same. |
-| test_files28 | 9498 | 1102 | 1115 | 1009 | 921 | fzc | — | — | ok | Same. |
-| test_files29 | 1277926 | 7970 | 7726 | 273 | 209 | fzc | — | — | ok | Same. |
-| test_files35 | 4149414 | 1254372 | 976020 | 976568 | 797611 | fzc | — | — | ok | Use **`--large`**. |
-| test_files49 | 85083 | 23821 | 21849 | 20395 | 20336 | fzc | — | — | ok | Your **phpinfo** bytes will not match this row. |
-| test_files50 | 932 | 1172 | 997 | 1056 | 519 | fzc | — | — | ok | Optional corpus; **`--with-synthetic-micro`**. |
-| test_files51 | 597 | 884 | 769 | 872 | 313 | fzc | — | — | ok | Same. |
-| test_files52 | 380 | 766 | 535 | 582 | 92 | fzc | — | — | ok | Legacy row. |
-| test_files53 | 940298 | 121338 | 93727 | 80997 | 80820 | fzc | — | — | ok | Legacy row. |
-| test_files54 | — | — | — | — | — | — | — | — | — | **Not filled** — large tree; **`--with-huge-corpora`**, long run. |
-| test_files54_sample | — | — | — | — | — | — | — | — | — | **Not filled** — optional slice corpus; run `--only=test_files54_sample` if present. |
-| test_files55 | — | — | — | — | — | — | — | — | — | **Not filled** — same. |
-| test_files55_full | — | — | — | — | — | — | — | — | — | **Not filled** — full SC2-style tree variant. |
-| test_files56 | — | — | — | — | — | — | — | — | — | **Not filled** — large tree. |
-| test_files56_full | — | — | — | — | — | — | — | — | — | **Not filled** — full variant. |
-| test_files57 | — | — | — | — | — | — | — | — | — | **Not filled** — large tree. |
-| test_files58 | — | — | — | — | — | — | — | — | — | **Not filled** — large tree. |
-| test_files58_sample | — | — | — | — | — | — | — | — | — | **Not filled** — generated slice; run `--only=test_files58_sample`. |
-| test_files59 | — | — | — | — | — | — | — | — | — | **Not filled** — huge album-scale tree. |
-| test_files59_sample | 113503105 | 113482086 | 113391087 | — | 114103498 | 7z | zstd | ~362 | — | Snapshot; **7z** dir beats **.fzc** on bytes; **`--no-verify`**, **`--no-best-ext`**. FLAC-heavy. |
-| test_files60 | — | — | — | — | — | — | — | — | — | **Not filled** — short FLAC excerpt corpus; FZCD-focused; run `--only=test_files60`. |
-| test_files61 | 4826840 | 2023050 | 1087089 | — | 1080447 | fzc | brotli | ~21 | — | Snapshot; **`--no-best-ext`**. |
-| test_files62 | 17364 | 737 | 735 | — | 401 | fzc | brotli | ~85 | — | Snapshot; synthetic `.gz` peel stress; slow zip. |
-| test_files69 | 3534825 | 3248719 | 3242472 | — | 3234508 | fzc | 7z | ~93 | — | Snapshot; stratified multi-type slice. |
-
-**Regressions / ties to watch:** `test_files59_sample` (**7z** won bytes vs `.fzc` in the snapshot above). `test_files60` is often competitive with **best_ext** vs `.fzc` depending on flags — fill the row from JSON when you care.
 
 ## Automated benchmarks (this repo)
 
