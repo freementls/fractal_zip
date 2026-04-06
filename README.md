@@ -4,20 +4,19 @@ I challenge you to beat this compression code!
 
 Version 0.3
 
-**fractal_zip** is a PHP library and reference CLI for a **custom lossless folder format** (`.fzc`): a fractal-style inner representation plus an **adaptive outer** wrapper (gzip, 7-Zip, zstd, brotli, …). It is aimed at **research, integration in PHP**, and **datasets where its heuristics actually win bytes**—not at replacing zip/7z as a general-purpose archiver for everyday use.
+**fractal_zip** is a PHP library and reference CLI for a **custom lossless folder format** (`.fzc`): a fractal-style inner representation plus an **adaptive outer** wrapper (gzip, 7-Zip, zstd, brotli, …). It is aimed at **research, integration in PHP**, and **datasets where its heuristics actually win bytes**—not at replacing zip/7z as a general-purpose archiver for everyday use yet.
 
 ## Honest utility (description and review)
 
 **Where it can help**
 
-- On **some structured or repetitive trees**, benchmarks show **smaller archives than gzip-9 or 7z directory mode** (see the tables below, e.g. `test_files61`, `test_files62`, `test_files69`).
+- On **some structured or repetitive trees**, benchmarks show **smaller archives than gzip-9 or 7z directory mode** (see the **[unified benchmark table](#benchmark-results-all-corpora)**; e.g. `test_files61`, `test_files62`, `test_files69`).
 - It understands **folders as first-class data**: paths, per-member encoding, optional **literal transforms**, **image PAC**, **gzip peel**, **multi-FLAC merge (FZCD)** when codecs match—features a raw “tar + gzip” stack does not replicate.
 - The format is **interesting for experimentation** and for **pipelines already in PHP** where you control both sides (encode + decode).
 
 **Where it struggles**
 
 - **CPU time** is usually **orders of magnitude worse** than 7z, gzip, or zstd on similar hardware: the implementation is **unoptimized PHP** with heavy string work and subprocess outer trials.
-- **Size is not universally best.** On **FLAC-heavy** material, **7z can still beat `.fzc`** (see `test_files59_sample` in the snapshot). Incompressible or near-random payloads offer little benefit and still pay high cost.
 - **Operational weight:** best results often assume **7z** (and optionally other tools) on `PATH`; **FZCD** needs **ffmpeg/ffprobe**. That is more moving parts than “single static `zstd` binary.”
 - **Byte-identical round-trip** is not always meaningful: **FZCD** and some PAC paths are **semantically lossless** (PCM / pixels) but may **not** match original file bytes—benchmark **verify** may report failures unless those features are off.
 
@@ -76,9 +75,11 @@ php fractal_zip_cli.php help
 
 Tuning env vars (`FRACTAL_ZIP_SEGMENT_LENGTH`, `FRACTAL_ZIP_MULTIPASS`, `FRACTAL_ZIP_FLACPAC`, etc.) apply the same here as in PHP or benchmarks.
 
-## Benchmark snapshot (recent corpora)
+## Benchmark results (all corpora)
 
-Reproducible command (used for the rows below):
+Single table for every `test_files*` tree referenced in docs or the benchmark driver. **—** means that column was not recorded for this README row (run the commands below and paste JSON). **best ext** is the min-ext tarball tournament (omit `--no-best-ext` when measuring). **outer** / **zip s** come from JSON `outer_codec` and `zip_seconds` when the snapshot command was used; legacy rows use **—** there until re-run.
+
+**Snapshot command** (outer + zip s; leaves **best ext** empty unless you re-run without `--no-best-ext`):
 
 ```bash
 FRACTAL_ZIP_BENCH_MEMORY_LIMIT=2G \
@@ -89,41 +90,47 @@ php benchmarks/run_benchmarks.php \
   --only=<corpus> --large --no-verify --no-case-timeout --no-baseline-cache --no-best-ext --json
 ```
 
-| Corpus | raw B | gzip-9 B | 7z dir B | .fzc B | Bytes winner | Outer codec | zip s | Notes |
-|--------|------:|---------:|---------:|-------:|:------------:|:-----------:|------:|--------|
-| test_files61 | 4826840 | 2023050 | 1087089 | **1080447** | **fzc** | brotli | ~21 | Multi-format rasters + nested layout. |
-| test_files62 | 17364 | 737 | 735 | **401** | **fzc** | brotli | ~85 | Synthetic `.gz` peel / bundle stress; very small output, slow zip. |
-| test_files69 | 3534825 | 3248719 | 3242472 | **3234508** | **fzc** | 7z | ~93 | Stratified slice (~3.8 MiB on disk): text, HTML, rasters, FLAC sidecars, SC2Replay, gzip dupes. |
+**Legacy / best-ext command** (fill **best ext** and **verify**):
 
-Re-run before publishing; times and **outer_codec** depend on machine and installed tools. **`--no-best-ext`** skips the min-ext tarball column (arc/zstd/brotli/xz/…). Drop **`--no-verify`** when you want byte-identical round-trip checks (FLAC FZCD and some PAC paths may still fail strict verify).
+```bash
+php benchmarks/run_benchmarks.php --only=<corpus> --json --no-baseline-cache
+```
 
-## Measured sizes (for README tables)
+Add **`--large`** for `test_files35` and heavy names; **`--no-case-timeout`** if the default cap skips a case; **`--with-huge-corpora`** for `test_files54`–`test_files59` full trees. Re-run before publishing; tool versions move **best ext** slightly.
 
-For **test_files59_sample**, **test_files61**, **test_files62**, and **test_files69**, prefer the **[Benchmark snapshot](#benchmark-snapshot-recent-corpora)** table (fixed env + flags, dated runs).
+| Corpus | raw B | gzip-9 B | 7z dir B | best ext B | .fzc B | winner | outer | zip s | verify | Notes |
+|--------|------:|---------:|---------:|-----------:|-------:|:------:|:-----:|------:|:------:|--------|
+| test_files | 1098 | 89 | 247 | 204 | 77 | fzc | — | — | ok | Legacy row; re-run snapshot for outer/zip. |
+| test_files2 | 1100 | 135 | 296 | 254 | 122 | fzc | — | — | ok | Same. |
+| test_files4 | 85 | 113 | 244 | 202 | 104 | fzc | — | — | ok | Same. |
+| test_files10 | 29076 | 274 | 331 | 230 | 147 | fzc | — | — | ok | Same. |
+| test_files11 | 29076 | 280 | 340 | 244 | 154 | fzc | — | — | ok | Same. |
+| test_files13 | 62870 | 7789 | 7199 | 6281 | 6207 | fzc | — | — | ok | Same. |
+| test_files28 | 9498 | 1102 | 1115 | 1009 | 921 | fzc | — | — | ok | Same. |
+| test_files29 | 1277926 | 7970 | 7726 | 273 | 209 | fzc | — | — | ok | Same. |
+| test_files35 | 4149414 | 1254372 | 976020 | 976568 | 797611 | fzc | — | — | ok | Use **`--large`**. |
+| test_files49 | 85083 | 23821 | 21849 | 20395 | 20336 | fzc | — | — | ok | Your **phpinfo** bytes will not match this row. |
+| test_files50 | 932 | 1172 | 997 | 1056 | 519 | fzc | — | — | ok | Optional corpus; **`--with-synthetic-micro`**. |
+| test_files51 | 597 | 884 | 769 | 872 | 313 | fzc | — | — | ok | Same. |
+| test_files52 | 380 | 766 | 535 | 582 | 92 | fzc | — | — | ok | Legacy row. |
+| test_files53 | 940298 | 121338 | 93727 | 80997 | 80820 | fzc | — | — | ok | Legacy row. |
+| test_files54 | — | — | — | — | — | — | — | — | — | **Not filled** — large tree; **`--with-huge-corpora`**, long run. |
+| test_files54_sample | — | — | — | — | — | — | — | — | — | **Not filled** — optional slice corpus; run `--only=test_files54_sample` if present. |
+| test_files55 | — | — | — | — | — | — | — | — | — | **Not filled** — same. |
+| test_files55_full | — | — | — | — | — | — | — | — | — | **Not filled** — full SC2-style tree variant. |
+| test_files56 | — | — | — | — | — | — | — | — | — | **Not filled** — large tree. |
+| test_files56_full | — | — | — | — | — | — | — | — | — | **Not filled** — full variant. |
+| test_files57 | — | — | — | — | — | — | — | — | — | **Not filled** — large tree. |
+| test_files58 | — | — | — | — | — | — | — | — | — | **Not filled** — large tree. |
+| test_files58_sample | — | — | — | — | — | — | — | — | — | **Not filled** — generated slice; run `--only=test_files58_sample`. |
+| test_files59 | — | — | — | — | — | — | — | — | — | **Not filled** — huge album-scale tree. |
+| test_files59_sample | 113503105 | 113482086 | 113391087 | — | 114103498 | 7z | zstd | ~362 | — | Snapshot; **7z** dir beats **.fzc** on bytes; **`--no-verify`**, **`--no-best-ext`**. FLAC-heavy. |
+| test_files60 | — | — | — | — | — | — | — | — | — | **Not filled** — short FLAC excerpt corpus; FZCD-focused; run `--only=test_files60`. |
+| test_files61 | 4826840 | 2023050 | 1087089 | — | 1080447 | fzc | brotli | ~21 | — | Snapshot; **`--no-best-ext`**. |
+| test_files62 | 17364 | 737 | 735 | — | 401 | fzc | brotli | ~85 | — | Snapshot; synthetic `.gz` peel stress; slow zip. |
+| test_files69 | 3534825 | 3248719 | 3242472 | — | 3234508 | fzc | 7z | ~93 | — | Snapshot; stratified multi-type slice. |
 
-Numbers below come from `php benchmarks/run_benchmarks.php --only=<corpus> --json --no-baseline-cache` on this tree (add **`--large`** for **`test_files35`** as in the main benchmark driver, and **`--no-case-timeout`** if the default per-case cap would skip it). Re-run before publishing; **best_ext** (brotli/zstd/arc/xz tournament) can move slightly between tool versions. **Outer codec** for `.fzc` is in the JSON `outer_codec` field.
-
-| Corpus | raw B | gzip-9 tarball B | 7z dir B | best ext dir B | .fzc B | bytes winner | verify |
-|--------|------:|-----------------:|---------:|---------------:|-------:|:------------:|:------:|
-| test_files | 1098 | 89 | 247 | 204 | 77 | fzc | ok |
-| test_files2 | 1100 | 135 | 296 | 254 | 122 | fzc | ok |
-| test_files4 | 85 | 113 | 244 | 202 | 104 | fzc | ok |
-| test_files10 | 29076 | 274 | 331 | 230 | 147 | fzc | ok |
-| test_files11 | 29076 | 280 | 340 | 244 | 154 | fzc | ok |
-| test_files13 | 62870 | 7789 | 7199 | 6281 | 6207 | fzc | ok |
-| test_files28 | 9498 | 1102 | 1115 | 1009 | 921 | fzc | ok |
-| test_files29 | 1277926 | 7970 | 7726 | 273 | 209 | fzc | ok |
-| test_files35 | 4149414 | 1254372 | 976020 | 976568 | 797611 | fzc | ok |
-| test_files49 | 85083 | 23821 | 21849 | 20395 | 20336 | fzc | ok |
-| test_files50 | 932 | 1172 | 997 | 1056 | 519 | fzc | ok |
-| test_files51 | 597 | 884 | 769 | 872 | 313 | fzc | ok |
-| test_files52 | 380 | 766 | 535 | 582 | 92 | fzc | ok |
-| test_files53 | 940298 | 121338 | 93727 | 80997 | 80820 | fzc | ok |
-| test_files62 | 17364 | 737 | 735 | — | 401 | fzc | — |
-
-**Not a byte winner on this tree (gzip‑9 / 7z / best‑ext vs `.fzc`):** e.g. `test_files60` (best_ext vs `.fzc` can favor best_ext depending on flags), and **`test_files59_sample`** under the snapshot command above (**7z** dir beat `.fzc` in that run). Reproduce with `php benchmarks/run_benchmarks.php --only=<name> --large --no-case-timeout --json --no-baseline-cache` (add env / flags as in the snapshot block). Improving FLAC-heavy and edge corpora remains a ratio target.
-
-**Not filled in above:** multi‑hundred‑MiB trees `test_files54`–`test_files59` need `--with-huge-corpora` (and patience); run the same JSON command per corpus when you want rows for the README.
+**Regressions / ties to watch:** `test_files59_sample` (**7z** won bytes vs `.fzc` in the snapshot above). `test_files60` is often competitive with **best_ext** vs `.fzc` depending on flags — fill the row from JSON when you care.
 
 ## Automated benchmarks (this repo)
 
