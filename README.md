@@ -1,12 +1,12 @@
 # fractal_zip
 
+**I challenge you to beat this compression code!**
+
 **Web demos:** [Compress to `.fzc`](https://freement.cloud/fractal_zip/examples/fzc_compress.php) · [Extract `.fzc`](https://freement.cloud/fractal_zip/examples/fzc_extract.php)
 
 These are shared, best-effort pages—**please avoid huge uploads** (multi‑GB trees, enormous archives). Compression and extraction are slow in PHP and long jobs hurt the machine for everyone. For serious or large corpora, run the **CLI** locally or host your own copy of `examples/fzc_compress.php` / `fzc_extract.php`.
 
-![Please don’t upload massive files to the public demos—this cat is already exhausted.](docs/web-demo-large-uploads-note.png)
-
-**I challenge you to beat this compression code!**
+![Please don’t upload massive files to the public demos—this cat is already exhausted.](cat-кот.png)
 
 ```bash
 php benchmarks/run_benchmarks.php --only=<corpus> --json --no-baseline-cache
