@@ -6,7 +6,8 @@
 
 These are shared, best-effort pages—**please avoid huge uploads** (multi‑GB trees, enormous archives). Compression and extraction are slow in PHP and long jobs hurt the machine for everyone. For serious or large corpora, run the **CLI** locally or host your own copy of `examples/fzc_compress.php` / `fzc_extract.php`.
 
-![Please don’t upload massive files to the public demos—this cat is already exhausted.](cat-кот.gif)
+Please don’t upload massive files to the public demos—this cat is already exhausted.
+<img src="cat-кот.gif" width="200" alt="Please don’t upload massive files to the public demos—this cat is already exhausted." />
 
 ```bash
 php benchmarks/run_benchmarks.php --only=<corpus> --json --no-baseline-cache
