@@ -6,8 +6,8 @@
 
 These are shared, best-effort pages—**please avoid huge uploads** (multi‑GB trees, enormous archives). Compression and extraction are slow in PHP and long jobs hurt the machine for everyone. For serious or large corpora, run the **CLI** locally or host your own copy of `examples/fzc_compress.php` / `fzc_extract.php`.
 
-Please don’t upload massive files to the public demos—this cat is already exhausted.
-<img src="cat-кот.gif" width="200" alt="Please don’t upload massive files to the public demos—this cat is already exhausted." />
+Please don’t upload massive files to the public demos—server administrator is already too busy.
+<img src="busy-cats.gif" width="200" alt="Please don’t upload massive files to the public demos—server administrator is already too busy." />
 
 ```bash
 php benchmarks/run_benchmarks.php --only=<corpus> --json --no-baseline-cache
@@ -29,9 +29,9 @@ php benchmarks/run_benchmarks.php --only=<corpus> --json --no-baseline-cache
 | test_files51 | 597 | 884 | 769 | 872 | 313 | fzc | Synthetic micro-corpus: hundreds of tiny files. |
 | test_files52 | 380 | 766 | 535 | 582 | 92 | fzc | Hundreds of numbered `.txt` slices. |
 | test_files53 | 940298 | 121338 | 93727 | 80997 | 80820 | fzc | Single large `.csv` (e.g. product export). |
-| test_files61 | 4826840 | 2023050 | 1087089 | — | 1080447 | fzc | Multi-format rasters (PNG/GIF/WebP/JPEG, etc.) and nested folders. |
-| test_files62 | 17364 | 737 | 735 | — | 401 | fzc | Synthetic tree of `.gz` members (gzip peel / literal-bundle stress). |
-| test_files69 | 3534825 | 3248719 | 3242472 | — | 3234508 | fzc | Stratified mix: text, HTML, nested HTML, phpinfo, rasters, FLAC+m3u, SC2Replay path, gzip-peel dupes. |
+| test_files61 | 4826840 | 2023050 | 1087089 | 1078935 | 1080447 | ext | Multi-format rasters (PNG/GIF/WebP/JPEG, etc.) and nested folders. Smallest column is **brotli** min-ext tarball (benchmark tournament). |
+| test_files62 | 17364 | 737 | 735 | 740 | 401 | fzc | Synthetic tree of `.gz` members (gzip peel / literal-bundle stress). |
+| test_files69 | 3534825 | 3248719 | 3242480 | 3239432 | 3234508 | fzc | Stratified mix: text, HTML, nested HTML, phpinfo, rasters, FLAC+m3u, SC2Replay path, gzip-peel dupes. |
 
 Version 0.3
 
@@ -108,7 +108,7 @@ Tuning env vars (`FRACTAL_ZIP_SEGMENT_LENGTH`, `FRACTAL_ZIP_MULTIPASS`, `FRACTAL
 
 ## Benchmark results (all corpora)
 
-**How to reproduce / refresh:** snapshot runs (e.g. `59_sample`, `61`, `62`, `69`) used `--no-verify` and `--no-best-ext`; outer wrapper and zip time live in JSON as `outer_codec` and `zip_seconds`. For huge trees use **`--with-huge-corpora`** or **`--only=…`**; add **`--large`** / **`--no-case-timeout`** when the driver would otherwise skip or shorten a case. On the snapshot recorded here, **`test_files59_sample`** had **7z** (dir) smaller than **`.fzc`** on bytes; **`test_files60`** is worth re-measuring when you care about FZCD vs best-ext.
+**How to reproduce / refresh:** some older snapshots used `--no-verify` and `--no-best-ext` to save time; **best ext** for `test_files61` / `62` / `69` matches `benchmarks/.baseline_cache.json` and a fresh `php benchmarks/run_benchmarks.php --only=test_files69 --json --no-verify --no-case-timeout` (see JSON `best_ext_folder_bytes`). Outer wrapper and zip time live in JSON as `outer_codec` and `zip_seconds`. For huge trees use **`--with-huge-corpora`** or **`--only=…`**; add **`--large`** / **`--no-case-timeout`** when the driver would otherwise skip or shorten a case. On the snapshot recorded here, **`test_files59_sample`** had **7z** (dir) smaller than **`.fzc`** on bytes; **`test_files60`** is worth re-measuring when you care about FZCD vs best-ext.
 
 **Snapshot command:**
 
@@ -232,7 +232,7 @@ general comments
 <li><strong>.fzc pipeline:</strong> per-file payloads and the shared fractal (or lazy) string are encoded as an inner container (<strong><code>FZC2</code></strong> when safe, else <strong><code>FZC1</code></strong>; legacy <code>serialize()</code> still decodes). That inner blob is passed through <code>adaptive_compress</code>: it competes <strong>gzip-9</strong> against staged <strong>7-Zip</strong> (and optional zstd/brotli/FreeArc when available), keeping the smallest outer wrapper. On Linux/macOS, install <strong>p7zip</strong> and ensure <code>7z</code> is on <code>PATH</code>. Override with env <code>FRACTAL_ZIP_FORCE_OUTER=gzip</code> or <code>FRACTAL_ZIP_SKIP_7Z=1</code>. After writing the file, <code>fractal_zip::$last_written_container_codec</code> records the chosen outer codec.</li>
 <li>fractal_zip is currently very slow. Other compression code is clearly superior in speed (for the test files fractal_zip alternatives takes an insignificant amount of time ~1 second while fractal zip takes a significant amount of time). There are various reasons for this: it is unoptimized and it is written in PHP and it is doing more than the others. Outer 7z adds subprocess cost per candidate blob but often improves size versus gzip alone.</li>
 <li>fractal_zip is currently very basic. The only operation it uses is substring and more operations (translation, rotation, scaling, etc.) would surely add to its compressability.</li>
-<li>Currently, the file metadata (path, date modified, packed size, etc.) is wastefully encoded twice since fractal_zip does this and 7-zip does this independantly. So, currently, in order to compress more, fractal_zip has to overcome this extra obstacle.</li>
+<li><strong>Inner vs outer (not a second copy of the tree):</strong> Member paths, layout, and payloads are carried in the <strong>inner</strong> container (<code>FZC1</code>/<code>FZC2</code>, FZCD/FZB4, etc.). The <strong>outer</strong> step (<code>adaptive_compress</code>: gzip‑9, 7‑Zip, …) treats that inner serialization as <strong>one opaque byte string</strong> and compresses it again—it does <strong>not</strong> rebuild a separate full directory catalog of every original path the way <strong>7z in “directory” benchmark mode</strong> does on the live folder. You still pay <strong>outer framing overhead</strong> (headers, stream metadata) and a second compression pass on those bytes, which can leave redundant patterns if the inner blob stays somewhat textual, but it is misleading to say path metadata is “encoded twice” by fractal_zip and by the outer 7z layer in the same sense.</li>
 <li>It's funny how compression code is effectively fractal in its development (whether known or unknown to the developers) itself. freearc uses 7-zip and RAR while fractal_zip currently uses 7-zip which uses LZMA which uses...</li>
 </ul>
 
