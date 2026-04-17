@@ -17,20 +17,22 @@ php benchmarks/run_benchmarks.php --only=<corpus> --json --no-baseline-cache
 |--------|------:|---------:|---------:|-----------:|-------:|:------:|--------|
 | test_files | 1098 | 89 | 247 | 204 | 77 | fzc | Eight short `.txt` files. |
 | test_files2 | 1100 | 135 | 296 | 254 | 122 | fzc | Eight short `.txt` files (layout like `test_files`, different strings). |
-| test_files4 | 85 | 113 | 244 | 202 | 104 | fzc | Two tiny `.txt` files. |
+| test_files4 | 85 | 113 | 244 | 202 | 102 | fzc | Two tiny `.txt` files. |
 | test_files10 | 29076 | 274 | 331 | 230 | 147 | fzc | Two `.bmp` images (incl. patterned squares). |
-| test_files11 | 29076 | 280 | 340 | 244 | 154 | fzc | Two `.bmp` images (variant of `test_files10`). |
-| test_files13 | 62870 | 7789 | 7199 | 6281 | 6207 | fzc | Many `.html` pages (numeric filenames). |
-| test_files28 | 9498 | 1102 | 1115 | 1009 | 921 | fzc | Single small `.bmp`. |
+| test_files11 | 29076 | 280 | 340 | 247 | 158 | fzc | Two `.bmp` images (variant of `test_files10`). |
+| test_files13 | 62870 | 7789 | 7199 | 6287 | 6173 | fzc | Many `.html` pages (numeric filenames). FZBM v1 picks a merged-payload **member order** (exhaustive when ≤6 files, same brotli-Q11 proxy as FZB4 path order) so repeated HTML structure lines up better for the outer codec. Disable: `FRACTAL_ZIP_LITERAL_BUNDLE_FZBM_ORDER=0`. |
+| test_files28 | 9498 | 1102 | 1115 | 996 | 921 | fzc | Single small `.bmp`; outer brotli Q11 may use lgwin 16 when it beats the encoder default. |
 | test_files29 | 1277926 | 7970 | 7726 | 273 | 209 | fzc | Single huge fractal `.txt` |
 | test_files35 | 4149414 | 1254372 | 976020 | 976568 | 797611 | fzc | Single large `.bmp` (photo stress). |
 | test_files49 | 85083 | 23821 | 21849 | 20395 | 20336 | fzc | Single `phpinfo` `.html` (your export will not match byte-for-byte). |
-| test_files50 | 932 | 1172 | 997 | 1056 | 519 | fzc | Synthetic micro-corpus: hundreds of tiny files. |
-| test_files51 | 597 | 884 | 769 | 872 | 313 | fzc | Synthetic micro-corpus: hundreds of tiny files. |
+| test_files50 | 932 | 1172 | 997 | 1056 | 496 | fzc | Synthetic micro-corpus: hundreds of tiny files; marginal literal transforms (e.g. strrev) are rejected unless the gzip-probe win clears a byte threshold so tiny README-style wins do not dominate. |
+| test_files51 | 597 | 884 | 769 | 872 | 306 | fzc | Synthetic micro-corpus: hundreds of tiny files. |
 | test_files52 | 380 | 766 | 535 | 582 | 92 | fzc | Hundreds of numbered `.txt` slices. |
 | test_files53 | 940298 | 121338 | 93727 | 80997 | 80820 | fzc | Single large `.csv` (e.g. product export). |
-| test_files61 | 4826840 | 2023050 | 1087089 | 1078935 | 1080447 | ext | Multi-format rasters (PNG/GIF/WebP/JPEG, etc.) and nested folders. Smallest column is **brotli** min-ext tarball (benchmark tournament). |
-| test_files62 | 17364 | 737 | 735 | 740 | 401 | fzc | Synthetic tree of `.gz` members (gzip peel / literal-bundle stress). |
+| test_files55 | 209994426 | 64533561 | 11775260 | 11700238 | 11647351 | fzc | Full StevieGee HTML tree (~200 MiB raw). **`--large`** + **`FRACTAL_ZIP_BENCH_MEMORY_LIMIT=4G`** + **`--no-case-timeout`**; **`verify_ok`**. `zip_seconds` ~1497 on snapshot (2026-04-17); **`outer_codec` `arc`**. |
+| test_files60 | 6767183 | 6749927 | 6718841 | 6717584 | 6717435 | fzc | Two `.flac` tracks + small sidecars (Discovery slice). Default **`FRACTAL_ZIP_FLACPAC` unset** = container-byte–identical FLACs; **`verify_ok`** on strict bench. `php benchmarks/run_benchmarks.php --only=test_files60 --no-case-timeout --json` (2026-04-16). `--large` optional here. |
+| test_files61 | 4826840 | 2023050 | 1087083 | 1078184 | 768105 | fzc | Multi-format rasters (PNG/GIF/WebP/JPEG, etc.) and nested folders. **`.fzc` beats min-ext brotli** on this snapshot; strict byte-identical verify may still report mismatches where PAC rewrites container bytes (semantically lossless pixels). |
+| test_files62 | 17364 | 737 | 735 | 740 | 533 | fzc | Synthetic tree of `.gz` members (gzip peel / raw-tier wire dual / FZG trailers; see `benchmarks/fzc_raw_tier_wire_dual_smoke.php`). |
 | test_files69 | 3534825 | 3248719 | 3242480 | 3239432 | 3234508 | fzc | Stratified mix: text, HTML, nested HTML, phpinfo, rasters, FLAC+m3u, SC2Replay path, gzip-peel dupes. |
 
 Version 0.3
@@ -41,7 +43,7 @@ Version 0.3
 
 **Where it can help**
 
-- On **some structured or repetitive trees**, benchmarks show **smaller archives than gzip-9 or 7z directory mode**; e.g. `test_files61`, `test_files62`, `test_files69`).
+- On **some structured or repetitive trees**, benchmarks show **smaller archives than gzip-9 or 7z directory mode**; e.g. `test_files55`, `test_files61`, `test_files62`, `test_files69`).
 - It understands **folders as first-class data**: paths, per-member encoding, optional **literal transforms**, **image PAC**, **gzip peel**, **multi-FLAC merge (FZCD)** when codecs match—features a raw “tar + gzip” stack does not replicate.
 - The format is **interesting for experimentation** and for **pipelines already in PHP** where you control both sides (encode + decode).
 
@@ -61,7 +63,7 @@ Version 0.3
 
 ## CLI: compress and extract
 
-The library prints HTML-style messages by default; the CLI **suppresses** them unless you set `FRACTAL_ZIP_CLI_VERBOSE=1`.
+The library prints HTML-style messages by default in web SAPIs; in **CLI** (including `benchmarks/run_benchmarks.php`), trace lines and orange/green HTML messages are **off** unless you set `FRACTAL_ZIP_CLI_VERBOSE=1`. Set `FRACTAL_ZIP_SUPPRESS_HTML=1` to force-quiet everywhere. Deep `var_dump` paths inside `fractally_process_string` need `FRACTAL_ZIP_FRACTAL_PROCESS_DEBUG=1`.
 
 ### `fz` (wrapper)
 
@@ -104,11 +106,11 @@ php fractal_zip_cli.php extract path/to/archive.fzc [output_directory]
 php fractal_zip_cli.php help
 ```
 
-Tuning env vars (`FRACTAL_ZIP_SEGMENT_LENGTH`, `FRACTAL_ZIP_MULTIPASS`, `FRACTAL_ZIP_FLACPAC`, etc.) apply the same here as in PHP or benchmarks.
+Tuning env vars (`FRACTAL_ZIP_SEGMENT_LENGTH`, `FRACTAL_ZIP_MULTIPASS`, `FRACTAL_ZIP_FLACPAC`, etc.) apply the same here as in PHP or benchmarks. **Lossless semantics:** for formats like FLAC we care about **semantic identity** (same decoded audio + the metadata that matters), not necessarily the same compressed `.flac` bitstream after re-encode. **Strict SHA1** benchmark verify is still **byte identity**; with **`FRACTAL_ZIP_FLACPAC` unset (default)** we keep **container-byte–identical** FLAC members so `verify_ok` passes without a FLAC semantic comparator. Set **`FRACTAL_ZIP_FLACPAC=1`** to allow merged-PCM FZCD and pursue smaller `.fzc` on album trees (expect SHA1 verify to fail until a FLAC semantic verify mode exists). On merged-fractal FZCD chunks, **`FRACTAL_ZIP_FLACPAC_PCM_PRETRANSFORM=0`** disables reversible PCM pre-transforms before fractal (default on when unset). When enabled, each chunk carries a **u8 preId** (current range **0–14**): **0** none; **1** / **12** first- / second-order per-channel temporal delta (s16/s32); **2** / **9** stereo side `R−L` (s16 / s32); **3** swap L/R; **4** stereo planar; **5** byte first-difference; **6** invert bytes; **7** XOR `0x80` per byte; **8** nibble-swap; **10** / **11** toggle sample sign (s16 / s32); **13** intra-frame channel deltas (≥2 ch); **14** per-sample endian byte swap (s16/s32). The encoder ranks strategies with **`gzdeflate` at `FRACTAL_ZIP_FLACPAC_PCM_PRE_GZIP_RANK_LEVEL`** (default **5**), optionally adds a **`FRACTAL_ZIP_FLACPAC_PCM_PRE_GZIP_DUAL_RANK=1`** tie-break (extra **gzip-1** pass), seeds **anchor** presets (temporal / delta2 / byte-diff / stereo helpers / **14** when applicable), then fills with ranked ids up to **`FRACTAL_ZIP_FLACPAC_PCM_PRE_FRACTAL_CANDIDATES`** (default **8**, max **16**). **Lossy** formats use separate, documented relaxed modes where applicable.
 
 ## Benchmark results (all corpora)
 
-**How to reproduce / refresh:** some older snapshots used `--no-verify` and `--no-best-ext` to save time; **best ext** for `test_files61` / `62` / `69` matches `benchmarks/.baseline_cache.json` and a fresh `php benchmarks/run_benchmarks.php --only=test_files69 --json --no-verify --no-case-timeout` (see JSON `best_ext_folder_bytes`). Outer wrapper and zip time live in JSON as `outer_codec` and `zip_seconds`. For huge trees use **`--with-huge-corpora`** or **`--only=…`**; add **`--large`** / **`--no-case-timeout`** when the driver would otherwise skip or shorten a case. On the snapshot recorded here, **`test_files59_sample`** had **7z** (dir) smaller than **`.fzc`** on bytes; **`test_files60`** is worth re-measuring when you care about FZCD vs best-ext.
+**How to reproduce / refresh:** some older snapshots used `--no-verify` and `--no-best-ext` to save time; **best ext** for `test_files61` / `62` / `69` matches `benchmarks/.baseline_cache.json` and a fresh `php benchmarks/run_benchmarks.php --only=test_files69 --json --no-verify --no-case-timeout` (see JSON `best_ext_folder_bytes`). Outer wrapper and zip time live in JSON as `outer_codec` and `zip_seconds`. For huge trees use **`--with-huge-corpora`** or **`--only=…`**; add **`--large`** / **`--no-case-timeout`** when the driver would otherwise skip or shorten a case. **Table snapshot (2026-04-16):** `test_files61` row from `php benchmarks/run_benchmarks.php --only=test_files61 --no-verify --no-case-timeout --no-baseline-cache --json` (brotli outer Q11 parity with min-ext when `FRACTAL_ZIP_BROTLI_HUGE_MODE=full`). **`test_files60`** (two FLAC tracks + small sidecars): with **`FRACTAL_ZIP_FLACPAC` unset**, encoding keeps **container-byte–identical** FLACs and **`verify_ok=true`** — e.g. `php benchmarks/run_benchmarks.php --only=test_files60 --no-case-timeout --json` produced **`fzc_bytes` 6 717 435** vs min-ext **zstd 6 717 583**, 7z **6 718 840**, gzip-9 tarball **6 749 927** (2026-04-16). With **`FRACTAL_ZIP_FLACPAC=1`** (merged PCM FZCD + expanded pre-transforms + gzip-ranked fractal candidates), the same driver can shrink further — e.g. **`fzc_bytes` 6 713 500** vs **zstd 6 717 584** (`--no-verify --no-case-timeout`, 2026-04-07); **`verify_ok`** is **false** until FLAC semantic verify exists. Use that corpus for fast FLAC iteration before scaling to `test_files59_sample` / full `test_files59`. On an older snapshot, **`test_files59_sample`** still had **7z** (dir) smaller than **`.fzc`** on bytes.
 
 **Snapshot command:**
 
