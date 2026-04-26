@@ -15,6 +15,7 @@ php benchmarks/run_benchmarks.php --only=<corpus> --json --no-baseline-cache
 
 | Corpus | raw B | gzip-9 B | 7z dir B | best ext B | .fzc B | winner | Notes |
 |--------|------:|---------:|---------:|-----------:|-------:|:------:|--------|
+| _Policy_ |  |  |  |  |  |  | Table keeps **greatest all-time byte wins** (only update when a corpus hits a new smallest `.fzc B`). |
 | test_files | 1098 | 89 | 247 | 204 | 77 | fzc | Eight short `.txt` files. |
 | test_files2 | 1100 | 135 | 296 | 254 | 122 | fzc | Eight short `.txt` files (layout like `test_files`, different strings). |
 | test_files4 | 85 | 113 | 244 | 202 | 102 | fzc | Two tiny `.txt` files. |
@@ -28,12 +29,15 @@ php benchmarks/run_benchmarks.php --only=<corpus> --json --no-baseline-cache
 | test_files50 | 932 | 1172 | 997 | 1056 | 496 | fzc | Synthetic micro-corpus: hundreds of tiny files; marginal literal transforms (e.g. strrev) are rejected unless the gzip-probe win clears a byte threshold so tiny README-style wins do not dominate. |
 | test_files51 | 597 | 884 | 769 | 872 | 306 | fzc | Synthetic micro-corpus: hundreds of tiny files. |
 | test_files52 | 380 | 766 | 535 | 582 | 92 | fzc | Hundreds of numbered `.txt` slices. |
-| test_files53 | 940298 | 121338 | 93727 | 80997 | 80820 | fzc | Single large `.csv` (e.g. product export). |
+| test_files53 | 940298 | 121338 | 93727 | 80997 | 80753 | fzc | Single large `.csv` (e.g. product export). |
 | test_files55 | 209994426 | 64533561 | 11775260 | 11700238 | 11647351 | fzc | Full StevieGee HTML tree (~200 MiB raw). **`--large`** + **`FRACTAL_ZIP_BENCH_MEMORY_LIMIT=4G`** + **`--no-case-timeout`**; **`verify_ok`**. `zip_seconds` ~1497 on snapshot (2026-04-17); **`outer_codec` `arc`**. |
 | test_files60 | 6767183 | 6749927 | 6718841 | 6717584 | 6717435 | fzc | Two `.flac` tracks + small sidecars (Discovery slice). Default **`FRACTAL_ZIP_FLACPAC` unset** = container-byte–identical FLACs; **`verify_ok`** on strict bench. `php benchmarks/run_benchmarks.php --only=test_files60 --no-case-timeout --json` (2026-04-16). `--large` optional here. |
 | test_files61 | 4826840 | 2023050 | 1087083 | 1078184 | 768105 | fzc | Multi-format rasters (PNG/GIF/WebP/JPEG, etc.) and nested folders. **`.fzc` beats min-ext brotli** on this snapshot; strict byte-identical verify may still report mismatches where PAC rewrites container bytes (semantically lossless pixels). |
 | test_files62 | 17364 | 737 | 735 | 740 | 533 | fzc | Synthetic tree of `.gz` members (gzip peel / raw-tier wire dual / FZG trailers; see `benchmarks/fzc_raw_tier_wire_dual_smoke.php`). |
 | test_files69 | 3534825 | 3248719 | 3242480 | 3239432 | 3234508 | fzc | Stratified mix: text, HTML, nested HTML, phpinfo, rasters, FLAC+m3u, SC2Replay path, gzip-peel dupes. |
+| test_files56 | 6242492 | 5992745 | 5912958 | 5865028 | 4636816 | fzc | ~90 flat `.SC2Replay` (~6 MiB raw). `FRACTAL_ZIP_BENCH_MEMORY_LIMIT=2G php benchmarks/run_benchmarks.php --only=test_files56 --no-case-timeout --json` (2026-04-24); **`zip_seconds` ~506**; **`outer_codec` `xz`**; **`verify_ok` false** (semantic MPQ vs strict SHA). Details: `benchmarks/BYTES_WIN_TRACKER.md`. |
+| test_files56_sample | 1025429 | 1014361 | 1013176 | 1007570 | 884184 | fzc | Nine flat `.SC2Replay` at corpus root (~1 MiB raw); fast MPQ PAC loop vs full `test_files56`. `php benchmarks/run_benchmarks.php --only=test_files56_sample --no-case-timeout --json` (2026-04-24). |
+| test_files71 | 3282445 | 3156741 | 3144504 | 3117503 | 2993777 | fzc | Single large PDF (~3.1 MiB min-ext brotli). Baseline sizes from `benchmarks/.baseline_cache.json`; `.fzc` from `FRACTAL_ZIP_MULTIPASS=0 php fractal_zip_cli.php zip test_files71` (~9.4 min wall, 2026-04-24). Literal PAC shrinks streams before outer wrap (`php benchmarks/pdf_literal_pac_empirical.php test_files71 --json --limit=1`: ~166 KiB saved, mostly DCT). Smaller optional semantic-JPEG repro: `benchmarks/fzc_repro_test_files71.sh` (~2.97 MiB `.fzc`). |
 
 Version 0.3
 
@@ -139,6 +143,24 @@ php benchmarks/run_benchmarks.php --json
 This copies each corpus into `benchmarks/.work/`, runs `zip_folder`, measures **raw bytes**, **gzip9** and **7z dir** compressed sizes **and** how long each baseline takes to build, plus **`.fzc` size** and **`zip_folder` time**, and **extract time**. For the gzip / 7z / fzc triple, **`*`** marks the **smallest** size or **fastest** compress time; **`win bytes`** / **`win speed`** repeat the winner id (`gzip`, `7z`, `fzc`, or **`+`**-joined ties). **Default corpora** are every **`test_files*`** directory except **`test_files35`** (add **`--large`**) and except **`test_files50` / `test_files51`** (add **`--with-synthetic-micro`** if you maintain those optional multi-hundred-tiny-file trees yourself). The main goal for ratio work is to improve results on **realistic** folders such as **`test_files`**, **`test_files2`**, **`test_files13`**, **`test_files29`**, etc., not only on synthetic layouts. Inner containers use **`FZC2`** when every path and per-member zipped blob is ≤ **65535** bytes (else **`FZC1`**). Flags: **`--out-json=path`**, **`--only=name,name`**, **`--auto-tune`**, **`--with-synthetic-micro`**. JSON output includes a **`summary`** object (how often `.fzc` is smallest among gzip/7z/fzc and cumulative byte gap). More detail is in the script footer.
 
 To assert **`.fzc` is among the byte winners** (gzip-9 vs 7z vs best-ext vs fzc) for one corpus or all discovered corpora, use **`php benchmarks/verify_fzc_bytes_winner_each_corpus.php`** (add **`--only=name`** for a single case; uses **`--no-baseline-cache`** so baselines are not mixed with stale cache).
+
+### Semantic image experiment lane (non-bitwise)
+
+For "visual equivalence" experiments (downscale + lossy re-encode by display budget), use:
+
+```bash
+php benchmarks/image_semantic_repack_to_dir.php test_files61 test_files61_semimg \
+  --allow-format-change=1 --max-display=1920x1080 --oversample=1.5
+php benchmarks/run_benchmarks.php --only=test_files61,test_files61_semimg --no-verify --no-best-ext --no-case-timeout --json
+# Or sweep several policies and auto-pick the best .fzc:
+php benchmarks/image_semantic_tournament.php test_files61 --prefix=test_files61_semt
+```
+
+The script emits per-image characteristics (`orig_w/h`, `new_w/h`, format, quality, byte deltas) into
+`_fzimg_semantic_manifest.json` by default, which can be kept as an extra "feature exposure" sidecar for
+future transform work. This lane is explicitly **semantic / perceptual**, not SHA1-byte-identical.
+Rule: semantic-lossy transforms are restricted to **lossy-original sources** (default allowlist: JPEG family), so lossless sources are copied unchanged unless you explicitly opt out.
+Long-term research note: one extreme semantic lane is storing a compact generative recipe (prompt + controls + seed) instead of raster bytes, with a quality gate at decode time.
 
 **Memory (PHP):** substring ops during unzip / `silent_validate` can allocate very large strings. Caps (env, **`0`** = unlimited): **`FRACTAL_ZIP_MAX_SUBSTRING_OPERATION_SLICE_BYTES`** (default **16777216** = max bytes read from `fractal_string` per `<off"len">` op), **`FRACTAL_ZIP_MAX_SUBSTRING_TUPLE_EXPAND_BYTES`** (default **16777216** = max bytes after tuple repetition / scale expansion / before nested recurse), **`FRACTAL_ZIP_MAX_EQUIVALENCE_SUBOP_RESULT_BYTES`** (default **201326592** = max `strlen` of the working equivalence string after one splice), **`FRACTAL_ZIP_SILENT_VALIDATE_MAX_OPERAND_BYTES`** (default **67108864** per operand into `silent_validate`).
 
