@@ -196,7 +196,18 @@ Recommended siblings on disk (what `StorageIndex` assumes by default):
 - **Dashboard**: `web/index.html` + `web/api/storage_stats.php` — serve the `web/` directory with PHP (e.g. `php -S localhost:8080 -t web` from the repo root, or configure your vhost docroot to `web/`).
 
 
-<table border="1">
+<style>
+table.bench-legacy {
+  font-size: 0.88em;
+  border-collapse: collapse;
+}
+table.bench-legacy th,
+table.bench-legacy td {
+  padding: 2px 6px;
+  line-height: 1.15;
+}
+</style>
+<table class="bench-legacy" border="1">
 <caption>benchmarks table</caption>
 <thead>
 <tr>
