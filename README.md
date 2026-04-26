@@ -15,13 +15,13 @@ php benchmarks/run_benchmarks.php --only=<corpus> --json --no-baseline-cache
 
 <style>
 table.bench-latest {
-  font-size: 0.76em;
+  font-size: 0.6em;
   border-collapse: collapse;
 }
 table.bench-latest th,
 table.bench-latest td {
   border: 1px solid #bbb;
-  padding: 1px 3px;
+  padding: -1px;
   line-height: 1.05;
   vertical-align: top;
 }
