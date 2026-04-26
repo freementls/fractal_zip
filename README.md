@@ -15,7 +15,7 @@ php benchmarks/run_benchmarks.php --only=<corpus> --json --no-baseline-cache
 
 <table border="1" cellspacing="0" cellpadding="1">
 <thead>
-<tr><th>#</th><th>raw B</th><th>gzip-9 (B<br />s)</th><th>7z dir (B<br />s)</th><th>best ext (B<br />s)</th><th>.fzc (B<br />s)</th><th>winner</th><th>Notes</th></tr>
+<tr><th>#</th><th>raw<br />(Bytes)</th><th>gzip-9<br />(Bytes<br />seconds)</th><th>7z dir<br />(Bytes<br />seconds)</th><th>best ext<br />(Bytes<br />seconds)</th><th>.fzc<br />(Bytes<br />seconds)</th><th>win</th><th>Notes</th></tr>
 </thead>
 <tbody>
 <tr><td>1</td><td>1098</td><td><span>89</span><br /><span>0.0000s</span></td><td><span>247</span><br /><span>0.0051s</span></td><td><span>204</span><br /><span>0.0096s</span></td><td><span>77</span><br /><span>0.2768s</span></td><td>fzc</td><td>Eight short <code>.txt</code> files.</td></tr>
