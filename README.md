@@ -15,14 +15,14 @@ php benchmarks/run_benchmarks.php --only=<corpus> --json --no-baseline-cache
 
 <style>
 table.bench-latest {
-  font-size: 0.88em;
+  font-size: 0.76em;
   border-collapse: collapse;
 }
 table.bench-latest th,
 table.bench-latest td {
   border: 1px solid #bbb;
-  padding: 2px 6px;
-  line-height: 1.15;
+  padding: 1px 3px;
+  line-height: 1.05;
   vertical-align: top;
 }
 table.bench-latest td.num {
@@ -36,11 +36,15 @@ table.bench-latest td.center {
 table.bench-latest .b {
   display: block;
   font-weight: 600;
+  margin: 0;
+  line-height: 1.02;
 }
 table.bench-latest .s {
   display: block;
-  font-size: 0.88em;
+  font-size: 0.74em;
   color: #555;
+  margin: 0;
+  line-height: 1.0;
 }
 </style>
 <table class="bench-latest">
