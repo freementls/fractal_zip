@@ -1,13 +1,16 @@
 <?php
 declare(strict_types=1);
 
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'fractal_zip_literal_recursive_peel.php';
+
 /**
  * Shared “peel everything lossless, then normalize streams/rasters” path used by:
  * - literal-bundle transform selection (FZB modes)
  * - zip_folder per-member input (so fractal_zip sees the same unwrapped bytes as the bundle would)
  *
- * Order matches choose_best_literal_bundle_transform: semantic ZIP/7z/MPQ (while no pending gzip stack),
- * consecutive gzip peels, then image_pac and stream multipass; repeated up to peel-stabilize rounds.
+ * Semantic ZIP / 7z / MPQ / ustar TAR / GNU ar / cpio newc / git / bencode / netstring / FWS SWF peels are chosen in **content-heuristic order** (magic + path +
+ * fractal_zip_content_format_identify) and re-evaluated after each successful peel so nested shells are not
+ * missed. Gzip stack expansion and image/stream PAC rounds follow the same stabilize loop as before.
  *
  * @return array{0: string, 1: list<array{0: string, 1: string}>, 2: list<array{len: int, sha1: string}>}
  */
@@ -17,6 +20,15 @@ function fractal_zip_literal_deep_unwrap_with_layers(string $relPath, string $ra
 	$rel = trim($rel, '/');
 	if ($rel === '' || $rawBytes === '') {
 		return [$rawBytes, [], []];
+	}
+	static $mpqSemanticProxyGate = null;
+	if ($mpqSemanticProxyGate === null) {
+		$e = getenv('FRACTAL_ZIP_LITERAL_SEMANTIC_MPQ_PROXY_GATE');
+		$mpqSemanticProxyGate = false;
+		if ($e !== false && trim((string) $e) !== '') {
+			$v = strtolower(trim((string) $e));
+			$mpqSemanticProxyGate = ($v !== '0' && $v !== 'off' && $v !== 'false' && $v !== 'no');
+		}
 	}
 	$pathRaster = $rel;
 	$work = $rawBytes;
@@ -30,47 +42,16 @@ function fractal_zip_literal_deep_unwrap_with_layers(string $relPath, string $ra
 		while ($innerProgress) {
 			$innerProgress = false;
 			$w0 = $work;
-			while ($gzipStack === [] && count($semanticLayers) < $maxSem && fractal_zip_literal_semantic_zip_enabled()) {
-				$zp = fractal_zip_literal_pac_peel_zip_single_semantic($work);
-				if ($zp === null) {
-					break;
-				}
-				$semanticLayers[] = ['zip', $zp[1]];
-				$work = $zp[0];
-				$pathRaster = fractal_zip_literal_path_for_raster_pac_after_zip_strip($pathRaster);
-				$innerProgress = true;
-			}
-			while ($gzipStack === [] && count($semanticLayers) < $maxSem && fractal_zip_literal_semantic_7z_enabled()) {
-				$sp = fractal_zip_literal_pac_peel_seven_single_semantic($work);
-				if ($sp === null) {
-					break;
-				}
-				$semanticLayers[] = ['7z', $sp[1]];
-				$work = $sp[0];
-				$pathRaster = fractal_zip_literal_path_for_raster_pac_after_7z_strip($pathRaster);
-				$innerProgress = true;
-			}
-			while ($gzipStack === [] && count($semanticLayers) < $maxSem && fractal_zip_literal_semantic_mpq_enabled()) {
-				if (substr($work, 0, 3) !== 'MPQ' || !fractal_zip_literal_path_looks_mpq_semantic($pathRaster)) {
-					break;
-				}
-				$mp = fractal_zip_literal_pac_peel_mpq_semantic($work);
-				if ($mp === null) {
-					break;
-				}
-				$innerCandidate = $mp[0];
-				$alwaysPeelMpq = getenv('FRACTAL_ZIP_LITERAL_SEMANTIC_MPQ_ALWAYS') === '1';
-				if (!$alwaysPeelMpq) {
-					$pb = gzdeflate($work, 1);
-					$pa = gzdeflate($innerCandidate, 1);
-					if ($pb === false || $pa === false || strlen($pa) >= strlen($pb)) {
-						break;
-					}
-				}
-				$semanticLayers[] = ['mpq', $mp[1]];
-				$work = $innerCandidate;
-				$pathRaster = fractal_zip_literal_path_for_raster_pac_after_mpq_strip($pathRaster);
-				$innerProgress = true;
+			if ($gzipStack === []) {
+				list($work, $pathRaster, $semanticLayers, $gzipStack) = fractal_zip_literal_recursive_peel_try_one_semantic(
+					$rel,
+					$pathRaster,
+					$work,
+					$semanticLayers,
+					$gzipStack,
+					$maxSem,
+					$mpqSemanticProxyGate
+				);
 			}
 			list($work, $pathRaster, $gzipStack) = fractal_zip_literal_append_consecutive_gzip_peels($pathRaster, $work, $gzipStack);
 			if ($work !== $w0) {

@@ -350,7 +350,7 @@ function fractal_zip_fzcd_merged_fractal_improvement_threshold(float $parent): f
 	if ($e === false || trim((string) $e) === '' || !is_numeric($e)) {
 		return $parent;
 	}
-	return max(0.25, min(50.0, (float) $e));
+	return max(0.01, min(50.0, (float) $e));
 }
 
 /** Segment length for merged PCM fractal chunks only; unset = parent segment_length. */
@@ -614,45 +614,45 @@ function fractal_zip_pcm_pretransform_apply(string $pcm, int $pcmFmt, int $chann
 		if ($n === 0) {
 			return '';
 		}
-		$o = '';
+		$parts = array();
 		for ($i = 0; $i < $n; $i++) {
-			$o .= chr(ord($pcm[$i]) ^ 0xff);
+			$parts[] = chr(ord($pcm[$i]) ^ 0xff);
 		}
-		return $o;
+		return implode('', $parts);
 	}
 	if ($strategy === FRACTAL_ZIP_PCM_PRE_BYTE_FIRST_DIFF) {
 		$n = strlen($pcm);
 		if ($n === 0) {
 			return '';
 		}
-		$o = $pcm[0];
+		$parts = array($pcm[0]);
 		for ($i = 1; $i < $n; $i++) {
-			$o .= chr((ord($pcm[$i]) - ord($pcm[$i - 1]) + 256) % 256);
+			$parts[] = chr((ord($pcm[$i]) - ord($pcm[$i - 1]) + 256) % 256);
 		}
-		return $o;
+		return implode('', $parts);
 	}
 	if ($strategy === FRACTAL_ZIP_PCM_PRE_XOR_BYTE_0x80) {
 		$n = strlen($pcm);
 		if ($n === 0) {
 			return '';
 		}
-		$o = '';
+		$parts = array();
 		for ($i = 0; $i < $n; $i++) {
-			$o .= chr(ord($pcm[$i]) ^ 0x80);
+			$parts[] = chr(ord($pcm[$i]) ^ 0x80);
 		}
-		return $o;
+		return implode('', $parts);
 	}
 	if ($strategy === FRACTAL_ZIP_PCM_PRE_NIBBLE_SWAP_BYTES) {
 		$n = strlen($pcm);
 		if ($n === 0) {
 			return '';
 		}
-		$o = '';
+		$parts = array();
 		for ($i = 0; $i < $n; $i++) {
 			$b = ord($pcm[$i]);
-			$o .= chr((($b & 0x0f) << 4) | (($b >> 4) & 0x0f));
+			$parts[] = chr((($b & 0x0f) << 4) | (($b >> 4) & 0x0f));
 		}
-		return $o;
+		return implode('', $parts);
 	}
 	$fb = fractal_zip_pcm_frame_bytes_from_fmt_channels($pcmFmt, $channels);
 	if ($fb === null || $fb < 2 || strlen($pcm) % $fb !== 0) {
@@ -662,44 +662,48 @@ function fractal_zip_pcm_pretransform_apply(string $pcm, int $pcmFmt, int $chann
 	$nFrames = intdiv($n, $fb);
 	if ($strategy === FRACTAL_ZIP_PCM_PRE_CH_TEMPORAL_DELTA) {
 		if ($pcmFmt === FRACTAL_ZIP_FPCM_FMT_S16LE) {
-			$o = '';
+			$frames = array();
 			for ($f = 0; $f < $nFrames; $f++) {
 				$base = $f * $fb;
 				$pbase = $f > 0 ? ($f - 1) * $fb : null;
+				$parts = array();
 				for ($c = 0; $c < $channels; $c++) {
 					$bo = $base + $c * 2;
 					$cur = fractal_zip_pcm_i16_at($pcm, $bo);
 					if ($pbase === null) {
-						$o .= fractal_zip_pcm_pack_i16($cur);
+						$parts[] = fractal_zip_pcm_pack_i16($cur);
 					} else {
 						$pb = $pbase + $c * 2;
 						$pr = fractal_zip_pcm_i16_at($pcm, $pb);
 						$d = fractal_zip_pcm_i16_sub_wrap($cur, $pr);
-						$o .= fractal_zip_pcm_pack_i16($d);
+						$parts[] = fractal_zip_pcm_pack_i16($d);
 					}
 				}
+				$frames[] = implode('', $parts);
 			}
-			return $o;
+			return implode('', $frames);
 		}
 		if ($pcmFmt === FRACTAL_ZIP_FPCM_FMT_S32LE) {
-			$o = '';
+			$frames = array();
 			for ($f = 0; $f < $nFrames; $f++) {
 				$base = $f * $fb;
 				$pbase = $f > 0 ? ($f - 1) * $fb : null;
+				$parts = array();
 				for ($c = 0; $c < $channels; $c++) {
 					$bo = $base + $c * 4;
 					$cur = fractal_zip_pcm_i32_at($pcm, $bo);
 					if ($pbase === null) {
-						$o .= fractal_zip_pcm_pack_i32($cur);
+						$parts[] = fractal_zip_pcm_pack_i32($cur);
 					} else {
 						$pb = $pbase + $c * 4;
 						$pr = fractal_zip_pcm_i32_at($pcm, $pb);
 						$d = fractal_zip_pcm_i32_sub_wrap($cur, $pr);
-						$o .= fractal_zip_pcm_pack_i32($d);
+						$parts[] = fractal_zip_pcm_pack_i32($d);
 					}
 				}
+				$frames[] = implode('', $parts);
 			}
-			return $o;
+			return implode('', $frames);
 		}
 		return null;
 	}
@@ -707,107 +711,115 @@ function fractal_zip_pcm_pretransform_apply(string $pcm, int $pcmFmt, int $chann
 		if ($pcmFmt !== FRACTAL_ZIP_FPCM_FMT_S16LE || $channels !== 2 || $fb !== 4) {
 			return null;
 		}
-		$o = '';
+		$frames = array();
 		for ($f = 0; $f < $nFrames; $f++) {
 			$base = $f * 4;
 			$L = fractal_zip_pcm_i16_at($pcm, $base);
 			$R = fractal_zip_pcm_i16_at($pcm, $base + 2);
 			$Rp = fractal_zip_pcm_i16_sub_wrap($R, $L);
-			$o .= fractal_zip_pcm_pack_i16($L) . fractal_zip_pcm_pack_i16($Rp);
+			$frames[] = fractal_zip_pcm_pack_i16($L) . fractal_zip_pcm_pack_i16($Rp);
 		}
-		return $o;
+		return implode('', $frames);
 	}
 	if ($strategy === FRACTAL_ZIP_PCM_PRE_STEREO_SIDE_INT32) {
 		if ($pcmFmt !== FRACTAL_ZIP_FPCM_FMT_S32LE || $channels !== 2 || $fb !== 8) {
 			return null;
 		}
-		$o = '';
+		$frames = array();
 		for ($f = 0; $f < $nFrames; $f++) {
 			$base = $f * 8;
 			$L = fractal_zip_pcm_i32_at($pcm, $base);
 			$R = fractal_zip_pcm_i32_at($pcm, $base + 4);
 			$Rp = fractal_zip_pcm_i32_sub_wrap($R, $L);
-			$o .= fractal_zip_pcm_pack_i32($L) . fractal_zip_pcm_pack_i32($Rp);
+			$frames[] = fractal_zip_pcm_pack_i32($L) . fractal_zip_pcm_pack_i32($Rp);
 		}
-		return $o;
+		return implode('', $frames);
 	}
 	if ($strategy === FRACTAL_ZIP_PCM_PRE_TOGGLE_SIGN_S16) {
 		if ($pcmFmt !== FRACTAL_ZIP_FPCM_FMT_S16LE) {
 			return null;
 		}
-		$o = '';
+		$frames = array();
 		for ($f = 0; $f < $nFrames; $f++) {
 			$base = $f * $fb;
+			$parts = array();
 			for ($c = 0; $c < $channels; $c++) {
 				$bo = $base + $c * 2;
 				$v = fractal_zip_pcm_i16_at($pcm, $bo);
 				$u = ((int) $v & 0xffff) ^ 0x8000;
-				$o .= fractal_zip_pcm_pack_i16(fractal_zip_pcm_i16_wide_to_ring($u));
+				$parts[] = fractal_zip_pcm_pack_i16(fractal_zip_pcm_i16_wide_to_ring($u));
 			}
+			$frames[] = implode('', $parts);
 		}
-		return $o;
+		return implode('', $frames);
 	}
 	if ($strategy === FRACTAL_ZIP_PCM_PRE_TOGGLE_SIGN_S32) {
 		if ($pcmFmt !== FRACTAL_ZIP_FPCM_FMT_S32LE) {
 			return null;
 		}
-		$o = '';
+		$frames = array();
 		for ($f = 0; $f < $nFrames; $f++) {
 			$base = $f * $fb;
+			$parts = array();
 			for ($c = 0; $c < $channels; $c++) {
 				$bo = $base + $c * 4;
 				$v = fractal_zip_pcm_i32_at($pcm, $bo);
 				$u0 = (int) (($v % 4294967296 + 4294967296) % 4294967296);
 				$uu = $u0 ^ 0x80000000;
-				$o .= fractal_zip_pcm_pack_i32(fractal_zip_pcm_i32_wide_to_ring($uu));
+				$parts[] = fractal_zip_pcm_pack_i32(fractal_zip_pcm_i32_wide_to_ring($uu));
 			}
+			$frames[] = implode('', $parts);
 		}
-		return $o;
+		return implode('', $frames);
 	}
 	if ($strategy === FRACTAL_ZIP_PCM_PRE_CH_TEMPORAL_DELTA2) {
 		if ($pcmFmt === FRACTAL_ZIP_FPCM_FMT_S16LE) {
-			$o = '';
+			$frames = array();
 			for ($f = 0; $f < $nFrames; $f++) {
 				$base = $f * $fb;
+				$parts = array();
 				for ($c = 0; $c < $channels; $c++) {
 					$bo = $base + $c * 2;
 					$sk = fractal_zip_pcm_i16_at($pcm, $bo);
 					if ($f === 0) {
-						$o .= fractal_zip_pcm_pack_i16($sk);
+						$parts[] = fractal_zip_pcm_pack_i16($sk);
 					} elseif ($f === 1) {
 						$sk0 = fractal_zip_pcm_i16_at($pcm, $c * 2);
-						$o .= fractal_zip_pcm_pack_i16(fractal_zip_pcm_i16_sub_wrap($sk, $sk0));
+						$parts[] = fractal_zip_pcm_pack_i16(fractal_zip_pcm_i16_sub_wrap($sk, $sk0));
 					} else {
 						$sk1 = fractal_zip_pcm_i16_at($pcm, ($f - 1) * $fb + $c * 2);
 						$sk2 = fractal_zip_pcm_i16_at($pcm, ($f - 2) * $fb + $c * 2);
 						$d = fractal_zip_pcm_i16_wide_to_ring((int) $sk - 2 * (int) $sk1 + (int) $sk2);
-						$o .= fractal_zip_pcm_pack_i16($d);
+						$parts[] = fractal_zip_pcm_pack_i16($d);
 					}
 				}
+				$frames[] = implode('', $parts);
 			}
-			return $o;
+			return implode('', $frames);
 		}
 		if ($pcmFmt === FRACTAL_ZIP_FPCM_FMT_S32LE) {
-			$o = '';
+			$frames = array();
 			for ($f = 0; $f < $nFrames; $f++) {
 				$base = $f * $fb;
+				$parts = array();
 				for ($c = 0; $c < $channels; $c++) {
 					$bo = $base + $c * 4;
 					$sk = fractal_zip_pcm_i32_at($pcm, $bo);
 					if ($f === 0) {
-						$o .= fractal_zip_pcm_pack_i32($sk);
+						$parts[] = fractal_zip_pcm_pack_i32($sk);
 					} elseif ($f === 1) {
 						$sk0 = fractal_zip_pcm_i32_at($pcm, $c * 4);
-						$o .= fractal_zip_pcm_pack_i32(fractal_zip_pcm_i32_sub_wrap($sk, $sk0));
+						$parts[] = fractal_zip_pcm_pack_i32(fractal_zip_pcm_i32_sub_wrap($sk, $sk0));
 					} else {
 						$sk1 = fractal_zip_pcm_i32_at($pcm, ($f - 1) * $fb + $c * 4);
 						$sk2 = fractal_zip_pcm_i32_at($pcm, ($f - 2) * $fb + $c * 4);
 						$d = fractal_zip_pcm_i32_wide_to_ring((int) $sk - 2 * (int) $sk1 + (int) $sk2);
-						$o .= fractal_zip_pcm_pack_i32($d);
+						$parts[] = fractal_zip_pcm_pack_i32($d);
 					}
 				}
+				$frames[] = implode('', $parts);
 			}
-			return $o;
+			return implode('', $frames);
 		}
 		return null;
 	}
@@ -816,55 +828,61 @@ function fractal_zip_pcm_pretransform_apply(string $pcm, int $pcmFmt, int $chann
 			return null;
 		}
 		if ($pcmFmt === FRACTAL_ZIP_FPCM_FMT_S16LE) {
-			$o = '';
+			$frames = array();
 			for ($f = 0; $f < $nFrames; $f++) {
 				$base = $f * $fb;
-				$o .= fractal_zip_pcm_pack_i16(fractal_zip_pcm_i16_at($pcm, $base));
+				$parts = array(fractal_zip_pcm_pack_i16(fractal_zip_pcm_i16_at($pcm, $base)));
 				for ($c = 1; $c < $channels; $c++) {
 					$cur = fractal_zip_pcm_i16_at($pcm, $base + $c * 2);
 					$prev = fractal_zip_pcm_i16_at($pcm, $base + ($c - 1) * 2);
-					$o .= fractal_zip_pcm_pack_i16(fractal_zip_pcm_i16_sub_wrap($cur, $prev));
+					$parts[] = fractal_zip_pcm_pack_i16(fractal_zip_pcm_i16_sub_wrap($cur, $prev));
 				}
+				$frames[] = implode('', $parts);
 			}
-			return $o;
+			return implode('', $frames);
 		}
 		if ($pcmFmt === FRACTAL_ZIP_FPCM_FMT_S32LE) {
-			$o = '';
+			$frames = array();
 			for ($f = 0; $f < $nFrames; $f++) {
 				$base = $f * $fb;
-				$o .= fractal_zip_pcm_pack_i32(fractal_zip_pcm_i32_at($pcm, $base));
+				$parts = array(fractal_zip_pcm_pack_i32(fractal_zip_pcm_i32_at($pcm, $base)));
 				for ($c = 1; $c < $channels; $c++) {
 					$cur = fractal_zip_pcm_i32_at($pcm, $base + $c * 4);
 					$prev = fractal_zip_pcm_i32_at($pcm, $base + ($c - 1) * 4);
-					$o .= fractal_zip_pcm_pack_i32(fractal_zip_pcm_i32_sub_wrap($cur, $prev));
+					$parts[] = fractal_zip_pcm_pack_i32(fractal_zip_pcm_i32_sub_wrap($cur, $prev));
 				}
+				$frames[] = implode('', $parts);
 			}
-			return $o;
+			return implode('', $frames);
 		}
 		return null;
 	}
 	if ($strategy === FRACTAL_ZIP_PCM_PRE_SAMPLE_ENDIAN_SWAP) {
 		if ($pcmFmt === FRACTAL_ZIP_FPCM_FMT_S16LE) {
-			$o = '';
+			$frames = array();
 			for ($f = 0; $f < $nFrames; $f++) {
 				$base = $f * $fb;
+				$parts = array();
 				for ($c = 0; $c < $channels; $c++) {
 					$bo = $base + $c * 2;
-					$o .= $pcm[$bo + 1] . $pcm[$bo];
+					$parts[] = $pcm[$bo + 1] . $pcm[$bo];
 				}
+				$frames[] = implode('', $parts);
 			}
-			return $o;
+			return implode('', $frames);
 		}
 		if ($pcmFmt === FRACTAL_ZIP_FPCM_FMT_S32LE) {
-			$o = '';
+			$frames = array();
 			for ($f = 0; $f < $nFrames; $f++) {
 				$base = $f * $fb;
+				$parts = array();
 				for ($c = 0; $c < $channels; $c++) {
 					$bo = $base + $c * 4;
-					$o .= $pcm[$bo + 3] . $pcm[$bo + 2] . $pcm[$bo + 1] . $pcm[$bo];
+					$parts[] = $pcm[$bo + 3] . $pcm[$bo + 2] . $pcm[$bo + 1] . $pcm[$bo];
 				}
+				$frames[] = implode('', $parts);
 			}
-			return $o;
+			return implode('', $frames);
 		}
 		return null;
 	}
@@ -873,20 +891,20 @@ function fractal_zip_pcm_pretransform_apply(string $pcm, int $pcmFmt, int $chann
 			return null;
 		}
 		if ($pcmFmt === FRACTAL_ZIP_FPCM_FMT_S16LE && $fb === 4) {
-			$o = '';
+			$frames = array();
 			for ($f = 0; $f < $nFrames; $f++) {
 				$base = $f * 4;
-				$o .= substr($pcm, $base + 2, 2) . substr($pcm, $base, 2);
+				$frames[] = substr($pcm, $base + 2, 2) . substr($pcm, $base, 2);
 			}
-			return $o;
+			return implode('', $frames);
 		}
 		if ($pcmFmt === FRACTAL_ZIP_FPCM_FMT_S32LE && $fb === 8) {
-			$o = '';
+			$frames = array();
 			for ($f = 0; $f < $nFrames; $f++) {
 				$base = $f * 8;
-				$o .= substr($pcm, $base + 4, 4) . substr($pcm, $base, 4);
+				$frames[] = substr($pcm, $base + 4, 4) . substr($pcm, $base, 4);
 			}
-			return $o;
+			return implode('', $frames);
 		}
 		return null;
 	}
@@ -895,24 +913,24 @@ function fractal_zip_pcm_pretransform_apply(string $pcm, int $pcmFmt, int $chann
 			return null;
 		}
 		if ($pcmFmt === FRACTAL_ZIP_FPCM_FMT_S16LE && $fb === 4) {
-			$L = '';
-			$R = '';
+			$l = array();
+			$r = array();
 			for ($f = 0; $f < $nFrames; $f++) {
 				$base = $f * 4;
-				$L .= substr($pcm, $base, 2);
-				$R .= substr($pcm, $base + 2, 2);
+				$l[] = substr($pcm, $base, 2);
+				$r[] = substr($pcm, $base + 2, 2);
 			}
-			return $L . $R;
+			return implode('', $l) . implode('', $r);
 		}
 		if ($pcmFmt === FRACTAL_ZIP_FPCM_FMT_S32LE && $fb === 8) {
-			$L = '';
-			$R = '';
+			$l = array();
+			$r = array();
 			for ($f = 0; $f < $nFrames; $f++) {
 				$base = $f * 8;
-				$L .= substr($pcm, $base, 4);
-				$R .= substr($pcm, $base + 4, 4);
+				$l[] = substr($pcm, $base, 4);
+				$r[] = substr($pcm, $base + 4, 4);
 			}
-			return $L . $R;
+			return implode('', $l) . implode('', $r);
 		}
 		return null;
 	}
@@ -931,13 +949,13 @@ function fractal_zip_pcm_pretransform_inverse(string $pcm, int $pcmFmt, int $cha
 		if ($n === 0) {
 			return '';
 		}
-		$o = $pcm[0];
+		$parts = array($pcm[0]);
 		$p = ord($pcm[0]);
 		for ($i = 1; $i < $n; $i++) {
 			$p = ($p + ord($pcm[$i])) % 256;
-			$o .= chr($p);
+			$parts[] = chr($p);
 		}
-		return $o;
+		return implode('', $parts);
 	}
 	if ($strategy === FRACTAL_ZIP_PCM_PRE_XOR_BYTE_0x80) {
 		return fractal_zip_pcm_pretransform_apply($pcm, $pcmFmt, $channels, FRACTAL_ZIP_PCM_PRE_XOR_BYTE_0x80);
@@ -953,42 +971,50 @@ function fractal_zip_pcm_pretransform_inverse(string $pcm, int $pcmFmt, int $cha
 	$nFrames = intdiv($n, $fb);
 	if ($strategy === FRACTAL_ZIP_PCM_PRE_CH_TEMPORAL_DELTA) {
 		if ($pcmFmt === FRACTAL_ZIP_FPCM_FMT_S16LE) {
-			$o = '';
+			$frames = array();
+			$prevFrame = null;
 			for ($f = 0; $f < $nFrames; $f++) {
 				$base = $f * $fb;
+				$parts = array();
 				for ($c = 0; $c < $channels; $c++) {
 					$bo = $base + $c * 2;
 					$d = fractal_zip_pcm_i16_at($pcm, $bo);
 					if ($f === 0) {
-						$o .= fractal_zip_pcm_pack_i16($d);
+						$parts[] = fractal_zip_pcm_pack_i16($d);
 					} else {
-						$pbo = ($f - 1) * $fb + $c * 2;
-						$pr = fractal_zip_pcm_i16_at($o, $pbo);
+						$pr = fractal_zip_pcm_i16_at($prevFrame, $c * 2);
 						$cur = fractal_zip_pcm_i16_wrap_add($pr, $d);
-						$o .= fractal_zip_pcm_pack_i16($cur);
+						$parts[] = fractal_zip_pcm_pack_i16($cur);
 					}
 				}
+				$frameStr = implode('', $parts);
+				$frames[] = $frameStr;
+				$prevFrame = $frameStr;
 			}
-			return $o;
+			return implode('', $frames);
 		}
 		if ($pcmFmt === FRACTAL_ZIP_FPCM_FMT_S32LE) {
-			$o = '';
+			$frames = array();
+			$prevFrame = null;
 			for ($f = 0; $f < $nFrames; $f++) {
 				$base = $f * $fb;
+				$parts = array();
 				for ($c = 0; $c < $channels; $c++) {
 					$bo = $base + $c * 4;
 					$d = fractal_zip_pcm_i32_at($pcm, $bo);
 					if ($f === 0) {
-						$o .= fractal_zip_pcm_pack_i32($d);
+						$parts[] = fractal_zip_pcm_pack_i32($d);
 					} else {
-						$pbo = ($f - 1) * $fb + $c * 4;
-						$pr = fractal_zip_pcm_i32_at($o, $pbo);
+						$pr = fractal_zip_pcm_i32_at($prevFrame, $c * 4);
 						$cur = fractal_zip_pcm_i32_wrap_add($pr, $d);
-						$o .= fractal_zip_pcm_pack_i32($cur);
+						$parts[] = fractal_zip_pcm_pack_i32($cur);
 					}
 				}
+				$frameStr = implode('', $parts);
+				$frames[] = $frameStr;
+				$prevFrame = $frameStr;
 			}
-			return $o;
+			return implode('', $frames);
 		}
 		return null;
 	}
@@ -996,29 +1022,29 @@ function fractal_zip_pcm_pretransform_inverse(string $pcm, int $pcmFmt, int $cha
 		if ($pcmFmt !== FRACTAL_ZIP_FPCM_FMT_S16LE || $channels !== 2) {
 			return null;
 		}
-		$o = '';
+		$frames = array();
 		for ($f = 0; $f < $nFrames; $f++) {
 			$base = $f * 4;
 			$L = fractal_zip_pcm_i16_at($pcm, $base);
 			$Rp = fractal_zip_pcm_i16_at($pcm, $base + 2);
 			$R = fractal_zip_pcm_i16_wrap_add($Rp, $L);
-			$o .= fractal_zip_pcm_pack_i16($L) . fractal_zip_pcm_pack_i16($R);
+			$frames[] = fractal_zip_pcm_pack_i16($L) . fractal_zip_pcm_pack_i16($R);
 		}
-		return $o;
+		return implode('', $frames);
 	}
 	if ($strategy === FRACTAL_ZIP_PCM_PRE_STEREO_SIDE_INT32) {
 		if ($pcmFmt !== FRACTAL_ZIP_FPCM_FMT_S32LE || $channels !== 2) {
 			return null;
 		}
-		$o = '';
+		$frames = array();
 		for ($f = 0; $f < $nFrames; $f++) {
 			$base = $f * 8;
 			$L = fractal_zip_pcm_i32_at($pcm, $base);
 			$Rp = fractal_zip_pcm_i32_at($pcm, $base + 4);
 			$R = fractal_zip_pcm_i32_wrap_add($Rp, $L);
-			$o .= fractal_zip_pcm_pack_i32($L) . fractal_zip_pcm_pack_i32($R);
+			$frames[] = fractal_zip_pcm_pack_i32($L) . fractal_zip_pcm_pack_i32($R);
 		}
-		return $o;
+		return implode('', $frames);
 	}
 	if ($strategy === FRACTAL_ZIP_PCM_PRE_TOGGLE_SIGN_S16) {
 		return fractal_zip_pcm_pretransform_apply($pcm, $pcmFmt, $channels, FRACTAL_ZIP_PCM_PRE_TOGGLE_SIGN_S16);
@@ -1028,48 +1054,62 @@ function fractal_zip_pcm_pretransform_inverse(string $pcm, int $pcmFmt, int $cha
 	}
 	if ($strategy === FRACTAL_ZIP_PCM_PRE_CH_TEMPORAL_DELTA2) {
 		if ($pcmFmt === FRACTAL_ZIP_FPCM_FMT_S16LE) {
-			$o = '';
+			$frames = array();
+			$prev1 = null;
+			$prev2 = null;
 			for ($f = 0; $f < $nFrames; $f++) {
 				$base = $f * $fb;
+				$parts = array();
 				for ($c = 0; $c < $channels; $c++) {
 					$bo = $base + $c * 2;
 					$dk = fractal_zip_pcm_i16_at($pcm, $bo);
 					if ($f === 0) {
-						$o .= fractal_zip_pcm_pack_i16($dk);
+						$parts[] = fractal_zip_pcm_pack_i16($dk);
 					} elseif ($f === 1) {
-						$s0 = fractal_zip_pcm_i16_at($o, $c * 2);
-						$o .= fractal_zip_pcm_pack_i16(fractal_zip_pcm_i16_wrap_add($s0, $dk));
+						$s0 = fractal_zip_pcm_i16_at($prev1, $c * 2);
+						$parts[] = fractal_zip_pcm_pack_i16(fractal_zip_pcm_i16_wrap_add($s0, $dk));
 					} else {
-						$sk1 = fractal_zip_pcm_i16_at($o, ($f - 1) * $fb + $c * 2);
-						$sk2 = fractal_zip_pcm_i16_at($o, ($f - 2) * $fb + $c * 2);
+						$sk1 = fractal_zip_pcm_i16_at($prev1, $c * 2);
+						$sk2 = fractal_zip_pcm_i16_at($prev2, $c * 2);
 						$sk = fractal_zip_pcm_i16_wide_to_ring((int) $dk + 2 * (int) $sk1 - (int) $sk2);
-						$o .= fractal_zip_pcm_pack_i16($sk);
+						$parts[] = fractal_zip_pcm_pack_i16($sk);
 					}
 				}
+				$frameStr = implode('', $parts);
+				$frames[] = $frameStr;
+				$prev2 = $prev1;
+				$prev1 = $frameStr;
 			}
-			return $o;
+			return implode('', $frames);
 		}
 		if ($pcmFmt === FRACTAL_ZIP_FPCM_FMT_S32LE) {
-			$o = '';
+			$frames = array();
+			$prev1 = null;
+			$prev2 = null;
 			for ($f = 0; $f < $nFrames; $f++) {
 				$base = $f * $fb;
+				$parts = array();
 				for ($c = 0; $c < $channels; $c++) {
 					$bo = $base + $c * 4;
 					$dk = fractal_zip_pcm_i32_at($pcm, $bo);
 					if ($f === 0) {
-						$o .= fractal_zip_pcm_pack_i32($dk);
+						$parts[] = fractal_zip_pcm_pack_i32($dk);
 					} elseif ($f === 1) {
-						$s0 = fractal_zip_pcm_i32_at($o, $c * 4);
-						$o .= fractal_zip_pcm_pack_i32(fractal_zip_pcm_i32_wrap_add($s0, $dk));
+						$s0 = fractal_zip_pcm_i32_at($prev1, $c * 4);
+						$parts[] = fractal_zip_pcm_pack_i32(fractal_zip_pcm_i32_wrap_add($s0, $dk));
 					} else {
-						$sk1 = fractal_zip_pcm_i32_at($o, ($f - 1) * $fb + $c * 4);
-						$sk2 = fractal_zip_pcm_i32_at($o, ($f - 2) * $fb + $c * 4);
+						$sk1 = fractal_zip_pcm_i32_at($prev1, $c * 4);
+						$sk2 = fractal_zip_pcm_i32_at($prev2, $c * 4);
 						$sk = fractal_zip_pcm_i32_wide_to_ring((int) $dk + 2 * (int) $sk1 - (int) $sk2);
-						$o .= fractal_zip_pcm_pack_i32($sk);
+						$parts[] = fractal_zip_pcm_pack_i32($sk);
 					}
 				}
+				$frameStr = implode('', $parts);
+				$frames[] = $frameStr;
+				$prev2 = $prev1;
+				$prev1 = $frameStr;
 			}
-			return $o;
+			return implode('', $frames);
 		}
 		return null;
 	}
@@ -1078,32 +1118,36 @@ function fractal_zip_pcm_pretransform_inverse(string $pcm, int $pcmFmt, int $cha
 			return null;
 		}
 		if ($pcmFmt === FRACTAL_ZIP_FPCM_FMT_S16LE) {
-			$o = '';
+			$frames = array();
 			for ($f = 0; $f < $nFrames; $f++) {
 				$base = $f * $fb;
-				$s0 = fractal_zip_pcm_i16_at($pcm, $base);
-				$o .= fractal_zip_pcm_pack_i16($s0);
+				$prev = fractal_zip_pcm_i16_at($pcm, $base);
+				$parts = array(fractal_zip_pcm_pack_i16($prev));
 				for ($c = 1; $c < $channels; $c++) {
 					$d = fractal_zip_pcm_i16_at($pcm, $base + $c * 2);
-					$prev = fractal_zip_pcm_i16_at($o, $base + ($c - 1) * 2);
-					$o .= fractal_zip_pcm_pack_i16(fractal_zip_pcm_i16_wrap_add($d, $prev));
+					$cur = fractal_zip_pcm_i16_wrap_add($d, $prev);
+					$parts[] = fractal_zip_pcm_pack_i16($cur);
+					$prev = $cur;
 				}
+				$frames[] = implode('', $parts);
 			}
-			return $o;
+			return implode('', $frames);
 		}
 		if ($pcmFmt === FRACTAL_ZIP_FPCM_FMT_S32LE) {
-			$o = '';
+			$frames = array();
 			for ($f = 0; $f < $nFrames; $f++) {
 				$base = $f * $fb;
-				$s0 = fractal_zip_pcm_i32_at($pcm, $base);
-				$o .= fractal_zip_pcm_pack_i32($s0);
+				$prev = fractal_zip_pcm_i32_at($pcm, $base);
+				$parts = array(fractal_zip_pcm_pack_i32($prev));
 				for ($c = 1; $c < $channels; $c++) {
 					$d = fractal_zip_pcm_i32_at($pcm, $base + $c * 4);
-					$prev = fractal_zip_pcm_i32_at($o, $base + ($c - 1) * 4);
-					$o .= fractal_zip_pcm_pack_i32(fractal_zip_pcm_i32_wrap_add($d, $prev));
+					$cur = fractal_zip_pcm_i32_wrap_add($d, $prev);
+					$parts[] = fractal_zip_pcm_pack_i32($cur);
+					$prev = $cur;
 				}
+				$frames[] = implode('', $parts);
 			}
-			return $o;
+			return implode('', $frames);
 		}
 		return null;
 	}
@@ -1126,11 +1170,11 @@ function fractal_zip_pcm_pretransform_inverse(string $pcm, int $pcmFmt, int $cha
 			if (strlen($L) !== $half || strlen($R) !== $half) {
 				return null;
 			}
-			$o = '';
+			$frames = array();
 			for ($f = 0; $f < $nS; $f++) {
-				$o .= substr($L, $f * 2, 2) . substr($R, $f * 2, 2);
+				$frames[] = substr($L, $f * 2, 2) . substr($R, $f * 2, 2);
 			}
-			return $o;
+			return implode('', $frames);
 		}
 		if ($pcmFmt === FRACTAL_ZIP_FPCM_FMT_S32LE && $fb === 8 && $n % 8 === 0) {
 			$nS = intdiv($n, 8);
@@ -1140,11 +1184,11 @@ function fractal_zip_pcm_pretransform_inverse(string $pcm, int $pcmFmt, int $cha
 			if (strlen($L) !== $half || strlen($R) !== $half) {
 				return null;
 			}
-			$o = '';
+			$frames = array();
 			for ($f = 0; $f < $nS; $f++) {
-				$o .= substr($L, $f * 4, 4) . substr($R, $f * 4, 4);
+				$frames[] = substr($L, $f * 4, 4) . substr($R, $f * 4, 4);
 			}
-			return $o;
+			return implode('', $frames);
 		}
 		return null;
 	}

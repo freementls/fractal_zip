@@ -60,12 +60,16 @@ const FRACTAL_ZIP_FZIMG_FLAG_CANONICAL_GIF = 2;
 const FRACTAL_ZIP_FZIMG_FLAG_CANONICAL_WEBP_LOSSLESS = 4;
 
 function fractal_zip_image_pac_enabled(): bool {
+	static $cached = null;
+	if ($cached !== null) {
+		return $cached;
+	}
 	$e = getenv('FRACTAL_ZIP_IMAGEPAC');
 	if ($e === false || trim((string) $e) === '') {
-		return true;
+		return $cached = true;
 	}
 	$v = strtolower(trim((string) $e));
-	return !($v === '0' || $v === 'off' || $v === 'false' || $v === 'no');
+	return $cached = !($v === '0' || $v === 'off' || $v === 'false' || $v === 'no');
 }
 
 function fractal_zip_image_pac_ffmpeg_tools_ok(): bool {
