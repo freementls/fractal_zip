@@ -1,0 +1,10 @@
+<?php
+declare(strict_types=1);
+
+/**
+ * Copy to fz_fractal_local_env.php (same directory) — that name is gitignored.
+ * fz_local_env_bootstrap.php loads it before fractal_zip.php.
+ *
+ * Easiest: run ./setup_fractal_zip_zpaq_env.sh from this directory (writes fz_fractal_local_env.php).
+ */
+putenv('FRACTAL_ZIP_ZPAQ=' . '/home/freement/bin/zpaq');
