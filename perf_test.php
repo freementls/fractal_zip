@@ -611,9 +611,9 @@ function perf_bench_heavy_folder_gzip_fast_min_raw_bytes(): int
 	$e = getenv('FRACTAL_ZIP_LARGE_FOLDER_FAST_BYTES');
 	if ($e !== false && trim((string) $e) !== '' && is_numeric($e)) {
 		$n = (int) trim((string) $e);
-		return $n > 0 ? $n : 48 * 1024 * 1024;
+		return $n > 0 ? $n : 128 * 1024 * 1024;
 	}
-	return 48 * 1024 * 1024;
+	return 128 * 1024 * 1024;
 }
 
 function perf_bench_resolve_j_curve_w_scale(): float

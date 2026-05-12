@@ -127,13 +127,43 @@ function fractal_zip_marker_collect_layer_stripped_sample(string $dir, int $maxT
 }
 
 /**
+ * preg_quote(left|mid|right) for /-delimited regexes; cached per marker context.
+ *
+ * @return array{0:string,1:string,2:string}
+ */
+function fractal_zip_marker_rx_quoted_delimiters(): array {
+	static $cacheKey = null;
+	/** @var array{0:string,1:string,2:string} */
+	static $tri = array('', '', '');
+	$L = fractal_zip::$fractal_marker_ctx_left;
+	$M = fractal_zip::$fractal_marker_ctx_mid;
+	$R = fractal_zip::$fractal_marker_ctx_right;
+	$key = $L . "\0" . $M . "\0" . $R;
+	if ($cacheKey === $key) {
+		return $tri;
+	}
+	$cacheKey = $key;
+	$tri = array(preg_quote($L, '/'), preg_quote($M, '/'), preg_quote($R, '/'));
+	return $tri;
+}
+
+/**
  * Regex fragment for the core substring op `<off"len…>` with configurable mid (left/right stay angle brackets).
  */
 function fractal_zip_marker_rx_substring_main(): string {
-	$L = preg_quote(fractal_zip::$fractal_marker_ctx_left, '/');
-	$M = preg_quote(fractal_zip::$fractal_marker_ctx_mid, '/');
-	$R = preg_quote(fractal_zip::$fractal_marker_ctx_right, '/');
-	return $L . '([0-9]+)' . $M . '([0-9]+)' . $M . '*([0-9]*)\**([0-9]*)s*([0-9\.]*)' . $R;
+	static $cached = '';
+	static $cacheKey = null;
+	$L = fractal_zip::$fractal_marker_ctx_left;
+	$M = fractal_zip::$fractal_marker_ctx_mid;
+	$R = fractal_zip::$fractal_marker_ctx_right;
+	$key = $L . "\0" . $M . "\0" . $R;
+	if ($cacheKey === $key) {
+		return $cached;
+	}
+	$cacheKey = $key;
+	list($Lq, $Mq, $Rq) = fractal_zip_marker_rx_quoted_delimiters();
+	$cached = $Lq . '([0-9]+)' . $Mq . '([0-9]+)' . $Mq . '*([0-9]*)\**([0-9]*)s*([0-9\.]*)' . $Rq;
+	return $cached;
 }
 
 /**
@@ -141,10 +171,19 @@ function fractal_zip_marker_rx_substring_main(): string {
  * used by fractal_replace() when rewriting embedded references (must track configurable mid, not a hard-coded quote).
  */
 function fractal_zip_marker_rx_substring_tag_simple(): string {
-	$L = preg_quote(fractal_zip::$fractal_marker_ctx_left, '/');
-	$M = preg_quote(fractal_zip::$fractal_marker_ctx_mid, '/');
-	$R = preg_quote(fractal_zip::$fractal_marker_ctx_right, '/');
-	return $L . '([0-9]+)' . $M . '([0-9]+)' . $M . '*([0-9]*)' . $R;
+	static $cached = '';
+	static $cacheKey = null;
+	$L = fractal_zip::$fractal_marker_ctx_left;
+	$M = fractal_zip::$fractal_marker_ctx_mid;
+	$R = fractal_zip::$fractal_marker_ctx_right;
+	$key = $L . "\0" . $M . "\0" . $R;
+	if ($cacheKey === $key) {
+		return $cached;
+	}
+	$cacheKey = $key;
+	list($Lq, $Mq, $Rq) = fractal_zip_marker_rx_quoted_delimiters();
+	$cached = $Lq . '([0-9]+)' . $Mq . '([0-9]+)' . $Mq . '*([0-9]*)' . $Rq;
+	return $cached;
 }
 
 /**

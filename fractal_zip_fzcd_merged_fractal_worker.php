@@ -40,7 +40,7 @@ try {
 	}
 	$topK = getenv('FRACTAL_ZIP_FZCD_WORKER_TOP_K');
 	if ($topK !== false && trim((string) $topK) !== '' && is_numeric($topK)) {
-		$sub->tuning_substring_top_k = max(1, min(12, (int) $topK));
+		$sub->tuning_substring_top_k = max(1, min(48, (int) $topK));
 	}
 	$gate = getenv('FRACTAL_ZIP_FZCD_WORKER_GATE_MULT');
 	if ($gate !== false && trim((string) $gate) !== '' && is_numeric($gate)) {

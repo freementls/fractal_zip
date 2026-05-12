@@ -4,6 +4,8 @@ if (PHP_SAPI === 'cli') {
 }
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'fractal_zip_marker_adapt.php';
 require_once __DIR__ . DIRECTORY_SEPARATOR . 'fractal_zip_encode_pipeline.php';
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'fractal_zip_inner.php';
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'fractal_zip_runtime_bootstrap.php';
 fractal_zip_encode_pipeline::bootstrap_cli_parallel_defaults_if_cli();
 /**
  * Lazy-load FLAC/FZCD helpers (~450 lines). Most .fzc opens (FZB4 + deflate) never touch FZCD.
@@ -176,6 +178,8 @@ public static $last_zpaq_method = null;
 public const OUTER_BROTLI_MAGIC = 'FZb1';
 /** Prefix on outer zpaq blobs (raw .zpaq has no stable magic we can rely on for all versions). */
 public const OUTER_ZPAQ_MAGIC = 'FZzq';
+/** Legacy 1-byte {@code N} prefix before native bench folder {@code .7z} (still decoded); default encode path emits raw {@code 7z…} when native wins to match bench bytes. */
+public const NATIVE_FOLDER_7Z_WIRE_BYTE = "\x4E";
 /** Default inner/raw size cap (bytes) for trying {@code -method 6} before 5/4/3 in zpaq outer/native sweeps (2 MiB). */
 public const ZPAQ_OUTER_METHOD_SIX_MAX_INNER_BYTES = 2097152;
 /** Highest FZB literal mode allowed nested inside modes 6/7/8/11/20/21/22/23/24/25/26 (keep in sync with decode_bundle_literal_member). */
@@ -1218,22 +1222,33 @@ public $fzb_raster_canon_decode_table = array();
  * @var int
  */
 public $recursive_fractal_entry_strlen = 0;
+/**
+ * Cached depth cap for the current recursive_fractal_substring tree (see max_recursive_fractal_depth + fractal_large_entry_effective_max_depth).
+ * @var int|null
+ */
+public $recursive_fractal_effective_max_depth = null;
+/**
+ * Cached wall budget (seconds) for recursive_fractal_substring for this tree; refreshed at recursion_counter===0.
+ * @var int|null
+ */
+public $recursive_fractal_max_seconds = null;
+/**
+ * Cached {@see max_fractal_analysis_bytes()} for this recursive_fractal_substring tree; refreshed at recursion_counter===0.
+ * @var int|null
+ */
+public $recursive_fractal_max_analysis_bytes = null;
 
 /**
  * Env FRACTAL_ZIP_FOLDER_FZB4_STORE_ONLY=1: zip_folder writes a raw FZB4 bundle as the .fzc (mode 0 literals, no per-file transform search, no gzip/deflate outer).
  * adaptive_decompress passes FZB4 through; used by benchmarks under a tight per-case deadline on very large trees.
  */
 public static function folder_literal_fzb4_store_only_requested(): bool {
-	static $cached = null;
-	if($cached !== null) {
-		return $cached;
-	}
 	$v = getenv('FRACTAL_ZIP_FOLDER_FZB4_STORE_ONLY');
 	if($v === false || trim((string) $v) === '') {
-		return $cached = false;
+		return false;
 	}
 	$v = strtolower(trim((string) $v));
-	return $cached = ($v === '1' || $v === 'on' || $v === 'true' || $v === 'yes');
+	return $v === '1' || $v === 'on' || $v === 'true' || $v === 'yes';
 }
 
 /**
@@ -1251,6 +1266,8 @@ public static function folder_literal_fzb4_store_only_requested(): bool {
  * FRACTAL_ZIP_LITERAL_SYNTH_MULTIPASS_MAX_SECONDS (unset = no cap for synth). Optional segment tournament: FRACTAL_ZIP_LITERAL_SYNTH_SEGMENT_GRID=1,
  * FRACTAL_ZIP_LITERAL_SYNTH_SEGMENT_GRID_MAX_MERGED_BYTES (default 384 KiB).
  * Large-blob fractal substring search: FRACTAL_ZIP_FRACTAL_SUBSTRING_COARSE_* / FRACTAL_ZIP_LITERAL_SYNTH_SUBSTRING_COARSE_* (enumeration caps, top-K, window);
+ * FRACTAL_ZIP_MAX_SUBSTR_EXPRESSION_LENGTH (cap substring sliding-window sizing in all_substrings_count, clamped to segment_length; unset = loosened default);
+ * FRACTAL_ZIP_ALL_SUBSTRING_CANDIDATES (skip top-K truncation after substring scoring; research / heavy RAM);
  * FRACTAL_ZIP_FRACTAL_LARGE_ENTRY_DEPTH_MIN_BYTES + FRACTAL_ZIP_FRACTAL_LARGE_ENTRY_MAX_RECURSION_DEPTH (clamp recursion depth on huge roots).
  *
  * Collect files, build one or more literal inners (FZCD when applicable, FZBM merged+index for multi-file raw concat,
@@ -1438,6 +1455,54 @@ public static function folder_native_freearc_dual_method_max_raw_bytes(): int {
 	return $cached = ($e === false || trim((string) $e) === '') ? 2097152 : max(0, (int) trim((string) $e));
 }
 
+public static function folder_native_7z_compare_enabled(): bool {
+	static $cached = null;
+	if($cached !== null) {
+		return $cached;
+	}
+	return $cached = getenv('FRACTAL_ZIP_FOLDER_NATIVE_7Z_COMPARE') !== '0';
+}
+
+public static function folder_native_7z_compare_max_raw_bytes(): int {
+	static $cached = null;
+	if($cached !== null) {
+		return $cached;
+	}
+	$e = getenv('FRACTAL_ZIP_FOLDER_NATIVE_7Z_MAX_RAW_BYTES');
+	if($e !== false && trim((string) $e) !== '') {
+		$v = (int) trim((string) $e);
+		return $cached = max(0, min(2147483647, $v));
+	}
+	return $cached = 2097152;
+}
+
+public static function folder_native_brotli_compare_enabled(): bool {
+	static $cached = null;
+	if($cached !== null) {
+		return $cached;
+	}
+
+	return $cached = getenv('FRACTAL_ZIP_FOLDER_NATIVE_BROTLI_COMPARE') !== '0';
+}
+
+/**
+ * Max merged raw bytes for {@see maybe_folder_brotli_native_smaller_than_fzc}. Unset ⇒ same cap as {@see folder_native_7z_compare_max_raw_bytes()} (default 2 MiB).
+ */
+public static function folder_native_brotli_compare_max_raw_bytes(): int {
+	static $cached = null;
+	if($cached !== null) {
+		return $cached;
+	}
+	$e = getenv('FRACTAL_ZIP_FOLDER_NATIVE_BROTLI_MAX_RAW_BYTES');
+	if($e !== false && trim((string) $e) !== '') {
+		$v = (int) trim((string) $e);
+
+		return $cached = max(0, min(2147483647, $v));
+	}
+
+	return $cached = fractal_zip::folder_native_7z_compare_max_raw_bytes();
+}
+
 /**
  * Max merged raw bytes for the **adaptive-zpaq** native-folder compare ({@see maybe_folder_zpaq_native_smaller_than_fzc} when
  * {@see fractal_zip::outer_force_codec_is_zpaq()} is false). Avoids a second full-tree <code>zpaq add</code> on huge corpora;
@@ -1454,6 +1519,116 @@ public static function folder_native_zpaq_compare_max_raw_bytes(): int {
 	}
 	$v = (int) trim((string) $e);
 	return $cached = max(0, min(2147483647, $v));
+}
+
+/**
+ * Skip native zpaq after the current folder wire candidate is already tiny for a large raw tree.
+ * Disable with FRACTAL_ZIP_FOLDER_NATIVE_SKIP_ZPAQ_AFTER_TINY_WIRE=0 for exhaustive native comparisons.
+ */
+public static function folder_native_skip_zpaq_after_tiny_wire(int $wireBytes, int $sumRawBytes): bool {
+	if(self::outer_force_codec_is_zpaq()) {
+		return false;
+	}
+	$e = getenv('FRACTAL_ZIP_FOLDER_NATIVE_SKIP_ZPAQ_AFTER_TINY_WIRE');
+	if($e === false) {
+		$e = getenv('FRACTAL_ZIP_FOLDER_NATIVE_SKIP_ZPAQ_AFTER_TINY_ARC');
+	}
+	if($e !== false && trim((string)$e) !== '') {
+		$v = strtolower(trim((string)$e));
+		if($v === '0' || $v === 'false' || $v === 'off' || $v === 'no') {
+			return false;
+		}
+	}
+	if($wireBytes <= 0) {
+		return false;
+	}
+	if($sumRawBytes < 32768) {
+		return $wireBytes <= $sumRawBytes;
+	}
+	if($wireBytes <= 4096 && ($wireBytes * 64) <= $sumRawBytes) {
+		return true;
+	}
+	return $wireBytes <= 16384 && ($wireBytes * 8) <= $sumRawBytes;
+}
+
+public static function folder_native_skip_adaptive_zpaq_when_native_compare_enabled(): bool {
+	static $cached = null;
+	if($cached !== null) {
+		return $cached;
+	}
+	$e = getenv('FRACTAL_ZIP_FOLDER_NATIVE_SKIP_ADAPTIVE_ZPAQ');
+	return $cached = ($e === false || trim((string) $e) === '') ? true : !in_array(strtolower(trim((string) $e)), array('0', 'false', 'off', 'no'), true);
+}
+
+public static function folder_native_zpaq_compare_will_be_available_for_raw_bytes(int $sumRawBytes): bool {
+	if($sumRawBytes <= 0 || DIRECTORY_SEPARATOR === '\\' || self::outer_force_codec_is_zpaq()) {
+		return false;
+	}
+	if(!self::folder_native_skip_adaptive_zpaq_when_native_compare_enabled()) {
+		return false;
+	}
+	if(getenv('FRACTAL_ZIP_FOLDER_NATIVE_ZPAQ_COMPARE') === '0') {
+		return false;
+	}
+	$capZ = self::folder_native_zpaq_compare_max_raw_bytes();
+	if($capZ > 0 && $sumRawBytes > $capZ) {
+		return false;
+	}
+	return self::zpaq_executable() !== null;
+}
+
+/**
+ * True when native folder wire compares (Arc / 7z / brotli / zpaq) are all off, so {@see folder_wire_after_literal_outer_try_native_folder_archives} can return without rollup work.
+ */
+public static function folder_native_wire_compare_fully_disabled(): bool {
+	static $cached = null;
+	if($cached !== null) {
+		return $cached;
+	}
+	return $cached = (!fractal_zip::folder_native_freearc_compare_enabled()
+		&& !fractal_zip::folder_native_7z_compare_enabled()
+		&& !fractal_zip::folder_native_brotli_compare_enabled()
+		&& getenv('FRACTAL_ZIP_FOLDER_NATIVE_ZPAQ_COMPARE') === '0');
+}
+
+/**
+ * Native folder passthrough shape after fractal inner selection: raw {@code 7z…} container, or prefix ({@code FZLB}, {@code N}+7z, legacy {@code FZ}+7z, {@code FZ7}/{@code FZ7F}, {@code FZPA}); else null.
+ */
+public static function native_folder_wire_outer_kind_from_head(string $head): ?string {
+	if(strlen($head) >= 5 && substr($head, 0, 4) === 'FZLB' && $head[4] === "\x01") {
+		return 'fzlb_tar_br';
+	}
+	if(strlen($head) >= 5 && substr($head, 0, 4) === 'FZ7F' && $head[4] === "\x01") {
+		return 'fz7f_folder_7z';
+	}
+	if(strlen($head) >= 4 && substr($head, 0, 3) === 'FZ7' && $head[3] === "\x01") {
+		return 'fz7_folder_7z';
+	}
+	if(strlen($head) >= 5 && substr($head, 0, 4) === 'FZPA' && $head[4] === "\x01") {
+		return 'fzpa_zpaq';
+	}
+	$b7 = fractal_zip::NATIVE_FOLDER_7Z_WIRE_BYTE;
+	if(strlen($head) >= 7 && isset($head[0]) && $head[0] === $b7 && fractal_zip::payload_has_raw_seven_zip_signature(substr($head, 1))) {
+		return 'fz_folder_7z_n1';
+	}
+	if(strlen($head) >= 8 && substr($head, 0, 2) === 'FZ' && fractal_zip::payload_has_raw_seven_zip_signature(substr($head, 2))) {
+		return 'fz_folder_7z_compact';
+	}
+	if(strlen($head) >= 6 && fractal_zip::payload_has_raw_seven_zip_signature($head)) {
+		return 'fz_folder_7z_raw';
+	}
+
+	return null;
+}
+
+/**
+ * True when $blob begins with the standard 7-Zip archive signature ({@code 7z\xBC\xAF\x27\x1C}).
+ */
+public static function payload_has_raw_seven_zip_signature(string $blob): bool {
+	$n = strlen($blob);
+
+	return $n >= 6 && $blob[0] === '7' && $blob[1] === 'z'
+		&& ord($blob[2]) === 0xBC && ord($blob[3]) === 0xAF && ord($blob[4]) === 0x27 && ord($blob[5]) === 0x1C;
 }
 
 /**
@@ -1499,7 +1674,9 @@ public static function folder_literal_variants_for_unified_stream(array $variant
 /**
  * Auto heuristic for staged literal-folder outers: multi-file MPQ-family trees (several .SC2Replay, .w3replay, …) or any
  * folder with ≥2 distinct file extensions; homogeneous many-file single-extension trees ({@see folder_staged_literal_outer_homogeneous_many_files_eligible});
- * optional large single-file trees ({@see folder_staged_literal_outer_single_file_min_raw_bytes_threshold}). Tiny single-file corpora stay unstaged so full
+ * optional large single-file trees ({@see folder_staged_literal_outer_single_file_min_raw_bytes_threshold}; default 32 KiB, same floor as {@see folder_staged_literal_outer_small_tree_min_raw_bytes}); homogeneous
+ * multi-file trees with merged raw ≥ {@see folder_staged_literal_outer_small_tree_min_raw_bytes} (default 32 KiB) and file count below the
+ * “many homogeneous” threshold ({@see folder_staged_literal_outer_homogeneous_min_files_threshold}). Smaller single-file corpora stay unstaged so full
  * adaptive_compress can maximize byte wins when semantic unwrap helps one archive.
  *
  * @param array<string,string> $rawFilesByPath
@@ -1535,6 +1712,20 @@ public static function folder_staged_literal_outer_auto_heuristic(array $rawFile
 	$mpqFamily = array('sc2replay', 'w3replay', 'sc2map', 'w3x', 'w3m', 'mpq');
 	if($only !== '' && in_array($only, $mpqFamily, true)) {
 		return true;
+	}
+	// Few files, one extension, midsize total raw (e.g. half a dozen HTML samples): enable staged like mixed-ext trees.
+	if(sizeof($uniq) === 1 && $n >= 2) {
+		$hmThr = fractal_zip::folder_staged_literal_outer_homogeneous_min_files_threshold();
+		if($hmThr > 0 && $n < $hmThr) {
+			$sumFew = 0;
+			foreach($rawFilesByPath as $b) {
+				$sumFew += strlen((string) $b);
+			}
+			$sTreeMin = fractal_zip::folder_staged_literal_outer_small_tree_min_raw_bytes();
+			if($sTreeMin > 0 && $sumFew >= $sTreeMin) {
+				return true;
+			}
+		}
 	}
 	return false;
 }
@@ -1581,7 +1772,7 @@ public static function folder_staged_literal_outer_enabled(array $rawFilesByPath
  * (disables the fast tier path entirely). Set to 1 to almost always use staged fast path (legacy stress only).
  * Homogeneous multi-file trees ({@see folder_staged_literal_outer_homogeneous_many_files_eligible}) may use the staged fast tier when merged raw ≥
  * {@see staged_literal_homogeneous_fast_outer_min_raw_bytes} (default 512 KiB) even if below this 16 MiB floor.
- * Large single-file trees ({@see folder_staged_literal_outer_single_file_min_raw_bytes_threshold}) use the same lower floor when staged is enabled by heuristic.
+ * Large single-file trees ({@see folder_staged_literal_outer_single_file_min_raw_bytes_threshold}; default 32 KiB) use the same lower floor when staged is enabled by heuristic.
  */
 public static function staged_literal_fast_outer_min_raw_bytes(): int {
 	static $cached = null;
@@ -1666,8 +1857,9 @@ public static function folder_staged_literal_outer_homogeneous_many_files_eligib
 }
 
 /**
- * Single-member folder (one logical file): allow staged fast tier when merged raw ≥ this threshold. Unset ⇒ 524288 (512 KiB);
- * {@code 0} disables (legacy: single-file paths never used staged heuristic).
+ * Single-member folder (one logical file): allow staged fast tier when merged raw ≥ this threshold. Unset ⇒ 32768 (32 KiB),
+ * aligned with {@see folder_staged_literal_outer_small_tree_min_raw_bytes}; {@code 0} disables (legacy: single-file paths never used staged heuristic).
+ * Tiny single-file corpora stay unstaged; midsize HTML/CSV use fast-tier + full rescoring (same wire-byte safety net as other staged paths).
  */
 public static function folder_staged_literal_outer_single_file_min_raw_bytes_threshold(): int {
 	static $cached = null;
@@ -1676,7 +1868,29 @@ public static function folder_staged_literal_outer_single_file_min_raw_bytes_thr
 	}
 	$e = getenv('FRACTAL_ZIP_FOLDER_STAGED_LITERAL_OUTER_SINGLE_FILE_MIN_RAW_BYTES');
 	if($e === false || trim((string) $e) === '') {
-		return $cached = 524288;
+		return $cached = 32768;
+	}
+	$v = (int) trim((string) $e);
+
+	return $cached = max(0, min(2147483647, $v));
+}
+
+/**
+ * Lower floor for {@see folder_staged_literal_outer_auto_heuristic} + {@see choose_smallest_adaptive_literal_inner_or_raw_escaped}
+ * meetRawFloor when staged mode is on but merged raw is below the 16 MiB / homogeneous-512 KiB / single-file gates.
+ * Few-file single-extension trees (e.g. several HTML samples) and small mixed-extension folders then use fast-tier + full rescoring.
+ * Unset ⇒ 32768 (32 KiB); {@code 0} disables this branch (legacy: only the larger floors triggered staged meetRaw).
+ *
+ * Env: {@code FRACTAL_ZIP_FOLDER_STAGED_LITERAL_SMALL_TREE_MIN_RAW_BYTES}
+ */
+public static function folder_staged_literal_outer_small_tree_min_raw_bytes(): int {
+	static $cached = null;
+	if($cached !== null) {
+		return $cached;
+	}
+	$e = getenv('FRACTAL_ZIP_FOLDER_STAGED_LITERAL_SMALL_TREE_MIN_RAW_BYTES');
+	if($e === false || trim((string) $e) === '') {
+		return $cached = 32768;
 	}
 	$v = (int) trim((string) $e);
 
@@ -1712,6 +1926,37 @@ public static function staged_literal_deep_fast_margin_bytes_or_negative(): int 
 }
 
 /**
+ * Skip full raw-tier rescoring when a verified inner already beats raw fast-tier output by this ratio.
+ * Applies only to tiny verified inner winners. Unset ⇒ 1; 0 disables the skip.
+ */
+public static function staged_literal_skip_raw_full_after_verified_inner_ratio(): int {
+	static $cached = null;
+	if($cached !== null) {
+		return $cached;
+	}
+	$e = getenv('FRACTAL_ZIP_STAGED_LITERAL_SKIP_RAW_FULL_VERIFIED_RATIO');
+	if($e === false || trim((string) $e) === '') {
+		return $cached = 1;
+	}
+	return $cached = max(0, (int) trim((string) $e));
+}
+
+/**
+ * Max current winner bytes for the verified-inner raw-full skip. Unset ⇒ 8192.
+ */
+public static function staged_literal_skip_raw_full_after_verified_inner_max_bytes(): int {
+	static $cached = null;
+	if($cached !== null) {
+		return $cached;
+	}
+	$e = getenv('FRACTAL_ZIP_STAGED_LITERAL_SKIP_RAW_FULL_VERIFIED_MAX_BYTES');
+	if($e === false || trim((string) $e) === '') {
+		return $cached = 8192;
+	}
+	return $cached = max(0, (int) trim((string) $e));
+}
+
+/**
  * Whole-stream reversible preprocess on FZB4 inner before outer adaptive_compress. FZWS v1: delta or xor-adjacent on full blob.
  * FRACTAL_ZIP_WHOLE_STREAM_FZWS=0 disables. FRACTAL_ZIP_WHOLE_STREAM_FZWS_MAX_BYTES caps input (default 128 MiB; 0 = unlimited).
  */
@@ -1739,6 +1984,48 @@ public static function whole_stream_fzws_max_bytes(): int {
 	}
 	$v = (int) trim((string) $e);
 	return $cached = ($v <= 0 ? 0 : min(2147483647, $v));
+}
+
+private static function php_memory_limit_bytes_for_guard(): int {
+	static $cached = null;
+	if($cached !== null) {
+		return $cached;
+	}
+	$raw = ini_get('memory_limit');
+	if($raw === false) {
+		return $cached = 0;
+	}
+	$s = trim((string) $raw);
+	if($s === '' || $s === '-1') {
+		return $cached = 0;
+	}
+	$unit = strtolower(substr($s, -1));
+	$num = (float) $s;
+	if($num <= 0.0) {
+		return $cached = 0;
+	}
+	if($unit === 'g') {
+		$num *= 1024.0 * 1024.0 * 1024.0;
+	} elseif($unit === 'm') {
+		$num *= 1024.0 * 1024.0;
+	} elseif($unit === 'k') {
+		$num *= 1024.0;
+	}
+	return $cached = (int) min((float) PHP_INT_MAX, $num);
+}
+
+private static function whole_stream_fzws_has_memory_headroom(int $innerBytes): bool {
+	if($innerBytes <= 0) {
+		return true;
+	}
+	$limit = fractal_zip::php_memory_limit_bytes_for_guard();
+	if($limit <= 0) {
+		return true;
+	}
+	$used = memory_get_usage(true);
+	// FZWS probing can hold base deflate output, transform body, wrapped body, and deflate work buffers at once.
+	$needed = ($innerBytes * 6) + (64 * 1024 * 1024);
+	return ($used + $needed) < $limit;
 }
 
 /**
@@ -2112,7 +2399,7 @@ public static function outer_prediction_min_inner_bytes(): int {
 		return max(0, (int) trim((string) $e));
 	}
 
-	return 512;
+	return 16384;
 }
 
 public static function outer_prediction_probe_max_bytes(): int {
@@ -2123,6 +2410,19 @@ public static function outer_prediction_probe_max_bytes(): int {
 	// Bytes-first default samples up to 8 MiB; speed preset caps probe unless overridden — fewer subprocess bytes/time on huge inners.
 	if(self::speed_mode_enabled()) {
 		return 2 * 1024 * 1024;
+	}
+
+	return 8 * 1024 * 1024;
+}
+
+/** Maximum inner size for layered outer prediction; 0 = no size cap. */
+public static function outer_prediction_max_inner_bytes(): int {
+	$e = getenv('FRACTAL_ZIP_OUTER_PREDICT_MAX_INNER_BYTES');
+	if($e !== false && trim((string) $e) !== '') {
+		return max(0, (int) trim((string) $e));
+	}
+	if(self::ultra_compression_enabled()) {
+		return 0;
 	}
 
 	return 8 * 1024 * 1024;
@@ -2261,7 +2561,9 @@ public static function zpaq_outer_high_method_max_inner_bytes(): int {
 
 /**
  * Skip layered outer probes when gzip baseline is barely smaller than raw inner ({@code gzLen/innerLen} ≥ threshold — near‑incompressible).
- * Tunable: {@code FRACTAL_ZIP_OUTER_PREDICT_MAX_GZIP_LEN_FRAC} (default 0.97); set {@code 0}, {@code off}, or {@code false} to disable.
+ * Tunable: {@code FRACTAL_ZIP_OUTER_PREDICT_MAX_GZIP_LEN_FRAC} (default 0.999); set {@code 0}, {@code off}, or {@code false} to disable.
+ * Default 0.999 (was 0.97): JPEG-like inners still shrink slightly with gzip-9 (~0.2% off raw) — keeping prediction avoids
+ * {@code skipped_gzip_gate} blind spots and helps outer choice vs min-ext brotli on e.g. {@code test_files111}.
  */
 public static function outer_prediction_skip_layered_for_gzip_baseline(int $innerLen, int $gzLen): bool {
 	if($innerLen <= 0 || $gzLen === PHP_INT_MAX || $gzLen <= 0) {
@@ -2275,7 +2577,7 @@ public static function outer_prediction_skip_layered_for_gzip_baseline(int $inne
 		}
 		$maxRatio = (float) trim((string) $e);
 	} else {
-		$maxRatio = 0.97;
+		$maxRatio = 0.999;
 	}
 	if($maxRatio <= 0.0 || $maxRatio > 1.0) {
 		return false;
@@ -2322,8 +2624,12 @@ public static function zpaq_predict_probe_method_for_tier(string $tier, int $inn
 }
 
 /**
- * When two outer candidates tie on compressed size, {@see outer_candidate_beats_current} can prefer faster-decode heuristics.
- * Set {@code FRACTAL_ZIP_OUTER_TIE_BREAK_DECOMPRESS=0} for legacy behavior: tie keeps the incumbent (first seen in the tournament order).
+ * When two outer candidates tie on compressed size, {@see outer_candidate_beats_current} prefers:
+ * 1. faster typical extraction/decompression, then
+ * 2. broader install/OS compatibility.
+ *
+ * Set {@code FRACTAL_ZIP_OUTER_TIE_BREAK_DECOMPRESS=0} for legacy behavior: tie keeps the incumbent
+ * (first seen in the tournament order).
  */
 public static function outer_tie_break_decompress_enabled(): bool {
 	$e = getenv('FRACTAL_ZIP_OUTER_TIE_BREAK_DECOMPRESS');
@@ -2334,32 +2640,56 @@ public static function outer_tie_break_decompress_enabled(): bool {
 	return !($v === '0' || $v === 'false' || $v === 'off' || $v === 'no');
 }
 
-/** Lower rank ⇒ preferred on a size tie (typical outer **decompress** speed — not compress). */
+/** Lower rank ⇒ preferred on a size tie (typical outer **decompress/extract** speed — not compress). */
 public static function outer_decompress_tie_rank(string $codec): int {
 	switch($codec) {
-		case 'gzip':
+		case 'store':
 			return 0;
 		case 'zstd':
 			return 10;
-		case 'brotli':
+		case 'gzip':
 			return 20;
-		case 'xz':
+		case 'brotli':
 			return 30;
-		case '7z':
-			return 40;
 		case 'arc':
+			return 40;
+		case '7z':
+			return 50;
+		case 'xz':
+			return 60;
+		case 'zpaq':
+			return 70;
+		default:
+			return 80;
+	}
+}
+
+/** Lower rank ⇒ preferred after extraction-speed tie (fewer/easier dependencies across common OS installs). */
+public static function outer_compatibility_tie_rank(string $codec): int {
+	switch($codec) {
+		case 'store':
+			return 0;
+		case 'gzip':
+			return 10;
+		case 'zstd':
+			return 20;
+		case 'brotli':
+			return 30;
+		case 'xz':
+			return 40;
+		case '7z':
 			return 50;
 		case 'zpaq':
 			return 60;
-		case 'store':
-			return 100;
+		case 'arc':
+			return 70;
 		default:
 			return 80;
 	}
 }
 
 /**
- * Smaller outer length wins; on an exact tie, prefer the outer with better (lower) {@see outer_decompress_tie_rank} when enabled.
+ * Smaller outer length wins; on an exact tie, prefer faster extraction, then broader compatibility.
  */
 public static function outer_candidate_beats_current(string $candidateCodec, int $candidateLen, string $bestCodec, int $bestLen): bool {
 	if($candidateLen <= 0) {
@@ -2382,6 +2712,12 @@ public static function outer_candidate_beats_current(string $candidateCodec, int
 	if($rc !== $rb) {
 		return $rc < $rb;
 	}
+	$cc = fractal_zip::outer_compatibility_tie_rank($candidateCodec);
+	$cb = fractal_zip::outer_compatibility_tie_rank($bestCodec);
+	if($cc !== $cb) {
+		return $cc < $cb;
+	}
+
 	return $candidateCodec < $bestCodec;
 }
 
@@ -2707,6 +3043,18 @@ public static function brotli_huge_trigger_slack_bytes(): int {
 	return $cached = ($e === false || trim((string) $e) === '') ? 8192 : max(0, (int) $e);
 }
 
+public static function compact_brotli_full_fallback_max_inner_bytes(): int {
+	static $cached = null;
+	if($cached !== null) {
+		return $cached;
+	}
+	$e = getenv('FRACTAL_ZIP_COMPACT_BROTLI_FULL_FALLBACK_MAX_INNER_BYTES');
+	if($e !== false && trim((string) $e) !== '') {
+		return $cached = max(0, (int) trim((string) $e));
+	}
+	return $cached = 262144;
+}
+
 public static function brotli_huge_full_timeout_sec(): float {
 	static $cached = null;
 	if($cached !== null) {
@@ -2780,7 +3128,8 @@ public static function brotli_full_outer_arc_textlike_max_inner_bytes(): int {
 /**
  * When layered prediction names {@code arc} or {@code zpaq} but {@see outer_likely_textlike} is false (e.g. tiny PNG/JPEG
  * plus SMS/VCF/plist text — {@code test_files76}), the arc/zpaq full-brotli fallback still matters. Allow Q10/Q11 + lgwin when
- * inner length ≤ this cap; zero disables so only {@see outer_likely_textlike} true triggers for arc/zpaq.
+ * inner length ≤ this cap (default **256 KiB**, Squash-scale protobuf/binary literals); zero disables so only
+ * {@see outer_likely_textlike} true triggers for arc/zpaq.
  *
  * Env: {@code FRACTAL_ZIP_BROTLI_FULL_OUTER_ARC_ZPAQ_NON_TEXTLIKE_MAX_INNER_BYTES}.
  */
@@ -2790,7 +3139,7 @@ public static function brotli_full_outer_arc_zpaq_non_textlike_max_inner_bytes()
 		return $cached;
 	}
 	$e = getenv('FRACTAL_ZIP_BROTLI_FULL_OUTER_ARC_ZPAQ_NON_TEXTLIKE_MAX_INNER_BYTES');
-	return $cached = ($e === false || trim((string) $e) === '') ? 32768 : max(0, (int) $e);
+	return $cached = ($e === false || trim((string) $e) === '') ? 262144 : max(0, (int) $e);
 }
 
 /**
@@ -3034,9 +3383,10 @@ public const DEFAULT_SEGMENT_LENGTH = 300;
 //function __construct($improvement_factor_threshold = 10, $segment_length = 20000, $multipass = false) {
 /**
  * @param null|int $segment_length
- * @param null|array<string, int|float|null> $compression_tuning_overrides Optional trial overrides: substring_top_k, multipass_gate_mult, improvement_factor_threshold, multipass_max_additional_passes (int≥0 or null=unlimited)
+ * @param null|array<string, int|float|null> $compression_tuning_overrides Optional trial overrides: substring_top_k (1–48), multipass_gate_mult, improvement_factor_threshold, multipass_max_additional_passes (int≥0 or null=unlimited)
  */
 function __construct($segment_length = null, $multipass = true, $allow_auto_segment_selection = true, $compression_tuning_overrides = null, $allow_auto_multipass_selection = true) {
+	fractal_zip_bootstrap_runtime_env();
 	$this->initial_time = time();
 	$this->initial_micro_time = microtime(true);
 	define('DS', DIRECTORY_SEPARATOR);
@@ -3133,7 +3483,7 @@ function __construct($segment_length = null, $multipass = true, $allow_auto_segm
 	}
 	if(is_array($compression_tuning_overrides)) {
 		if(array_key_exists('substring_top_k', $compression_tuning_overrides)) {
-			$this->tuning_substring_top_k = max(1, min(12, (int) $compression_tuning_overrides['substring_top_k']));
+			$this->tuning_substring_top_k = max(1, min(48, (int) $compression_tuning_overrides['substring_top_k']));
 		}
 		if(array_key_exists('multipass_gate_mult', $compression_tuning_overrides)) {
 			$this->tuning_multipass_gate_mult = max(1.0, min(4.0, (float) $compression_tuning_overrides['multipass_gate_mult']));
@@ -3241,6 +3591,33 @@ function recursive_copy_directory($src, $dst) {
 				mkdir($parent, 0755, true);
 			}
 			copy($item->getPathname(), $target);
+		}
+	}
+}
+
+function recursive_copy_archive_output_directory_safely($src, $dst) {
+	if(!is_dir($src)) {
+		return;
+	}
+	if(!is_dir($dst)) {
+		mkdir($dst, 0755, true);
+	}
+	$it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($src, FilesystemIterator::SKIP_DOTS), RecursiveIteratorIterator::SELF_FIRST);
+	foreach($it as $item) {
+		$rel = str_replace('\\', '/', $it->getSubPathname());
+		$target = $this->safe_container_member_output_path($dst, $rel);
+		if($item->isDir()) {
+			if(!is_dir($target) && !@mkdir($target, 0755, true) && !is_dir($target)) {
+				fractal_zip::fatal_error('Failed to create native archive output directory: ' . $target);
+			}
+		} else {
+			$parent = dirname($target);
+			if(!is_dir($parent) && !@mkdir($parent, 0755, true) && !is_dir($parent)) {
+				fractal_zip::fatal_error('Failed to create native archive output directory: ' . $parent);
+			}
+			if(!@copy($item->getPathname(), $target)) {
+				fractal_zip::fatal_error('Failed to copy native archive member: ' . $rel);
+			}
 		}
 	}
 }
@@ -3690,7 +4067,7 @@ function choose_best_multipass_for_folder($dir, $debug = false) {
  */
 function choose_best_compression_tuning_for_folder($dir, $debug = false) {
 	$this->j_curve_context_raw_bytes = $this->folder_raw_total_bytes($dir);
-	$topKGrid = $this->parse_auto_tune_int_list('FRACTAL_ZIP_AUTO_TUNE_TOP_K', array(5, 7, 9, 10, 12), 1, 12);
+	$topKGrid = $this->parse_auto_tune_int_list('FRACTAL_ZIP_AUTO_TUNE_TOP_K', array(12, 16, 20, 24, 32, 48), 1, 48);
 	$impGrid = $this->parse_auto_tune_float_list('FRACTAL_ZIP_AUTO_TUNE_IMPROVEMENT', array(0.35, 0.4, 0.5, 0.65, 0.85, 1.0, 1.2), 0.01, 50.0);
 	$gateGrid = $this->parse_auto_tune_float_list('FRACTAL_ZIP_AUTO_TUNE_GATE', array(1.1, 1.15, 1.2, 1.25, 1.5, 1.75, 2.0), 1.0, 4.0);
 	$segmentCandidates = $this->auto_segment_selection_enabled ? $this->auto_segment_candidates : array($this->segment_length);
@@ -3757,12 +4134,12 @@ function choose_best_compression_tuning_for_folder($dir, $debug = false) {
 	}
 	$kStr = $this->tuning_substring_top_k === null ? 'default' : (string) $this->tuning_substring_top_k;
 	$gStr = $this->tuning_multipass_gate_mult === null ? 'default' : (string) $this->tuning_multipass_gate_mult;
-	print('Auto-tuned compression: segment=' . $this->segment_length . ', substring_top_k=' . $kStr . ', improvement=' . $this->improvement_factor_threshold . ', gate_mult=' . $gStr . ', best_trial .fzc=' . $best_size . ' B<br>');
+	fractal_zip::html_trace_print('Auto-tuned compression: segment=' . $this->segment_length . ', substring_top_k=' . $kStr . ', improvement=' . $this->improvement_factor_threshold . ', gate_mult=' . $gStr . ', best_trial .fzc=' . $best_size . ' B<br>');
 }
 
 /**
  * Optional unified-stream literal: POSIX ustar tar of one image member — outer codecs see the same byte layout as {@code tar cf - file | brotli}
- * min-ext lanes (e.g. Squash JPEG singles like test_files111). Disable with {@code FRACTAL_ZIP_LITERAL_OUTER_FZTA_TAR_JPEG=0}.
+ * min-ext {@code tar cf - . | …} lanes on single-file folders (Squash JPEG/protobuf singles). Disable with {@code FRACTAL_ZIP_LITERAL_OUTER_FZTA_TAR_JPEG=0}.
  */
 public static function literal_outer_fzta_tar_jpeg_candidate_enabled(): bool {
 	$e = getenv('FRACTAL_ZIP_LITERAL_OUTER_FZTA_TAR_JPEG');
@@ -3774,7 +4151,7 @@ public static function literal_outer_fzta_tar_jpeg_candidate_enabled(): bool {
 }
 
 /**
- * Build a GNU/POSIX-compatible ustar archive containing one regular file (basename-only path). Uses {@code tar cf -} when available (Unix).
+ * Build a GNU/POSIX-compatible ustar archive matching {@code benchmarks/run_benchmarks.php} tar pipe: temp dir + {@code tar cf - .} (basename-only member under {@code $relPath}).
  *
  * @return non-empty-string|false
  */
@@ -3799,48 +4176,55 @@ public static function posix_ustar_single_file_archive_bytes(string $relPath, st
 		@rmdir($td);
 		return false;
 	}
-	$out = shell_exec('cd ' . escapeshellarg($td) . ' && ' . escapeshellarg($tar) . ' cf - ' . escapeshellarg($relPath) . ' 2>/dev/null');
+	$out = shell_exec('cd ' . escapeshellarg($td) . ' && ' . escapeshellarg($tar) . ' cf - . 2>/dev/null');
 	@unlink($fp);
 	@rmdir($td);
 	return (is_string($out) && $out !== '') ? $out : false;
 }
 
 /**
- * Decode first regular-file member from a POSIX ustar stream (single-file archives from {@see posix_ustar_single_file_archive_bytes}).
+ * Decode first regular-file member from a POSIX ustar stream ({@see posix_ustar_single_file_archive_bytes}). Skips directory and other non-file headers ({@code tar cf - .} often leads with {@code ./}).
  *
  * @return array{0: string, 1: string}|null [path, raw bytes]
  */
 public static function posix_ustar_decode_first_regular_file(string $tar): ?array {
 	$n = strlen($tar);
-	if($n < 512) {
-		return null;
+	$pos = 0;
+	while($pos + 512 <= $n) {
+		$h = substr($tar, $pos, 512);
+		if(strlen($h) !== 512) {
+			return null;
+		}
+		$type = $h[156] ?? '0';
+		$name = trim(substr($h, 0, 100), "\0 ");
+		$prefix = trim(substr($h, 345, 155), "\0 ");
+		if($prefix !== '') {
+			$name = $prefix . '/' . $name;
+		}
+		$szOct = trim(substr($h, 124, 12), " \0");
+		$sz = ($szOct === '') ? 0 : (int) octdec($szOct);
+		if($sz < 0 || $sz > 2147483647) {
+			return null;
+		}
+		$padded = ($sz + 511) & ~511;
+		$next = $pos + 512 + $padded;
+		if($type === '0' || $type === "\0") {
+			if($pos + 512 + $sz > $n) {
+				return null;
+			}
+			$raw = substr($tar, $pos + 512, $sz);
+			$norm = str_replace('\\', '/', $name);
+			while(strncmp($norm, './', 2) === 0) {
+				$norm = substr($norm, 2);
+			}
+			if($norm !== '' && $norm !== '.' && substr($norm, -1) !== '/') {
+				return array($norm, $raw);
+			}
+		}
+		$pos = $next;
 	}
-	$h = substr($tar, 0, 512);
-	if(strlen($h) !== 512) {
-		return null;
-	}
-	$type = $h[156] ?? '0';
-	if($type !== '0' && $type !== "\0") {
-		return null;
-	}
-	$name = trim(substr($h, 0, 100), "\0 ");
-	if($name === '') {
-		return null;
-	}
-	$szOct = trim(substr($h, 124, 12), " \0");
-	if($szOct === '') {
-		return null;
-	}
-	$sz = (int) octdec($szOct);
-	if($sz < 0 || $sz > 2147483647) {
-		return null;
-	}
-	if(512 + $sz > $n) {
-		return null;
-	}
-	$raw = substr($tar, 512, $sz);
 
-	return array($name, $raw);
+	return null;
 }
 
 /**
@@ -6369,6 +6753,9 @@ function maybe_wrap_fzb_inner_with_fzws($inner) {
 	if($maxB > 0 && $n0 > $maxB) {
 		return $inner;
 	}
+	if(!fractal_zip::whole_stream_fzws_has_memory_headroom($n0)) {
+		return $inner;
+	}
 	$base = gzdeflate($inner, 1);
 	if($base === false) {
 		return $inner;
@@ -6386,6 +6773,7 @@ function maybe_wrap_fzb_inner_with_fzws($inner) {
 				$bestWrap = $wrapped;
 			}
 		}
+		unset($body, $wrapped, $z);
 	}
 	if($bestWrap !== '') {
 		$vetoMax = fractal_zip::fzws_zpaq_veto_max_inner_bytes();
@@ -6458,6 +6846,7 @@ public static function encode_pipeline_literal_outer_trial_fast(string $finBlob)
  */
 function choose_smallest_adaptive_literal_inner_or_raw_escaped(array $innerVariants, $rawFilesByPath) {
 	$this->fractal_member_gzip_disk_restore = array();
+	$innerVariants = fractal_zip_candidate_normalize_list($innerVariants, 'literal', 'literal_bundle');
 	$rawTierPeelRestore = array();
 	$rawEscapedDisk = array();
 	$rawEscapedUnwrapped = array();
@@ -6519,6 +6908,31 @@ function choose_smallest_adaptive_literal_inner_or_raw_escaped(array $innerVaria
 	foreach($rawFilesByPath as $rb) {
 		$sumRawBytes += strlen((string) $rb);
 	}
+	$skipAdaptiveSlowOuterForNativeZpaqFolder = fractal_zip::folder_native_zpaq_compare_will_be_available_for_raw_bytes($sumRawBytes);
+	$adaptiveSlowOuterSkipEnvNames = array(
+		'FRACTAL_ZIP_SKIP_ZPAQ',
+		'FRACTAL_ZIP_SKIP_7Z',
+		'FRACTAL_ZIP_SKIP_ARC',
+		'FRACTAL_ZIP_SKIP_XZ',
+	);
+	$oldAdaptiveSlowOuterSkipEnv = array();
+	foreach($adaptiveSlowOuterSkipEnvNames as $envName) {
+		$oldAdaptiveSlowOuterSkipEnv[$envName] = getenv($envName);
+	}
+	$restoreAdaptiveSlowOuterSkipEnv = function() use ($oldAdaptiveSlowOuterSkipEnv) {
+		foreach($oldAdaptiveSlowOuterSkipEnv as $envName => $oldValue) {
+			if($oldValue === false) {
+				putenv($envName);
+			} else {
+				putenv($envName . '=' . (string) $oldValue);
+			}
+		}
+	};
+	if($skipAdaptiveSlowOuterForNativeZpaqFolder) {
+		foreach($adaptiveSlowOuterSkipEnvNames as $envName) {
+			putenv($envName . '=1');
+		}
+	}
 	$fastOuterMinRaw = fractal_zip::staged_literal_fast_outer_min_raw_bytes();
 	$meetRawFloor = false;
 	if($fastOuterMinRaw > 0) {
@@ -6534,13 +6948,19 @@ function choose_smallest_adaptive_literal_inner_or_raw_escaped(array $innerVaria
 			if($sft > 0 && $sumRawBytes >= $sft) {
 				$meetRawFloor = true;
 			}
+		} elseif(fractal_zip::folder_staged_literal_outer_enabled($rawFilesByPath)) {
+			$sTreeMin = fractal_zip::folder_staged_literal_outer_small_tree_min_raw_bytes();
+			if($sTreeMin > 0 && $sumRawBytes >= $sTreeMin) {
+				$meetRawFloor = true;
+			}
 		}
 	}
 	$useStagedFastOuterPath = fractal_zip::folder_staged_literal_outer_enabled($rawFilesByPath)
 		&& $meetRawFloor;
 	$literalJobList = array();
+	$literalRestoreByTie = array();
 	$literalTieN = 0;
-	foreach($innerVariantSchedule as $v) {
+	foreach($innerVariantSchedule as $vi => $v) {
 		if(!is_array($v) || !isset($v['inner'])) {
 			continue;
 		}
@@ -6549,35 +6969,66 @@ function choose_smallest_adaptive_literal_inner_or_raw_escaped(array $innerVaria
 			continue;
 		}
 		$tag = isset($v['tag']) ? (string) $v['tag'] : 'literal';
+		$tie = $literalTieN++;
+		$innerVariantSchedule[$vi]['__tie'] = $tie;
+		$literalRestoreByTie[$tie] = (isset($v['restore']) && is_array($v['restore'])) ? $v['restore'] : array();
 		$literalJobList[] = array(
 			'fin' => $this->finalize_literal_bundle_inner_for_compress($inner),
 			'tag' => $tag,
-			'tie' => $literalTieN++,
+			'tie' => $tie,
 		);
 	}
+	$literalBlobWireLen = function($blob, $tie, $fastTier = false) use (&$literalRestoreByTie) {
+		$blob = (string) $blob;
+		$restore = $literalRestoreByTie[(int) $tie] ?? array();
+		if(!is_array($restore) || $restore === array()) {
+			return strlen($blob);
+		}
+		$withRestore = $fastTier
+			? $this->append_restore_trailer_inside_outer_payload_fast($blob, $restore)
+			: $this->append_restore_trailer_inside_outer_payload($blob, $restore);
+		return strlen($withRestore);
+	};
+	$adjustLiteralRowsForRestoreWire = function($rows, $fastTier = false) use ($literalBlobWireLen) {
+		if(!is_array($rows)) {
+			return $rows;
+		}
+		foreach($rows as $ri => $row) {
+			if($row === null || !is_array($row) || !isset($row['blob'], $row['tie'])) {
+				continue;
+			}
+			$rows[$ri]['len'] = $literalBlobWireLen((string) $row['blob'], (int) $row['tie'], $fastTier);
+		}
+		return $rows;
+	};
 	fractal_zip_encode_pipeline::pipeline_outer_step_rollup_zip_folder_segment('choose_smallest_phase4_encode_raw_and_literal_jobs');
 	if(!$useStagedFastOuterPath) {
 		$bestZpaqMeth = null;
+		$rawWireLen = null;
+		$rawTierRestoreForDirect = array();
 		if($tryDualRaw) {
 			$fzD = new fractal_zip(256, false, false, null, false);
 			$rawDiskBlob = $fzD->adaptive_compress($rawInnerDisk);
-			$wireDisk = strlen($fzD->append_fractal_gzip_peel_restore_trailer($rawDiskBlob, array()));
+			$wireDisk = strlen($fzD->append_restore_trailer_inside_outer_payload($rawDiskBlob, array()));
 			$codecDisk = fractal_zip::$last_outer_codec;
 			$zDiskM = ($codecDisk === 'zpaq') ? fractal_zip::$last_zpaq_method : null;
 			$fzU = new fractal_zip(256, false, false, null, false);
-			$rawUnBlob = $fzU->adaptive_compress($rawInnerUnwrapped);
-			$wireUn = strlen($fzU->append_fractal_gzip_peel_restore_trailer($rawUnBlob, $rawTierPeelRestore));
+			$rawUnBlob = $fzU->adaptive_compress_inner_payload_with_restore_trailer($rawInnerUnwrapped, $rawTierPeelRestore, false);
+			$wireUn = strlen($rawUnBlob);
 			$codecUn = fractal_zip::$last_outer_codec;
 			$zUnM = ($codecUn === 'zpaq') ? fractal_zip::$last_zpaq_method : null;
-			if($wireUn < $wireDisk) {
+			if(fractal_zip::outer_candidate_beats_current((string) $codecUn, $wireUn, (string) $codecDisk, $wireDisk)) {
 				$rawContents = $rawUnBlob;
 				$codecRaw = $codecUn;
-				$rawTierRestoreForPick = $rawTierPeelRestore;
+				$rawTierRestoreForPick = array();
+				$rawTierRestoreForDirect = $rawTierPeelRestore;
+				$rawWireLen = $wireUn;
 				$bestZpaqMeth = $zUnM;
 			} else {
 				$rawContents = $rawDiskBlob;
 				$codecRaw = $codecDisk;
 				$rawTierRestoreForPick = array();
+				$rawWireLen = $wireDisk;
 				$bestZpaqMeth = $zDiskM;
 			}
 		} else {
@@ -6586,22 +7037,27 @@ function choose_smallest_adaptive_literal_inner_or_raw_escaped(array $innerVaria
 			$codecRaw = fractal_zip::$last_outer_codec;
 			$bestZpaqMeth = ($codecRaw === 'zpaq') ? fractal_zip::$last_zpaq_method : null;
 			$rawTierRestoreForPick = ($rawPickInner === $rawInnerUnwrapped && $rawInnerDiffers) ? $rawTierPeelRestore : array();
+			$rawWireLen = strlen($this->append_restore_trailer_inside_outer_payload($rawContents, $rawTierRestoreForPick));
 		}
 		if($singleRawDirectDisk !== null && $singleRawDirectUnwrapped !== null) {
-			$rawDirectInner = ($rawTierRestoreForPick !== array()) ? $singleRawDirectUnwrapped : $singleRawDirectDisk;
-			$rawDirectContents = $this->adaptive_compress($rawDirectInner);
+			$rawDirectInner = ($rawTierRestoreForDirect !== array()) ? $singleRawDirectUnwrapped : $singleRawDirectDisk;
+			$rawDirectContents = $this->adaptive_compress_inner_payload_with_restore_trailer($rawDirectInner, $rawTierRestoreForDirect, false);
 			$codecDirect = fractal_zip::$last_outer_codec;
 			$zDirM = ($codecDirect === 'zpaq') ? fractal_zip::$last_zpaq_method : null;
-			if(strlen($rawDirectContents) < strlen($rawContents)) {
+			$rawDirectWireLen = strlen($rawDirectContents);
+			if(fractal_zip::outer_candidate_beats_current((string) $codecDirect, $rawDirectWireLen, (string) $codecRaw, (int) $rawWireLen)) {
 				$rawContents = $rawDirectContents;
 				$codecRaw = $codecDirect;
 				$bestZpaqMeth = $zDirM;
+				$rawWireLen = $rawDirectWireLen;
+				$rawTierRestoreForPick = array();
 			}
 		}
-		$bestLen = strlen($rawContents);
+		$bestLen = (int)$rawWireLen;
 		$bestBlob = $rawContents;
 		$bestTag = 'raw';
 		$bestCodec = $codecRaw;
+		$bestRestoreForPick = $rawTierRestoreForPick;
 		$parFull = null;
 		if(sizeof($literalJobList) >= 2) {
 			fractal_zip_encode_pipeline::pipeline_outer_step_rollup_zip_folder_sync_clock();
@@ -6609,13 +7065,15 @@ function choose_smallest_adaptive_literal_inner_or_raw_escaped(array $innerVaria
 			fractal_zip_encode_pipeline::pipeline_outer_step_rollup_zip_folder_segment('choose_smallest_parallel_literal_outer_trials_full');
 		}
 		if($parFull !== null) {
-			list($mergeLen, $litWin) = fractal_zip_encode_pipeline::pick_smallest_literal_outer_vs_raw($bestLen, $parFull);
+			$parFull = $adjustLiteralRowsForRestoreWire($parFull);
+			list($mergeLen, $litWin) = fractal_zip_encode_pipeline::pick_smallest_literal_outer_vs_raw($bestLen, $parFull, $bestCodec);
 			$bestLen = $mergeLen;
 			if($litWin !== null) {
 				$bestBlob = $litWin['blob'];
 				$bestTag = $litWin['tag'];
 				$bestCodec = $litWin['codec'];
 				$bestZpaqMeth = ($litWin['codec'] === 'zpaq') ? $litWin['zpaq'] : null;
+				$bestRestoreForPick = $literalRestoreByTie[(int)$litWin['tie']] ?? array();
 			}
 		} else {
 			foreach($innerVariantSchedule as $v) {
@@ -6630,13 +7088,17 @@ function choose_smallest_adaptive_literal_inner_or_raw_escaped(array $innerVaria
 				$bundleContents = $this->adaptive_compress($this->finalize_literal_bundle_inner_for_compress($inner));
 				$codecB = fractal_zip::$last_outer_codec;
 				$zB = ($codecB === 'zpaq') ? fractal_zip::$last_zpaq_method : null;
-				$lb = strlen($bundleContents);
-				if($lb < $bestLen) {
+				$lb = strlen($this->append_restore_trailer_inside_outer_payload(
+					$bundleContents,
+					(isset($v['restore']) && is_array($v['restore'])) ? $v['restore'] : array()
+				));
+			if(fractal_zip::outer_candidate_beats_current((string) $codecB, $lb, (string) $bestCodec, $bestLen)) {
 					$bestLen = $lb;
 					$bestBlob = $bundleContents;
 					$bestTag = $tag;
 					$bestCodec = $codecB;
 					$bestZpaqMeth = $zB;
+					$bestRestoreForPick = (isset($v['restore']) && is_array($v['restore'])) ? $v['restore'] : array();
 				}
 			}
 		}
@@ -6647,24 +7109,25 @@ function choose_smallest_adaptive_literal_inner_or_raw_escaped(array $innerVaria
 		} else {
 			fractal_zip::$last_zpaq_method = null;
 		}
-		$this->fractal_member_gzip_disk_restore = ($bestTag === 'raw') ? $rawTierRestoreForPick : array();
+		$this->fractal_member_gzip_disk_restore = $bestRestoreForPick;
+		$restoreAdaptiveSlowOuterSkipEnv();
 		return array($bestBlob, $bestTag);
 	}
 	$bestZpaqMeth = null;
 	if($tryDualRaw) {
 		$fzSd = new fractal_zip(256, false, false, null, false);
 		$rpDisk = $fzSd->adaptive_compress_outer_fast_codec_tier($rawInnerDisk);
-		$wireFd = strlen($fzSd->append_fractal_gzip_peel_restore_trailer($rpDisk, array()));
+		$wireFd = strlen($fzSd->append_restore_trailer_inside_outer_payload($rpDisk, array()));
 		$codecDiskS = fractal_zip::$last_outer_codec;
 		$zDiskS = ($codecDiskS === 'zpaq') ? fractal_zip::$last_zpaq_method : null;
 		$fzSu = new fractal_zip(256, false, false, null, false);
-		$rpUn = $fzSu->adaptive_compress_outer_fast_codec_tier($rawInnerUnwrapped);
-		$wireFu = strlen($fzSu->append_fractal_gzip_peel_restore_trailer($rpUn, $rawTierPeelRestore));
+			$rpUn = $fzSu->adaptive_compress_inner_payload_with_restore_trailer($rawInnerUnwrapped, $rawTierPeelRestore, true);
+			$wireFu = strlen($rpUn);
 		$codecUnS = fractal_zip::$last_outer_codec;
 		$zUnS = ($codecUnS === 'zpaq') ? fractal_zip::$last_zpaq_method : null;
-		if($wireFu < $wireFd) {
+		if(fractal_zip::outer_candidate_beats_current((string) $codecUnS, $wireFu, (string) $codecDiskS, $wireFd)) {
 			$rp = $rpUn;
-			$rawTierRestoreForPick = $rawTierPeelRestore;
+				$rawTierRestoreForPick = array();
 			$bestCodec = $codecUnS;
 			$bestZpaqMeth = $zUnS;
 		} else {
@@ -6680,14 +7143,17 @@ function choose_smallest_adaptive_literal_inner_or_raw_escaped(array $innerVaria
 		$bestCodec = fractal_zip::$last_outer_codec;
 		$bestZpaqMeth = ($bestCodec === 'zpaq') ? fractal_zip::$last_zpaq_method : null;
 	}
-	$rawFastLen = strlen($rp);
+	$rawFastLen = strlen($this->append_restore_trailer_inside_outer_payload($rp, $rawTierRestoreForPick));
 	$bestLen = $rawFastLen;
 	$bestBlob = $rp;
 	$bestTag = 'raw';
+	$bestRestoreForPick = $rawTierRestoreForPick;
 	$bestChampionFin = null;
 	$bestLitFastLen = PHP_INT_MAX;
 	$bestLitFin = null;
 	$bestLitTag = 'fzb';
+	$bestLitTie = null;
+	$bestLitCodec = null;
 	$finByTie = array();
 	foreach($literalJobList as $lj) {
 		$finByTie[$lj['tie']] = $lj['fin'];
@@ -6699,7 +7165,8 @@ function choose_smallest_adaptive_literal_inner_or_raw_escaped(array $innerVaria
 		fractal_zip_encode_pipeline::pipeline_outer_step_rollup_zip_folder_segment('choose_smallest_parallel_literal_outer_trials_fast');
 	}
 	if($parFast !== null) {
-		list($mergeLen, $win) = fractal_zip_encode_pipeline::pick_smallest_literal_outer_vs_raw($rawFastLen, $parFast);
+		$parFast = $adjustLiteralRowsForRestoreWire($parFast, true);
+		list($mergeLen, $win) = fractal_zip_encode_pipeline::pick_smallest_literal_outer_vs_raw($rawFastLen, $parFast, $bestCodec);
 		$bestLen = $mergeLen;
 		if($win !== null) {
 			$bestBlob = $win['blob'];
@@ -6707,16 +7174,21 @@ function choose_smallest_adaptive_literal_inner_or_raw_escaped(array $innerVaria
 			$bestCodec = $win['codec'];
 			$bestZpaqMeth = ($win['codec'] === 'zpaq') ? $win['zpaq'] : null;
 			$bestChampionFin = $finByTie[$win['tie']];
+			$bestRestoreForPick = $literalRestoreByTie[(int)$win['tie']] ?? array();
 		}
 		$pickFast = fractal_zip_encode_pipeline::pick_smallest_literal_outer_among_literals_only($parFast);
 		if($pickFast !== null) {
 			$bestLitFastLen = $pickFast['len'];
 			$bestLitFin = $finByTie[$pickFast['tie']];
 			$bestLitTag = $pickFast['tag'];
+			$bestLitTie = (int)$pickFast['tie'];
+			$bestLitCodec = isset($pickFast['codec']) && is_string($pickFast['codec']) ? $pickFast['codec'] : null;
 		} else {
 			$bestLitFastLen = PHP_INT_MAX;
 			$bestLitFin = null;
 			$bestLitTag = 'fzb';
+			$bestLitTie = null;
+			$bestLitCodec = null;
 		}
 	} else {
 		foreach($innerVariantSchedule as $v) {
@@ -6732,19 +7204,22 @@ function choose_smallest_adaptive_literal_inner_or_raw_escaped(array $innerVaria
 			$blob = $this->adaptive_compress_outer_fast_codec_tier($fin);
 			$codecB = fractal_zip::$last_outer_codec;
 			$zB = ($codecB === 'zpaq') ? fractal_zip::$last_zpaq_method : null;
-			$lb = strlen($blob);
-			if($lb < $bestLen) {
+			$lb = $literalBlobWireLen($blob, isset($v['__tie']) ? (int)$v['__tie'] : 0, true);
+			if(fractal_zip::outer_candidate_beats_current((string) $codecB, $lb, (string) $bestCodec, $bestLen)) {
 				$bestLen = $lb;
 				$bestBlob = $blob;
 				$bestTag = $tag;
 				$bestCodec = $codecB;
 				$bestZpaqMeth = $zB;
 				$bestChampionFin = $fin;
+				$bestRestoreForPick = (isset($v['restore']) && is_array($v['restore'])) ? $v['restore'] : array();
 			}
-			if($lb < $bestLitFastLen) {
+			if($bestLitCodec === null || fractal_zip::outer_candidate_beats_current((string) $codecB, $lb, $bestLitCodec, $bestLitFastLen)) {
 				$bestLitFastLen = $lb;
 				$bestLitFin = $fin;
 				$bestLitTag = $tag;
+				$bestLitTie = isset($v['__tie']) ? (int)$v['__tie'] : null;
+				$bestLitCodec = (string) $codecB;
 			}
 		}
 	}
@@ -6761,16 +7236,21 @@ function choose_smallest_adaptive_literal_inner_or_raw_escaped(array $innerVaria
 	$literalUsesFullAdaptive = false;
 	if($shouldDeepen) {
 		$deepBlob = $this->adaptive_compress($bestLitFin);
-		$deepLen = strlen($deepBlob);
+		$deepLen = strlen($this->append_restore_trailer_inside_outer_payload(
+			$deepBlob,
+			$bestLitTie !== null ? ($literalRestoreByTie[$bestLitTie] ?? array()) : array()
+		));
 		$deepCodec = fractal_zip::$last_outer_codec;
 		$zDeep = ($deepCodec === 'zpaq') ? fractal_zip::$last_zpaq_method : null;
-		if($deepLen < $bestLen) {
+		if(fractal_zip::outer_candidate_beats_current((string) $deepCodec, $deepLen, (string) $bestCodec, $bestLen)) {
 			$bestLen = $deepLen;
 			$bestBlob = $deepBlob;
 			$bestTag = $bestLitTag;
 			$bestCodec = $deepCodec;
 			$bestZpaqMeth = $zDeep;
+			$bestChampionFin = $bestLitFin;
 			$literalUsesFullAdaptive = true;
+			$bestRestoreForPick = $bestLitTie !== null ? ($literalRestoreByTie[$bestLitTie] ?? array()) : $bestRestoreForPick;
 		}
 	}
 	// Full outer on raw vs staged literal winner: fast tier can pick a semantic inner that loses once 7z/Arc/brotli11 run.
@@ -6778,21 +7258,35 @@ function choose_smallest_adaptive_literal_inner_or_raw_escaped(array $innerVaria
 	$rawFullCodec = $bestCodec;
 	$rawFullRestore = $rawTierRestoreForPick;
 	$rawFullZ = $bestZpaqMeth;
-	if($tryDualRaw) {
+	$rawFullSkipRatio = fractal_zip::staged_literal_skip_raw_full_after_verified_inner_ratio();
+	$rawFullSkipMaxBytes = fractal_zip::staged_literal_skip_raw_full_after_verified_inner_max_bytes();
+	$skipRawFull = ($rawFullSkipRatio > 0
+		&& $rawFullSkipMaxBytes > 0
+		&& $bestTag !== 'raw'
+		&& str_starts_with((string)$bestTag, 'inner_verified_ops')
+		&& $bestLen > 0
+		&& $bestLen <= $rawFullSkipMaxBytes
+		&& $rawFastLen >= $bestLen * $rawFullSkipRatio);
+	if($skipRawFull) {
+		$rawFullBlob = null;
+		$rawFullCodec = 'store';
+		$rawFullRestore = array();
+		$rawFullZ = null;
+	} elseif($tryDualRaw) {
 		$fzRd = new fractal_zip(256, false, false, null, false);
 		$rawDiskBlobF = $fzRd->adaptive_compress($rawInnerDisk);
-		$wireDiskF = strlen($fzRd->append_fractal_gzip_peel_restore_trailer($rawDiskBlobF, array()));
+		$wireDiskF = strlen($fzRd->append_restore_trailer_inside_outer_payload($rawDiskBlobF, array()));
 		$codecDiskF = fractal_zip::$last_outer_codec;
 		$zDiskF = ($codecDiskF === 'zpaq') ? fractal_zip::$last_zpaq_method : null;
 		$fzRu = new fractal_zip(256, false, false, null, false);
-		$rawUnBlobF = $fzRu->adaptive_compress($rawInnerUnwrapped);
-		$wireUnF = strlen($fzRu->append_fractal_gzip_peel_restore_trailer($rawUnBlobF, $rawTierPeelRestore));
+			$rawUnBlobF = $fzRu->adaptive_compress_inner_payload_with_restore_trailer($rawInnerUnwrapped, $rawTierPeelRestore, false);
+			$wireUnF = strlen($rawUnBlobF);
 		$codecUnF = fractal_zip::$last_outer_codec;
 		$zUnF = ($codecUnF === 'zpaq') ? fractal_zip::$last_zpaq_method : null;
-		if($wireUnF < $wireDiskF) {
+		if(fractal_zip::outer_candidate_beats_current((string) $codecUnF, $wireUnF, (string) $codecDiskF, $wireDiskF)) {
 			$rawFullBlob = $rawUnBlobF;
 			$rawFullCodec = $codecUnF;
-			$rawFullRestore = $rawTierPeelRestore;
+				$rawFullRestore = array();
 			$rawFullZ = $zUnF;
 		} else {
 			$rawFullBlob = $rawDiskBlobF;
@@ -6807,21 +7301,26 @@ function choose_smallest_adaptive_literal_inner_or_raw_escaped(array $innerVaria
 		$rawFullZ = ($rawFullCodec === 'zpaq') ? fractal_zip::$last_zpaq_method : null;
 		$rawFullRestore = ($rawPickInnerF === $rawInnerUnwrapped && $rawInnerDiffers) ? $rawTierPeelRestore : array();
 	}
-	$rawFullLen = strlen((string) $rawFullBlob);
+	$rawFullLen = $skipRawFull ? PHP_INT_MAX : strlen($this->append_restore_trailer_inside_outer_payload((string) $rawFullBlob, $rawFullRestore));
 	if($bestTag === 'raw') {
-		if($rawFullLen < $bestLen) {
+		if(fractal_zip::outer_candidate_beats_current((string) $rawFullCodec, $rawFullLen, (string) $bestCodec, $bestLen)) {
 			$bestBlob = (string) $rawFullBlob;
 			$bestCodec = $rawFullCodec;
 			$bestZpaqMeth = $rawFullZ;
 			$rawTierRestoreForPick = $rawFullRestore;
+			$bestRestoreForPick = $rawFullRestore;
 		}
 	} else {
 		if($literalUsesFullAdaptive) {
 			$litFullLen = $bestLen;
+			$litFullCodec = $bestCodec;
 			$zLitF = $bestZpaqMeth;
 		} elseif($bestChampionFin !== null) {
 			$litFullBlob = $this->adaptive_compress($bestChampionFin);
-			$litFullLen = strlen($litFullBlob);
+			$litFullLen = strlen($this->append_restore_trailer_inside_outer_payload(
+				$litFullBlob,
+				$bestLitTie !== null ? ($literalRestoreByTie[$bestLitTie] ?? array()) : array()
+			));
 			$litFullCodec = fractal_zip::$last_outer_codec;
 			$zLitF = ($litFullCodec === 'zpaq') ? fractal_zip::$last_zpaq_method : null;
 		} else {
@@ -6829,16 +7328,22 @@ function choose_smallest_adaptive_literal_inner_or_raw_escaped(array $innerVaria
 			$litFullCodec = $bestCodec;
 			$zLitF = $bestZpaqMeth;
 		}
-		if($rawFullLen <= $litFullLen) {
+		$rawFullBeatsLiteral = fractal_zip::outer_candidate_beats_current((string) $rawFullCodec, $rawFullLen, (string) $litFullCodec, $litFullLen);
+		if(!$rawFullBeatsLiteral && $rawFullLen === $litFullLen && (string) $rawFullCodec === (string) $litFullCodec) {
+			$rawFullBeatsLiteral = true;
+		}
+		if($rawFullBeatsLiteral) {
 			$bestBlob = (string) $rawFullBlob;
 			$bestTag = 'raw';
 			$bestCodec = $rawFullCodec;
 			$bestZpaqMeth = $rawFullZ;
 			$rawTierRestoreForPick = $rawFullRestore;
+			$bestRestoreForPick = $rawFullRestore;
 		} elseif(!$literalUsesFullAdaptive && $bestChampionFin !== null) {
 			$bestBlob = (string) $litFullBlob;
 			$bestCodec = $litFullCodec;
 			$bestZpaqMeth = $zLitF;
+			$bestRestoreForPick = $bestLitTie !== null ? ($literalRestoreByTie[$bestLitTie] ?? array()) : $bestRestoreForPick;
 		}
 	}
 	fractal_zip::$last_outer_codec = $bestCodec;
@@ -6848,7 +7353,8 @@ function choose_smallest_adaptive_literal_inner_or_raw_escaped(array $innerVaria
 	} else {
 		fractal_zip::$last_zpaq_method = null;
 	}
-	$this->fractal_member_gzip_disk_restore = ($bestTag === 'raw') ? $rawTierRestoreForPick : array();
+	$this->fractal_member_gzip_disk_restore = $bestRestoreForPick;
+	$restoreAdaptiveSlowOuterSkipEnv();
 	return array($bestBlob, $bestTag);
 }
 
@@ -6867,7 +7373,7 @@ public function fractal_member_gzip_disk_restore_literal_fork_snapshot(): array 
  */
 function choose_smaller_adaptive_bundle_or_raw_escaped($bundlePayload, $rawFilesByPath) {
 	return $this->choose_smallest_adaptive_literal_inner_or_raw_escaped(
-		array(array('inner' => (string) $bundlePayload, 'tag' => 'bundle')),
+		array(fractal_zip_candidate_from_inner((string) $bundlePayload, 'bundle', 'legacy', 'bundle')),
 		$rawFilesByPath
 	);
 }
@@ -6907,7 +7413,7 @@ function collect_literal_bundle_inner_variants_for_folder($root, array $rawFiles
 		$fzcd = file_get_contents($tmpFzcd);
 		@unlink($tmpFzcd);
 		if($fzcd !== false && $fzcd !== '') {
-			$variants[] = array('inner' => $fzcd, 'tag' => 'fzcd');
+			$variants[] = fractal_zip_candidate_from_inner((string) $fzcd, 'fzcd', 'literal', 'fzcd');
 		}
 	} else {
 		if(is_file($tmpFzcd)) {
@@ -6923,7 +7429,7 @@ function collect_literal_bundle_inner_variants_for_folder($root, array $rawFiles
 		$fzbmInner = $this->encode_fzbm_v1_merged_literal($rawFilesByPath);
 		if($fzbmInner !== '') {
 			$fzbmInner = $this->maybe_apply_unified_literal_multipass($fzbmInner);
-			$variants[] = array('inner' => $fzbmInner, 'tag' => 'fzbm');
+			$variants[] = fractal_zip_candidate_from_inner($fzbmInner, 'fzbm', 'literal', 'fzbm');
 		}
 	}
 	if(sizeof($rawFilesByPath) >= 1) {
@@ -6935,7 +7441,7 @@ function collect_literal_bundle_inner_variants_for_folder($root, array $rawFiles
 		if($fzbfGate) {
 			$fzbfInner = $this->encode_fzbf_v1_merged_fractal_bundle($rawFilesByPath);
 			if($fzbfInner !== null && $fzbfInner !== '') {
-				$variants[] = array('inner' => $fzbfInner, 'tag' => 'fzbf');
+				$variants[] = fractal_zip_candidate_from_inner($fzbfInner, 'fzbf', 'legacy', 'merged_fractal_bundle');
 			}
 		}
 	}
@@ -6945,14 +7451,11 @@ function collect_literal_bundle_inner_variants_for_folder($root, array $rawFiles
 			if(strpos($relOne, '/') !== false || strpos($relOne, '\\') !== false) {
 				break;
 			}
-			$low = strtolower($relOne);
-			if(preg_match('/\.(jpe?g)$/', $low) !== 1) {
-				break;
-			}
 			$tarBlob = fractal_zip::posix_ustar_single_file_archive_bytes($relOne, (string) $rawOne);
 			if(is_string($tarBlob) && $tarBlob !== '') {
-				$fztaInner = 'FZTA' . chr(1) . $this->encode_varint_u32(strlen($tarBlob)) . $tarBlob;
-				$variants[] = array('inner' => $fztaInner, 'tag' => 'fzta_tar');
+				// v2: fixed layout FZTA + version + raw tar (no varint) — a few bytes smaller vs v1 for min-ext tar|brotli parity.
+				$fztaInner = 'FZTA' . chr(2) . $tarBlob;
+				$variants[] = fractal_zip_candidate_from_inner($fztaInner, 'fzta_tar', 'literal', 'tar_literal');
 			}
 			break;
 		}
@@ -6960,7 +7463,7 @@ function collect_literal_bundle_inner_variants_for_folder($root, array $rawFiles
 	$bundlePayload = $this->encode_literal_bundle_payload($rawFilesByPath);
 	if($bundlePayload !== null && $bundlePayload !== '') {
 		$bundlePayload = $this->maybe_apply_unified_literal_multipass($bundlePayload);
-		$variants[] = array('inner' => $bundlePayload, 'tag' => 'fzb');
+		$variants[] = fractal_zip_candidate_from_inner($bundlePayload, 'fzb', 'literal', 'fzb');
 	}
 	return $variants;
 }
@@ -8797,7 +9300,7 @@ function literal_synth_run_nested_zip_to_inner($mergedBytes, $segment, $entryNam
 	$sub = new fractal_zip($segment, true, false, array('multipass_max_additional_passes' => null), false);
 	$sub->improvement_factor_threshold = $this->improvement_factor_threshold;
 	if($this->tuning_substring_top_k !== null) {
-		$sub->tuning_substring_top_k = max(1, min(12, (int) $this->tuning_substring_top_k));
+		$sub->tuning_substring_top_k = max(1, min(48, (int) $this->tuning_substring_top_k));
 	}
 	if($this->tuning_multipass_gate_mult !== null) {
 		$sub->tuning_multipass_gate_mult = max(1.0, min(4.0, (float) $this->tuning_multipass_gate_mult));
@@ -9294,6 +9797,12 @@ function literal_bundle_pick_fzb4_path_order(array $orderedAssoc, array $modesSt
 		$didExhaustive = true;
 	}
 	$randTries = fractal_zip::literal_bundle_fzb4_path_random_tries();
+	if(!fractal_zip::ultra_compression_enabled() && $n >= 11) {
+		$randTriesEnvRaw = getenv('FRACTAL_ZIP_LITERAL_BUNDLE_FZB4_PATH_RANDOM_TRIES');
+		if($randTriesEnvRaw === false || trim((string) $randTriesEnvRaw) === '') {
+			$randTries = min($randTries, 8);
+		}
+	}
 	if(!$didExhaustive && $randTries > 0 && $n <= 16) {
 		$salt = crc32(implode("\0", $keys));
 		for($ti = 0; $ti < $randTries; $ti++) {
@@ -10167,6 +10676,11 @@ function append_fractal_gzip_peel_restore_trailer($payload, $restoreByPath) {
 		return $payload;
 	}
 	ksort($restoreByPath, SORT_STRING);
+	foreach($restoreByPath as $restore) {
+		if(is_array($restore)) {
+			return $payload . $this->encode_fzr1_restore_trailer($restoreByPath);
+		}
+	}
 	$candidates = array();
 	$candidates[] = $this->encode_fzg1_peel_trailer($restoreByPath);
 	$candidates[] = $this->encode_fzg2_peel_trailer($restoreByPath);
@@ -10188,6 +10702,82 @@ function append_fractal_gzip_peel_restore_trailer($payload, $restoreByPath) {
 		}
 	}
 	return $payload . $best;
+}
+
+function append_restore_trailer_inside_outer_payload($outerPayload, $restoreByPath) {
+	$outerPayload = (string)$outerPayload;
+	if(!is_array($restoreByPath) || sizeof($restoreByPath) === 0) {
+		return $outerPayload;
+	}
+	$innerPayload = $this->adaptive_decompress($outerPayload);
+	$innerPayload = $this->append_fractal_gzip_peel_restore_trailer($innerPayload, $restoreByPath);
+	return $this->adaptive_compress($innerPayload);
+}
+
+function append_restore_trailer_inside_outer_payload_fast($outerPayload, $restoreByPath) {
+	$outerPayload = (string)$outerPayload;
+	if(!is_array($restoreByPath) || sizeof($restoreByPath) === 0) {
+		return $outerPayload;
+	}
+	$innerPayload = $this->adaptive_decompress($outerPayload);
+	$innerPayload = $this->append_fractal_gzip_peel_restore_trailer($innerPayload, $restoreByPath);
+	return $this->adaptive_compress_outer_fast_codec_tier($innerPayload);
+}
+
+function adaptive_compress_inner_payload_with_restore_trailer($innerPayload, $restoreByPath, $fastTier = false) {
+	$innerPayload = (string)$innerPayload;
+	if(is_array($restoreByPath) && sizeof($restoreByPath) > 0) {
+		$innerPayload = $this->append_fractal_gzip_peel_restore_trailer($innerPayload, $restoreByPath);
+	}
+	return $fastTier
+		? $this->adaptive_compress_outer_fast_codec_tier($innerPayload)
+		: $this->adaptive_compress($innerPayload);
+}
+
+function encode_fzr1_restore_trailer($restoreByPath) {
+	$parts = array('FZR1', $this->encode_varint_u32(sizeof($restoreByPath)));
+	foreach($restoreByPath as $path => $restore) {
+		$path = (string)$path;
+		$parts[] = $this->encode_varint_u32(strlen($path)) . $path;
+		if(is_array($restore) && ($restore['__fz_restore'] ?? '') === 'numeric_delta') {
+			$parts[] = chr(1);
+			continue;
+		}
+		if(is_array($restore) && ($restore['__fz_restore'] ?? '') === 'modulo4_lane_split') {
+			$parts[] = chr(2) . $this->encode_varint_u32(max(0, (int)($restore['len'] ?? 0)));
+			continue;
+		}
+		if(is_array($restore) && ($restore['__fz_restore'] ?? '') === 'nibble_split') {
+			$parts[] = chr(3);
+			continue;
+		}
+		if(is_array($restore) && ($restore['__fz_restore'] ?? '') === 'bitplane_split') {
+			$parts[] = chr(4) . $this->encode_varint_u32(max(0, (int)($restore['len'] ?? 0)));
+			continue;
+		}
+		if(is_array($restore) && ($restore['__fz_restore'] ?? '') === 'record_transpose') {
+			$delim = (string)($restore['delim'] ?? "\n");
+			$lengths = (isset($restore['lengths']) && is_array($restore['lengths'])) ? $restore['lengths'] : array();
+			$parts[] = chr(5)
+				. $this->encode_varint_u32(strlen($delim)) . $delim
+				. $this->encode_varint_u32(max(0, (int)($restore['max'] ?? 0)))
+				. $this->encode_varint_u32(max(0, (int)($restore['rows'] ?? 0)))
+				. $this->encode_varint_u32(sizeof($lengths));
+			foreach($lengths as $len) {
+				$parts[] = $this->encode_varint_u32(max(0, (int)$len));
+			}
+			continue;
+		}
+		if(is_array($restore) && ($restore['__fz_restore'] ?? '') === 'modulo_lane_split') {
+			$parts[] = chr(6)
+				. $this->encode_varint_u32(max(2, min(64, (int)($restore['lanes'] ?? 2))))
+				. $this->encode_varint_u32(max(0, (int)($restore['len'] ?? 0)));
+			continue;
+		}
+		$blob = (string)$restore;
+		$parts[] = chr(0) . $this->encode_varint_u32(strlen($blob)) . $blob;
+	}
+	return implode('', $parts);
 }
 
 function encode_fzg1_peel_trailer($restoreByPath) {
@@ -10340,7 +10930,85 @@ function decode_fractal_gzip_peel_restore_trailer($contents, &$offset, $n) {
 	if($magic === 'FZG4') {
 		return $this->decode_fzg4_peel_body($contents, $offset, $n);
 	}
+	if($magic === 'FZR1') {
+		return $this->decode_fzr1_restore_body($contents, $offset, $n);
+	}
 	fractal_zip::fatal_error('Corrupt FZC: unknown peel trailer magic.');
+	return $map;
+}
+
+function decode_fzr1_restore_body($contents, &$offset, $n) {
+	$map = array();
+	$count = $this->decode_varint_u32($contents, $offset, $n, 'FZR1');
+	for($i = 0; $i < $count; $i++) {
+		$pathLen = $this->decode_varint_u32($contents, $offset, $n, 'FZR1');
+		if($offset + $pathLen > $n) {
+			fractal_zip::fatal_error('Corrupt FZR1 (path out of bounds).');
+		}
+		$path = substr($contents, $offset, $pathLen);
+		$offset += $pathLen;
+		if($offset + 1 > $n) {
+			fractal_zip::fatal_error('Corrupt FZR1 (kind missing).');
+		}
+		$kind = ord($contents[$offset]);
+		$offset++;
+		if($kind === 1) {
+			$map[$path] = array('__fz_restore' => 'numeric_delta');
+			continue;
+		}
+		if($kind === 2) {
+			$len = $this->decode_varint_u32($contents, $offset, $n, 'FZR1');
+			$map[$path] = array('__fz_restore' => 'modulo4_lane_split', 'len' => $len);
+			continue;
+		}
+		if($kind === 3) {
+			$map[$path] = array('__fz_restore' => 'nibble_split');
+			continue;
+		}
+		if($kind === 4) {
+			$len = $this->decode_varint_u32($contents, $offset, $n, 'FZR1');
+			$map[$path] = array('__fz_restore' => 'bitplane_split', 'len' => $len);
+			continue;
+		}
+		if($kind === 5) {
+			$delimLen = $this->decode_varint_u32($contents, $offset, $n, 'FZR1');
+			if($offset + $delimLen > $n) {
+				fractal_zip::fatal_error('Corrupt FZR1 record transpose delimiter.');
+			}
+			$delim = substr($contents, $offset, $delimLen);
+			$offset += $delimLen;
+			$max = $this->decode_varint_u32($contents, $offset, $n, 'FZR1');
+			$rows = $this->decode_varint_u32($contents, $offset, $n, 'FZR1');
+			$lc = $this->decode_varint_u32($contents, $offset, $n, 'FZR1');
+			$lengths = array();
+			for($j = 0; $j < $lc; $j++) {
+				$lengths[] = $this->decode_varint_u32($contents, $offset, $n, 'FZR1');
+			}
+			$map[$path] = array('__fz_restore' => 'record_transpose', 'delim' => $delim, 'max' => $max, 'rows' => $rows, 'lengths' => $lengths);
+			continue;
+		}
+		if($kind === 6) {
+			$lanes = $this->decode_varint_u32($contents, $offset, $n, 'FZR1');
+			$len = $this->decode_varint_u32($contents, $offset, $n, 'FZR1');
+			if($lanes < 2 || $lanes > 64) {
+				fractal_zip::fatal_error('Corrupt FZR1 modulo lane count.');
+			}
+			$map[$path] = array('__fz_restore' => 'modulo_lane_split', 'lanes' => $lanes, 'len' => $len);
+			continue;
+		}
+		if($kind !== 0) {
+			fractal_zip::fatal_error('Corrupt FZR1 (unknown kind).');
+		}
+		$blobLen = $this->decode_varint_u32($contents, $offset, $n, 'FZR1');
+		if($offset + $blobLen > $n) {
+			fractal_zip::fatal_error('Corrupt FZR1 (blob out of bounds).');
+		}
+		$map[$path] = substr($contents, $offset, $blobLen);
+		$offset += $blobLen;
+	}
+	if($offset !== $n) {
+		fractal_zip::fatal_error('Corrupt FZR1 (trailing garbage).');
+	}
 	return $map;
 }
 
@@ -10576,14 +11244,24 @@ function decode_container_payload($contents) {
 		$contents = $this->decode_fzws_v1_layer($contents);
 	}
 	$this->fzb_raster_canon_decode_table = array();
-	if(is_string($contents) && strlen($contents) >= 8 && substr($contents, 0, 4) === 'FZTA' && ord($contents[4]) === 1) {
-		$off = 5;
+	if(is_string($contents) && strlen($contents) >= 8 && substr($contents, 0, 4) === 'FZTA') {
+		$fzv = ord($contents[4]);
 		$n = strlen($contents);
-		$tl = $this->decode_varint_u32($contents, $off, $n, 'FZTA');
-		if($tl < 0 || $off + $tl > $n) {
-			fractal_zip::fatal_error('Corrupt FZTA payload (tar segment length).');
+		if($fzv === 1) {
+			$off = 5;
+			$tl = $this->decode_varint_u32($contents, $off, $n, 'FZTA');
+			if($tl < 0 || $off + $tl > $n) {
+				fractal_zip::fatal_error('Corrupt FZTA payload (tar segment length).');
+			}
+			$tarSeg = substr($contents, $off, $tl);
+		} elseif($fzv === 2) {
+			$tarSeg = substr($contents, 5);
+			if($tarSeg === '' || strlen($tarSeg) < 512) {
+				fractal_zip::fatal_error('Corrupt FZTA v2 payload (tar segment).');
+			}
+		} else {
+			fractal_zip::fatal_error('Corrupt FZTA payload (unsupported version).');
 		}
-		$tarSeg = substr($contents, $off, $tl);
 		$ud = fractal_zip::posix_ustar_decode_first_regular_file($tarSeg);
 		if($ud === null) {
 			fractal_zip::fatal_error('Corrupt FZTA payload (ustar parse).');
@@ -11532,9 +12210,78 @@ function recursive_get_strings_for_fractal_zip_markers($dir) {
 	closedir($handle);
 }
 
-function maximum_substr_expression_length() {
-	// assumptions: recursion_counter < 10
-	return (5 + (2 * strlen((string)strlen($this->fractal_string))));
+/**
+ * Legacy digit-only floor from **fractal_string** length: multipass shrink, recursive_fractal_substring savings gate,
+ * and default sliding-window start in `all_substrings_count` when no override is passed.
+ *
+ * Inner append **slice spans** use **`fz_inner_append_min_corpus_slice_bytes`** (next append step = parent `append_depth + 1`),
+ * not this helper. **`all_substrings_count`** keeps its own window floor here; short literals also arrive via inner merges
+ * (`fz_inner_merge_fractal_ref_*`).
+ */
+function substr_scan_minimum_length(): int {
+	$digits = strlen((string) strlen($this->fractal_string));
+	return max(6, 5 + (2 * $digits));
+}
+
+/**
+ * If $s is an exact concatenation of k≥2 copies of some shortest unit u, return u; otherwise null.
+ * Helps tuple-style expansions (e.g. case 27) retain the primitive period in substring candidates.
+ */
+public static function pure_repetition_primitive_unit(string $s): ?string {
+	$n = strlen($s);
+	if ($n < 4) {
+		return null;
+	}
+	$half = intdiv($n, 2);
+	for ($p = 1; $p <= $half; $p++) {
+		if ($n % $p !== 0) {
+			continue;
+		}
+		$u = substr($s, 0, $p);
+		if ($u === '') {
+			continue;
+		}
+		$k = intdiv($n, $p);
+		if ($k < 2) {
+			continue;
+		}
+		if (str_repeat($u, $k) === $s) {
+			return $u;
+		}
+	}
+	return null;
+}
+
+/**
+ * Marker bytes for first append+replace from an empty dictionary (match offset 0), `<0"{pieceLen}>`.
+ */
+function estimate_inner_pass1_marker_strlen(int $pieceLen): int {
+	return strlen($this->left_fractal_zip_marker) + strlen('0') + strlen($this->mid_fractal_zip_marker) + strlen((string) $pieceLen) + strlen($this->right_fractal_zip_marker);
+}
+
+/**
+ * Upper bound driving substring sliding-window caps (all_substrings_count hard caps scale off this). Much larger than substr_scan_minimum_length() so long repeats are visible.
+ * Env FRACTAL_ZIP_MAX_SUBSTR_EXPRESSION_LENGTH: positive bytes, clamped to segment_length (and never below substr_scan_minimum_length()). Unset = scaled default from fractal_string length.
+ */
+function maximum_substr_expression_length(): int {
+	$seg = max(8, min(500000, (int) $this->segment_length));
+	$floor = $this->substr_scan_minimum_length();
+	static $envCap = null;
+	if($envCap === null) {
+		$e = getenv('FRACTAL_ZIP_MAX_SUBSTR_EXPRESSION_LENGTH');
+		if($e !== false && trim((string) $e) !== '') {
+			$v = (int) trim((string) $e);
+			$envCap = $v > 0 ? $v : 0;
+		} else {
+			$envCap = 0;
+		}
+	}
+	if($envCap > 0) {
+		return max($floor, min($seg, $envCap));
+	}
+	$fsLen = strlen($this->fractal_string);
+	$scaled = max($floor * 8, min($seg, max(256, (int) ceil($fsLen / 64))));
+	return max($floor, min($seg, $scaled));
 }
 
 /**
@@ -11637,10 +12384,58 @@ public static function bundle_raw_tier_dual_compress_pick_enabled(): bool {
 }
 
 /**
+ * Inner-pass substring/scale intro maps call fractally_process_string on many synthetic tags; stack entries tighten
+ * tuple/equivalence splice caps for those probes only (see push_inner_substring_probe_limits).
+ *
+ * @var list<array{eq:int, tuple:int, run:int}>
+ */
+private static $inner_substring_probe_limit_stack = array();
+
+public static function push_inner_substring_probe_limits(int $maxEquivalenceSubopResultBytes, int $maxSubstringTupleExpandBytes, int $maxRunningEquivalenceBytes = 98304): void {
+	self::$inner_substring_probe_limit_stack[] = array(
+		'eq' => $maxEquivalenceSubopResultBytes,
+		'tuple' => $maxSubstringTupleExpandBytes,
+		'run' => $maxRunningEquivalenceBytes,
+	);
+}
+
+public static function pop_inner_substring_probe_limits(): void {
+	if(count(self::$inner_substring_probe_limit_stack) === 0) {
+		return;
+	}
+	array_pop(self::$inner_substring_probe_limit_stack);
+}
+
+/** @return array{eq:int, tuple:int, run:int}|null */
+private static function inner_substring_probe_limits_top(): ?array {
+	$n = count(self::$inner_substring_probe_limit_stack);
+	if($n === 0) {
+		return null;
+	}
+	return self::$inner_substring_probe_limit_stack[$n - 1];
+}
+
+/** Max strlen(equivalence_string) during recursive_substring_replace when inner probe stack active; 0 = no running cap. */
+public static function inner_substring_probe_running_equiv_cap(): int {
+	$t = self::inner_substring_probe_limits_top();
+	if($t === null) {
+		return 0;
+	}
+	if(!isset($t['run'])) {
+		return 98304;
+	}
+	return max(0, (int) $t['run']);
+}
+
+/**
  * Max total bytes allowed when expanding a fractal substring "tuple" (repeating the same piece) in recursive_substring_replace.
  * Prevents pathological RAM use during unzip / silent_validate. Env FRACTAL_ZIP_MAX_SUBSTRING_TUPLE_EXPAND_BYTES: unset = 16777216 (16 MiB); 0 = unlimited.
  */
 public static function max_substring_tuple_expand_bytes(): int {
+	$probe = self::inner_substring_probe_limits_top();
+	if($probe !== null) {
+		return $probe['tuple'];
+	}
 	static $cached = null;
 	if($cached !== null) {
 		return $cached;
@@ -11685,6 +12480,10 @@ public static function max_substring_operation_slice_bytes(): int {
  * Max allowed strlen(equivalence_string) after one substring-op splice in recursive_substring_replace (avoids 200MB+ str_replace-style peaks). Env FRACTAL_ZIP_MAX_EQUIVALENCE_SUBOP_RESULT_BYTES: unset = 201326592 (192 MiB); 0 = unlimited.
  */
 public static function max_equivalence_subop_result_bytes(): int {
+	$probe = self::inner_substring_probe_limits_top();
+	if($probe !== null) {
+		return $probe['eq'];
+	}
 	static $cached = null;
 	if($cached !== null) {
 		return $cached;
@@ -11700,6 +12499,30 @@ public static function max_equivalence_subop_result_bytes(): int {
 		return $cached;
 	}
 	$cached = min($v, 2147483647);
+	return $cached;
+}
+
+/**
+ * Max nested PHP call depth for recursive_substring_replace (each replacement may recurse into expanded slices).
+ * Caps pathological equiv strings that would otherwise exhaust stack/RAM during inner search or unzip.
+ * Env FRACTAL_ZIP_MAX_RECURSIVE_SUBSTRING_DEPTH: unset = 8192; 0 = unlimited (dangerous for hostile input).
+ */
+public static function max_recursive_substring_replace_depth(): int {
+	static $cached = null;
+	if($cached !== null) {
+		return $cached;
+	}
+	$env = getenv('FRACTAL_ZIP_MAX_RECURSIVE_SUBSTRING_DEPTH');
+	if($env === false || trim((string) $env) === '') {
+		$cached = 8192;
+		return $cached;
+	}
+	$v = (int) trim((string) $env);
+	if($v <= 0) {
+		$cached = 0;
+		return $cached;
+	}
+	$cached = min($v, 100000000);
 	return $cached;
 }
 
@@ -11727,7 +12550,7 @@ public static function silent_validate_max_operand_bytes(): int {
 
 /**
  * How many highest-scoring substrings from all_substrings_count() feed recursive_fractal_substring (wider search).
- * Env FRACTAL_ZIP_SUBSTRING_TOP_K: 1–12, default 12.
+ * Env FRACTAL_ZIP_SUBSTRING_TOP_K: 1–48, default 24.
  */
 public static function substring_top_candidate_count(): int {
 	static $cached = null;
@@ -11736,11 +12559,11 @@ public static function substring_top_candidate_count(): int {
 	}
 	$env = getenv('FRACTAL_ZIP_SUBSTRING_TOP_K');
 	if($env === false || trim((string) $env) === '') {
-		$cached = 12;
+		$cached = 24;
 		return $cached;
 	}
 	$v = (int) trim((string) $env);
-	$cached = max(1, min(12, $v));
+	$cached = max(1, min(48, $v));
 	return $cached;
 }
 
@@ -11749,46 +12572,75 @@ public static function substring_top_candidate_count(): int {
  * General tier: FRACTAL_ZIP_FRACTAL_SUBSTRING_COARSE_MIN_BYTES (default 192 KiB, 0 = off).
  * Stricter tier when FRACTAL_ZIP_LITERAL_SYNTH_ZIP_PASS=1: FRACTAL_ZIP_LITERAL_SYNTH_SUBSTRING_COARSE_MIN_BYTES (default 48 KiB, 0 = disable synth-only coarse).
  *
- * @return array{enabled:bool, max_records:int, top_k_cap:int, hardcap_mult:int, multiple_cap:int}
+ * @return array{enabled:bool, max_records:int, top_k_cap:int, hardcap_mult:int, multiple_cap:int} Shared static arrays per tier; do not mutate.
  */
 public static function fractal_substring_coarse_config_for_length(int $slen): array {
-	$synthOn = getenv('FRACTAL_ZIP_LITERAL_SYNTH_ZIP_PASS') === '1';
-	$eCoarse = getenv('FRACTAL_ZIP_FRACTAL_SUBSTRING_COARSE_MIN_BYTES');
-	$coarseMin = ($eCoarse !== false && trim((string) $eCoarse) !== '') ? max(0, (int) $eCoarse) : (192 * 1024);
-	$eSynMin = getenv('FRACTAL_ZIP_LITERAL_SYNTH_SUBSTRING_COARSE_MIN_BYTES');
-	$synthMin = ($eSynMin !== false && trim((string) $eSynMin) !== '') ? max(0, (int) $eSynMin) : (48 * 1024);
+	static $thresholdSnap = null;
+	if($thresholdSnap === null) {
+		$synthOn = getenv('FRACTAL_ZIP_LITERAL_SYNTH_ZIP_PASS') === '1';
+		$eCoarse = getenv('FRACTAL_ZIP_FRACTAL_SUBSTRING_COARSE_MIN_BYTES');
+		$coarseMin = ($eCoarse !== false && trim((string) $eCoarse) !== '') ? max(0, (int) $eCoarse) : (192 * 1024);
+		$eSynMin = getenv('FRACTAL_ZIP_LITERAL_SYNTH_SUBSTRING_COARSE_MIN_BYTES');
+		$synthMin = ($eSynMin !== false && trim((string) $eSynMin) !== '') ? max(0, (int) $eSynMin) : (48 * 1024);
+		$thresholdSnap = array('synthOn' => $synthOn, 'coarseMin' => $coarseMin, 'synthMin' => $synthMin);
+	}
+	$synthOn = $thresholdSnap['synthOn'];
+	$coarseMin = $thresholdSnap['coarseMin'];
+	$synthMin = $thresholdSnap['synthMin'];
 	$strictTier = $synthOn && $synthMin > 0 && $slen >= $synthMin;
 	$looseTier = $coarseMin > 0 && $slen >= $coarseMin;
 	$enabled = $strictTier || $looseTier;
 	if(!$enabled) {
-		return array(
+		// Hot path: members under coarse thresholds — avoid allocating a fresh 5-element array per all_substrings_count().
+		static $coarseSubstringDisabled = array(
 			'enabled' => false,
 			'max_records' => 350000,
-			'top_k_cap' => 12,
+			'top_k_cap' => 24,
 			'hardcap_mult' => 0,
 			'multiple_cap' => 0,
 		);
+		return $coarseSubstringDisabled;
 	}
-	$strict = $strictTier;
-	$eMr = getenv($strict ? 'FRACTAL_ZIP_LITERAL_SYNTH_SUBSTRING_COARSE_MAX_RECORDS' : 'FRACTAL_ZIP_FRACTAL_SUBSTRING_COARSE_MAX_RECORDS');
-	$defMr = $strict ? 65000 : 120000;
-	$maxRec = ($eMr !== false && trim((string) $eMr) !== '') ? max(5000, min(2000000, (int) $eMr)) : $defMr;
-	$eTk = getenv($strict ? 'FRACTAL_ZIP_LITERAL_SYNTH_SUBSTRING_COARSE_TOP_K' : 'FRACTAL_ZIP_FRACTAL_SUBSTRING_COARSE_TOP_K');
-	$defTk = $strict ? 5 : 7;
-	$topKCap = ($eTk !== false && trim((string) $eTk) !== '') ? max(1, min(12, (int) $eTk)) : $defTk;
-	$eHm = getenv($strict ? 'FRACTAL_ZIP_LITERAL_SYNTH_SUBSTRING_COARSE_HARD_MULT' : 'FRACTAL_ZIP_FRACTAL_SUBSTRING_COARSE_HARD_MULT');
-	$defHm = $strict ? 12 : 18;
-	$hardMult = ($eHm !== false && trim((string) $eHm) !== '') ? max(6, min(48, (int) $eHm)) : $defHm;
-	$eMc = getenv($strict ? 'FRACTAL_ZIP_LITERAL_SYNTH_SUBSTRING_COARSE_MULTIPLE_CAP' : 'FRACTAL_ZIP_FRACTAL_SUBSTRING_COARSE_MULTIPLE_CAP');
-	$defMc = $strict ? 5 : 7;
-	$multCap = ($eMc !== false && trim((string) $eMc) !== '') ? max(3, min(15, (int) $eMc)) : $defMc;
-	return array(
-		'enabled' => true,
-		'max_records' => $maxRec,
-		'top_k_cap' => $topKCap,
-		'hardcap_mult' => $hardMult,
-		'multiple_cap' => $multCap,
-	);
+	if($strictTier) {
+		static $coarseSubstringEnabledStrict = null;
+		if($coarseSubstringEnabledStrict === null) {
+			$eMr = getenv('FRACTAL_ZIP_LITERAL_SYNTH_SUBSTRING_COARSE_MAX_RECORDS');
+			$maxRec = ($eMr !== false && trim((string) $eMr) !== '') ? max(5000, min(2000000, (int) $eMr)) : 65000;
+			$eTk = getenv('FRACTAL_ZIP_LITERAL_SYNTH_SUBSTRING_COARSE_TOP_K');
+			$topKCap = ($eTk !== false && trim((string) $eTk) !== '') ? max(1, min(48, (int) $eTk)) : 8;
+			$eHm = getenv('FRACTAL_ZIP_LITERAL_SYNTH_SUBSTRING_COARSE_HARD_MULT');
+			$hardMult = ($eHm !== false && trim((string) $eHm) !== '') ? max(6, min(48, (int) $eHm)) : 12;
+			$eMc = getenv('FRACTAL_ZIP_LITERAL_SYNTH_SUBSTRING_COARSE_MULTIPLE_CAP');
+			$multCap = ($eMc !== false && trim((string) $eMc) !== '') ? max(3, min(15, (int) $eMc)) : 5;
+			$coarseSubstringEnabledStrict = array(
+				'enabled' => true,
+				'max_records' => $maxRec,
+				'top_k_cap' => $topKCap,
+				'hardcap_mult' => $hardMult,
+				'multiple_cap' => $multCap,
+			);
+		}
+		return $coarseSubstringEnabledStrict;
+	}
+	static $coarseSubstringEnabledLoose = null;
+	if($coarseSubstringEnabledLoose === null) {
+		$eMr = getenv('FRACTAL_ZIP_FRACTAL_SUBSTRING_COARSE_MAX_RECORDS');
+		$maxRec = ($eMr !== false && trim((string) $eMr) !== '') ? max(5000, min(2000000, (int) $eMr)) : 120000;
+		$eTk = getenv('FRACTAL_ZIP_FRACTAL_SUBSTRING_COARSE_TOP_K');
+		$topKCap = ($eTk !== false && trim((string) $eTk) !== '') ? max(1, min(48, (int) $eTk)) : 12;
+		$eHm = getenv('FRACTAL_ZIP_FRACTAL_SUBSTRING_COARSE_HARD_MULT');
+		$hardMult = ($eHm !== false && trim((string) $eHm) !== '') ? max(6, min(48, (int) $eHm)) : 18;
+		$eMc = getenv('FRACTAL_ZIP_FRACTAL_SUBSTRING_COARSE_MULTIPLE_CAP');
+		$multCap = ($eMc !== false && trim((string) $eMc) !== '') ? max(3, min(15, (int) $eMc)) : 7;
+		$coarseSubstringEnabledLoose = array(
+			'enabled' => true,
+			'max_records' => $maxRec,
+			'top_k_cap' => $topKCap,
+			'hardcap_mult' => $hardMult,
+			'multiple_cap' => $multCap,
+		);
+	}
+	return $coarseSubstringEnabledLoose;
 }
 
 /**
@@ -11800,21 +12652,25 @@ public static function fractal_large_entry_effective_max_depth(int $rootStrlen, 
 	if($rootStrlen <= 0) {
 		return $configuredMaxDepth;
 	}
-	$synthOn = getenv('FRACTAL_ZIP_LITERAL_SYNTH_ZIP_PASS') === '1';
-	$e = getenv('FRACTAL_ZIP_FRACTAL_LARGE_ENTRY_DEPTH_MIN_BYTES');
-	if($e !== false && trim((string) $e) !== '') {
-		$thr = max(0, (int) $e);
-	} elseif($synthOn) {
-		$thr = 262144;
-	} else {
-		$thr = 524288;
+	static $snap = null;
+	if($snap === null) {
+		$synthOn = getenv('FRACTAL_ZIP_LITERAL_SYNTH_ZIP_PASS') === '1';
+		$e = getenv('FRACTAL_ZIP_FRACTAL_LARGE_ENTRY_DEPTH_MIN_BYTES');
+		if($e !== false && trim((string) $e) !== '') {
+			$thr = max(0, (int) $e);
+		} elseif($synthOn) {
+			$thr = 262144;
+		} else {
+			$thr = 524288;
+		}
+		$ed = getenv('FRACTAL_ZIP_FRACTAL_LARGE_ENTRY_MAX_RECURSION_DEPTH');
+		$capD = ($ed !== false && trim((string) $ed) !== '') ? max(1, min(64, (int) $ed)) : 9;
+		$snap = array('thr' => $thr, 'capD' => $capD);
 	}
-	if($thr <= 0 || $rootStrlen < $thr) {
+	if($snap['thr'] <= 0 || $rootStrlen < $snap['thr']) {
 		return $configuredMaxDepth;
 	}
-	$ed = getenv('FRACTAL_ZIP_FRACTAL_LARGE_ENTRY_MAX_RECURSION_DEPTH');
-	$d = ($ed !== false && trim((string) $ed) !== '') ? max(1, min(64, (int) $ed)) : 9;
-	return min($configuredMaxDepth, $d);
+	return min($configuredMaxDepth, $snap['capD']);
 }
 
 /**
@@ -11953,7 +12809,7 @@ public static function multipass_ratio_gate_multiplier(): float {
 /** @uses static env default when instance override unset */
 function effective_substring_top_k(): int {
 	if($this->tuning_substring_top_k !== null) {
-		return max(1, min(12, (int) $this->tuning_substring_top_k));
+		return max(1, min(48, (int) $this->tuning_substring_top_k));
 	}
 	return fractal_zip::substring_top_candidate_count();
 }
@@ -12011,6 +12867,7 @@ function run_fractal_multipass_equivalence_passes($debug = false) {
 		foreach($this->equivalences as $equivalence_index => $equivalence) {
 			$string = $equivalence[2];
 			$stringLen = strlen($string);
+			$maxSubstrExprLen = $this->substr_scan_minimum_length();
 			$counter = 0;
 			$last_start_matches = 0;
 			while($counter < $stringLen) {
@@ -12019,7 +12876,7 @@ function run_fractal_multipass_equivalence_passes($debug = false) {
 					$length_counter = $this->segment_length;
 				}
 				$last_end_matches = 0;
-				while($length_counter > $this->maximum_substr_expression_length()) {
+				while($length_counter > $maxSubstrExprLen) {
 					$piece = substr($string, $counter, $length_counter);
 					$matches = 0;
 					foreach($strings as $string2) {
@@ -12634,11 +13491,11 @@ function extract_fzcd_bundle_streaming_from_path($bundlePath, $rootDir, $debug) 
 			}
 			$escaped = $this->escape_literal_for_storage($flacData);
 			$unzipped = $this->unzip($escaped);
-			$outPath = $rootDir . DS . str_replace('/', DS, $e['path']);
+			$outPath = $this->safe_container_member_output_path($rootDir, $e['path']);
 			$this->build_directory_structure_for($outPath);
 			file_put_contents($outPath, $unzipped);
 			if($debug) {
-				print('Extracted ' . $outPath . '<br>');
+				fractal_zip::html_trace_print('Extracted ' . $outPath . '<br>');
 			}
 			$this->files_counter++;
 			$this->array_fractal_zipped_strings_of_files[$e['path']] = '';
@@ -12732,11 +13589,11 @@ function extract_fzcd_bundle_streaming_from_path($bundlePath, $rootDir, $debug) 
 			}
 			$escaped = $this->escape_literal_for_storage($flacData);
 			$unzipped = $this->unzip($escaped);
-			$outPath = $rootDir . DS . str_replace('/', DS, $e['path']);
+			$outPath = $this->safe_container_member_output_path($rootDir, $e['path']);
 			$this->build_directory_structure_for($outPath);
 			file_put_contents($outPath, $unzipped);
 			if($debug) {
-				print('Extracted ' . $outPath . '<br>');
+				fractal_zip::html_trace_print('Extracted ' . $outPath . '<br>');
 			}
 			$this->files_counter++;
 			$this->array_fractal_zipped_strings_of_files[$e['path']] = '';
@@ -12826,11 +13683,11 @@ function extract_fzcd_bundle_streaming_from_path($bundlePath, $rootDir, $debug) 
 			}
 			$escaped = $this->escape_literal_for_storage($flacData);
 			$unzipped = $this->unzip($escaped);
-			$outPath = $rootDir . DS . str_replace('/', DS, $e['path']);
+			$outPath = $this->safe_container_member_output_path($rootDir, $e['path']);
 			$this->build_directory_structure_for($outPath);
 			file_put_contents($outPath, $unzipped);
 			if($debug) {
-				print('Extracted ' . $outPath . '<br>');
+				fractal_zip::html_trace_print('Extracted ' . $outPath . '<br>');
 			}
 			$this->files_counter++;
 			$this->array_fractal_zipped_strings_of_files[$e['path']] = '';
@@ -12892,11 +13749,11 @@ function extract_fzcd_bundle_streaming_from_path($bundlePath, $rootDir, $debug) 
 			}
 			$escaped = $this->escape_literal_for_storage($flacData);
 			$unzipped = $this->unzip($escaped);
-			$outPath = $rootDir . DS . str_replace('/', DS, $e['path']);
+			$outPath = $this->safe_container_member_output_path($rootDir, $e['path']);
 			$this->build_directory_structure_for($outPath);
 			file_put_contents($outPath, $unzipped);
 			if($debug) {
-				print('Extracted ' . $outPath . '<br>');
+				fractal_zip::html_trace_print('Extracted ' . $outPath . '<br>');
 			}
 			$this->files_counter++;
 			$this->array_fractal_zipped_strings_of_files[$e['path']] = '';
@@ -12939,11 +13796,11 @@ function extract_fzcd_bundle_streaming_from_path($bundlePath, $rootDir, $debug) 
 			}
 			$escaped = $this->escape_literal_for_storage($flacData);
 			$unzipped = $this->unzip($escaped);
-			$outPath = $rootDir . DS . str_replace('/', DS, $e['path']);
+			$outPath = $this->safe_container_member_output_path($rootDir, $e['path']);
 			$this->build_directory_structure_for($outPath);
 			file_put_contents($outPath, $unzipped);
 			if($debug) {
-				print('Extracted ' . $outPath . '<br>');
+				fractal_zip::html_trace_print('Extracted ' . $outPath . '<br>');
 			}
 			$this->files_counter++;
 			$this->array_fractal_zipped_strings_of_files[$e['path']] = '';
@@ -12979,11 +13836,11 @@ function extract_fzcd_bundle_streaming_from_path($bundlePath, $rootDir, $debug) 
 		$raw = $this->decode_bundle_literal_member($mode, $rawStored);
 		$escaped = $this->escape_literal_for_storage($raw);
 		$unzipped = $this->unzip($escaped);
-		$outPath = $rootDir . DS . str_replace('/', DS, $path);
+		$outPath = $this->safe_container_member_output_path($rootDir, $path);
 		$this->build_directory_structure_for($outPath);
 		file_put_contents($outPath, $unzipped);
 		if($debug) {
-			print('Extracted ' . $outPath . '<br>');
+			fractal_zip::html_trace_print('Extracted ' . $outPath . '<br>');
 		}
 		$this->files_counter++;
 		$this->array_fractal_zipped_strings_of_files[$path] = '';
@@ -12999,7 +13856,7 @@ function extract_fzcd_bundle_streaming_from_path($bundlePath, $rootDir, $debug) 
 	fclose($fh);
 	if($debug) {
 		$micro_time_taken = microtime(true) - $this->initial_micro_time;
-		print('Time taken opening container: ' . $micro_time_taken . ' seconds.<br>');
+		fractal_zip::html_trace_print('Time taken opening container: ' . $micro_time_taken . ' seconds.<br>');
 	}
 	return true;
 }
@@ -13046,8 +13903,8 @@ function stream_literal_bundle_fzb4_to_file($dir, $outPath, $rawLiteralsOnly = f
 			$rawBytes = '';
 		}
 		if($rawLiteralsOnly) {
-			list($work, $semanticLayers, $gzipStack) = fractal_zip_literal_deep_unwrap_with_layers($path, $rawBytes);
-			list($mode, $storeBytes) = fractal_zip_literal_bundle_wrap_all_layers($semanticLayers, $gzipStack, 0, $work);
+			$mode = 0;
+			$storeBytes = $rawBytes;
 		} else {
 			list($mode, $storeBytes) = $this->choose_best_literal_bundle_transform($rawBytes, $path);
 		}
@@ -13213,6 +14070,7 @@ function zip_folder($dir, $debug = false) {
 	}
 	// Large-folder fast path: literal FZB4 bundle + raw deflate outer like adaptive_compress gzip baseline (no fractal). Benchmarks
 	// set FRACTAL_ZIP_FOLDER_GZIP_FAST=1 for heavy corpora; auto also when raw size >= FRACTAL_ZIP_LARGE_FOLDER_FAST_BYTES.
+	// Adaptive-inner branch: same native Arc / zpaq folder passthrough as unified stream when within FRACTAL_ZIP_FOLDER_NATIVE_* caps.
 	if($this->should_use_large_folder_gzip_fast_path($dir)) {
 		fractal_zip_encode_pipeline::html_trace_checkpoint(
 			fractal_zip_encode_pipeline::PHASE_STREAM_BUILD,
@@ -13232,15 +14090,23 @@ function zip_folder($dir, $debug = false) {
 				if($innerBlob !== false && $innerBlob !== '') {
 					$rawFilesByPath = $this->collect_raw_files_for_bundle($dir);
 					list($bestContents, $gfPick) = $this->choose_smallest_adaptive_literal_inner_or_raw_escaped(
-						array(array('inner' => $innerBlob, 'tag' => 'stream_literal')),
+						array(fractal_zip_candidate_from_inner($innerBlob, 'stream_literal', 'literal', 'unified_stream')),
 						$rawFilesByPath
 					);
-					$fzcBody = $this->append_fractal_gzip_peel_restore_trailer($bestContents, $this->fractal_member_gzip_disk_restore);
+					$fzcBody = $this->append_restore_trailer_inside_outer_payload($bestContents, $this->fractal_member_gzip_disk_restore);
+					list($fzcBody, $nativePickGf) = $this->folder_wire_after_literal_outer_try_native_folder_archives(
+						$this->zip_folder_root_for_members,
+						$fzcBody,
+						$rawFilesByPath,
+						'zip_folder_gzip_fast_adaptive'
+					);
 					if(file_put_contents($fzcPath, $fzcBody) !== false) {
 						@unlink($tmpInner);
 						$gzipFastDone = true;
 						fractal_zip::$used_folder_gzip_fast = true;
-						fractal_zip::$folder_zip_wire_best_outer_codec = fractal_zip::$last_written_container_codec;
+						fractal_zip::$folder_zip_wire_best_outer_codec = ($nativePickGf !== null)
+							? (($nativePickGf === 'arc_native') ? 'arc' : (($nativePickGf === '7z_native') ? '7z' : (($nativePickGf === 'brotli_native') ? 'brotli' : 'zpaq')))
+							: (string) fractal_zip::$last_written_container_codec;
 						$micro_time_taken = microtime(true) - $this->initial_micro_time;
 						fractal_zip::html_trace_print('large-folder gzip-fast path: streamed literal inner + phase-3 adaptive outer (inner ≤ ' . $maxAd . ' B; pick=' . htmlspecialchars($gfPick) . ').<br>');
 						fractal_zip::html_trace_print('Time taken zipping folder: ' . $micro_time_taken . ' seconds.<br>');
@@ -13280,29 +14146,35 @@ function zip_folder($dir, $debug = false) {
 		$this->zip_folder_root_for_members = $resolvedRoot !== false ? $resolvedRoot : $dir;
 		$rootForCollect = $resolvedRoot !== false ? $resolvedRoot : $dir;
 		$rawFilesByPath = $this->collect_raw_files_for_bundle($dir);
-		$variants = fractal_zip::folder_literal_variants_for_unified_stream(
-			$this->collect_literal_bundle_inner_variants_for_folder($rootForCollect, $rawFilesByPath)
-		);
+		$innerRunGrammarVariants = $this->collect_fractal_inner_run_grammar_variants_for_folder($rawFilesByPath);
+		if($this->fractal_inner_run_grammar_variants_are_decisive($innerRunGrammarVariants, $rawFilesByPath)) {
+			$variants = $innerRunGrammarVariants;
+		} else {
+			$innerPeelerVariants = $this->collect_fractal_inner_peeler_variants_for_folder($rawFilesByPath);
+			$variants = fractal_zip::folder_literal_variants_for_unified_stream(
+				$this->collect_literal_bundle_inner_variants_for_folder($rootForCollect, $rawFilesByPath)
+			);
+			if($innerPeelerVariants !== array()) {
+				$variants = array_merge($innerPeelerVariants, $variants);
+			}
+			if($innerRunGrammarVariants !== array()) {
+				$variants = array_merge($innerRunGrammarVariants, $variants);
+			}
+		}
 		if($variants !== array()) {
 			list($bestContents, $unifiedPick) = $this->choose_smallest_adaptive_literal_inner_or_raw_escaped($variants, $rawFilesByPath);
-			$fzcBody = $this->append_fractal_gzip_peel_restore_trailer($bestContents, $this->fractal_member_gzip_disk_restore);
-			$sumRawUnified = 0;
-			foreach($rawFilesByPath as $rb) {
-				$sumRawUnified += strlen((string) $rb);
+			$fzcBody = $this->append_restore_trailer_inside_outer_payload($bestContents, $this->fractal_member_gzip_disk_restore);
+			$nativePick = null;
+			if(!$this->fractal_inner_skip_native_compare_for_verified_tiny_payload((string)$unifiedPick, $fzcBody, $rawFilesByPath)) {
+				list($fzcBody, $nativePick) = $this->folder_wire_after_literal_outer_try_native_folder_archives(
+					$rootForCollect,
+					$fzcBody,
+					$rawFilesByPath,
+					'zip_folder_unified_stream'
+				);
 			}
-			fractal_zip_encode_pipeline::pipeline_outer_step_rollup_zip_folder_sync_clock();
-			$fzcPassthrough = $this->maybe_folder_freearc_native_smaller_than_fzc($rootForCollect, $fzcBody, $sumRawUnified, $rawFilesByPath);
-			fractal_zip_encode_pipeline::pipeline_outer_step_rollup_zip_folder_segment('zip_folder_unified_stream_maybe_freearc_native_compare');
-			if($fzcPassthrough !== null) {
-				$fzcBody = $fzcPassthrough;
-				$unifiedPick = 'arc_native';
-			}
-			fractal_zip_encode_pipeline::pipeline_outer_step_rollup_zip_folder_sync_clock();
-			$fzcZpaqNative = $this->maybe_folder_zpaq_native_smaller_than_fzc($rootForCollect, $fzcBody, $rawFilesByPath);
-			fractal_zip_encode_pipeline::pipeline_outer_step_rollup_zip_folder_segment('zip_folder_unified_stream_maybe_zpaq_native_compare');
-			if($fzcZpaqNative !== null) {
-				$fzcBody = $fzcZpaqNative;
-				$unifiedPick = 'zpaq_native';
+			if($nativePick !== null) {
+				$unifiedPick = $nativePick;
 			}
 			file_put_contents($dir . $this->fractal_zip_container_file_extension, $fzcBody);
 			fractal_zip::$used_folder_unified_stream = true;
@@ -13310,7 +14182,11 @@ function zip_folder($dir, $debug = false) {
 				? 'arc'
 				: (($unifiedPick === 'zpaq_native')
 					? 'zpaq'
-					: (string) fractal_zip::$last_written_container_codec);
+					: (($unifiedPick === '7z_native')
+						? '7z'
+						: (($unifiedPick === 'brotli_native')
+							? 'brotli'
+							: (string) fractal_zip::$last_written_container_codec)));
 			$micro_time_taken = microtime(true) - $this->initial_micro_time;
 			if($unifiedPick === 'arc_native') {
 				fractal_zip::html_trace_print('unified stream path: raw native FreeArc folder archive beat fractal inner + outer on wire bytes (same bytes as min-ext Arc).<br>');
@@ -13320,6 +14196,10 @@ function zip_folder($dir, $debug = false) {
 				fractal_zip::html_trace_print('unified stream path: FZCD merged-FLAC inner won vs raw after adaptive outer.<br>');
 			} elseif($unifiedPick === 'fzb') {
 				fractal_zip::html_trace_print('unified stream path: FZB literal inner (unwrap + transforms; FZBD auto; optional FZWS) won vs raw after adaptive outer.<br>');
+			} elseif($unifiedPick === '7z_native') {
+				fractal_zip::html_trace_print('unified stream path: native 7z folder archive beat wrapped inner on wire bytes.<br>');
+			} elseif($unifiedPick === 'brotli_native') {
+				fractal_zip::html_trace_print('unified stream path: native tar|brotli folder archive (FZLB, bench-identical .br) beat wrapped inner on wire bytes.<br>');
 			} elseif($unifiedPick === 'zpaq_native') {
 				fractal_zip::html_trace_print('unified stream path: native zpaq folder archive beat wrapped inner on wire bytes.<br>');
 			} else {
@@ -13374,23 +14254,46 @@ function zip_folder($dir, $debug = false) {
 			'bundle-only shape: literal inner variants + byte stream'
 		);
 		$rawFilesByPath = $this->collect_raw_files_for_bundle($dir);
-		$variants = fractal_zip::folder_literal_variants_for_unified_stream(
-			$this->collect_literal_bundle_inner_variants_for_folder($this->zip_folder_root_for_members, $rawFilesByPath)
-		);
+		$innerRunGrammarVariants = $this->collect_fractal_inner_run_grammar_variants_for_folder($rawFilesByPath);
+		if($this->fractal_inner_run_grammar_variants_are_decisive($innerRunGrammarVariants, $rawFilesByPath)) {
+			$variants = $innerRunGrammarVariants;
+		} else {
+			$innerPeelerVariants = $this->collect_fractal_inner_peeler_variants_for_folder($rawFilesByPath);
+			$variants = fractal_zip::folder_literal_variants_for_unified_stream(
+				$this->collect_literal_bundle_inner_variants_for_folder($this->zip_folder_root_for_members, $rawFilesByPath)
+			);
+			if($innerPeelerVariants !== array()) {
+				$variants = array_merge($innerPeelerVariants, $variants);
+			}
+			if($innerRunGrammarVariants !== array()) {
+				$variants = array_merge($innerRunGrammarVariants, $variants);
+			}
+		}
 		if($variants !== array()) {
 			list($bestContents, $shapePick) = $this->choose_smallest_adaptive_literal_inner_or_raw_escaped($variants, $rawFilesByPath);
-			$fzcBody = $this->append_fractal_gzip_peel_restore_trailer($bestContents, $this->fractal_member_gzip_disk_restore);
-			fractal_zip_encode_pipeline::pipeline_outer_step_rollup_zip_folder_sync_clock();
-			$fzcZpaqNative = $this->maybe_folder_zpaq_native_smaller_than_fzc($this->zip_folder_root_for_members, $fzcBody, $rawFilesByPath);
-			fractal_zip_encode_pipeline::pipeline_outer_step_rollup_zip_folder_segment('zip_folder_bundle_only_maybe_zpaq_native_compare');
-			if($fzcZpaqNative !== null) {
-				$fzcBody = $fzcZpaqNative;
-				$shapePick = 'zpaq_native';
+			$fzcBody = $this->append_restore_trailer_inside_outer_payload($bestContents, $this->fractal_member_gzip_disk_restore);
+			$nativePickShape = null;
+			if(!$this->fractal_inner_skip_native_compare_for_verified_tiny_payload((string)$shapePick, $fzcBody, $rawFilesByPath)) {
+				list($fzcBody, $nativePickShape) = $this->folder_wire_after_literal_outer_try_native_folder_archives(
+					$this->zip_folder_root_for_members,
+					$fzcBody,
+					$rawFilesByPath,
+					'zip_folder_bundle_only'
+				);
+			}
+			if($nativePickShape !== null) {
+				$shapePick = $nativePickShape;
 			}
 			file_put_contents($dir . $this->fractal_zip_container_file_extension, $fzcBody);
-			fractal_zip::$folder_zip_wire_best_outer_codec = ($shapePick === 'zpaq_native')
-				? 'zpaq'
-				: (string) fractal_zip::$last_written_container_codec;
+			fractal_zip::$folder_zip_wire_best_outer_codec = ($shapePick === 'arc_native')
+				? 'arc'
+				: (($shapePick === 'zpaq_native')
+					? 'zpaq'
+					: (($shapePick === '7z_native')
+						? '7z'
+						: (($shapePick === 'brotli_native')
+							? 'brotli'
+							: (string) fractal_zip::$last_written_container_codec)));
 			$micro_time_taken = microtime(true) - $this->initial_micro_time;
 			if($shapePick === 'raw') {
 				fractal_zip::html_trace_print('bundle-only shape path: raw escaped-per-file beat literal candidate(s) after adaptive outer.<br>');
@@ -13398,8 +14301,14 @@ function zip_folder($dir, $debug = false) {
 				fractal_zip::html_trace_print('bundle-only shape path: FZCD inner won vs raw after adaptive outer.<br>');
 			} elseif($shapePick === 'fzb') {
 				fractal_zip::html_trace_print('bundle-only shape path: FZB literal inner won vs raw after adaptive outer.<br>');
+			} elseif($shapePick === 'arc_native') {
+				fractal_zip::html_trace_print('bundle-only shape path: raw native FreeArc folder archive beat fractal inner + outer on wire bytes (same bytes as min-ext Arc).<br>');
 			} elseif($shapePick === 'zpaq_native') {
 				fractal_zip::html_trace_print('bundle-only shape path: native zpaq folder archive beat wrapped inner on wire bytes.<br>');
+			} elseif($shapePick === '7z_native') {
+				fractal_zip::html_trace_print('bundle-only shape path: native 7z folder archive beat wrapped inner on wire bytes.<br>');
+			} elseif($shapePick === 'brotli_native') {
+				fractal_zip::html_trace_print('bundle-only shape path: native tar|brotli folder archive (FZLB) beat wrapped inner on wire bytes.<br>');
 			} else {
 				fractal_zip::html_trace_print('bundle-only shape path: pick=' . htmlspecialchars($shapePick) . ' after adaptive outer.<br>');
 			}
@@ -13407,6 +14316,43 @@ function zip_folder($dir, $debug = false) {
 			$this->zip_folder_root_for_members = '';
 			return;
 		}
+	}
+	$earlyRawFilesByPath = $this->collect_raw_files_for_bundle($dir);
+	$earlyRunGrammarVariants = $this->collect_fractal_inner_run_grammar_variants_for_folder($earlyRawFilesByPath);
+	if($this->fractal_inner_run_grammar_variants_are_decisive($earlyRunGrammarVariants, $earlyRawFilesByPath)) {
+		fractal_zip_encode_pipeline::html_trace_checkpoint(
+			fractal_zip_encode_pipeline::PHASE_OUTER_CODECS,
+			'run-grammar inner: decisive verified candidate + raw tier'
+		);
+		list($bestContents, $earlyPick) = $this->choose_smallest_adaptive_literal_inner_or_raw_escaped($earlyRunGrammarVariants, $earlyRawFilesByPath);
+		$fzcBody = $this->append_restore_trailer_inside_outer_payload($bestContents, $this->fractal_member_gzip_disk_restore);
+		$nativePickEarly = null;
+		if(!$this->fractal_inner_skip_native_compare_for_verified_tiny_payload((string)$earlyPick, $fzcBody, $earlyRawFilesByPath)) {
+			list($fzcBody, $nativePickEarly) = $this->folder_wire_after_literal_outer_try_native_folder_archives(
+				$this->zip_folder_root_for_members,
+				$fzcBody,
+				$earlyRawFilesByPath,
+				'zip_folder_inner_run_grammar'
+			);
+		}
+		if($nativePickEarly !== null) {
+			$earlyPick = $nativePickEarly;
+		}
+		file_put_contents($dir . $this->fractal_zip_container_file_extension, $fzcBody);
+		fractal_zip::$folder_zip_wire_best_outer_codec = ($earlyPick === 'arc_native')
+			? 'arc'
+			: (($earlyPick === 'zpaq_native')
+				? 'zpaq'
+				: (($earlyPick === '7z_native')
+					? '7z'
+					: (($earlyPick === 'brotli_native')
+						? 'brotli'
+						: (string) fractal_zip::$last_written_container_codec)));
+		$micro_time_taken = microtime(true) - $this->initial_micro_time;
+		fractal_zip::html_trace_print('run-grammar inner path: verified candidate won early candidate gate; pick=' . htmlspecialchars($earlyPick) . '.<br>');
+		fractal_zip::html_trace_print('Time taken zipping folder: ' . $micro_time_taken . ' seconds.<br>');
+		$this->zip_folder_root_for_members = '';
+		return;
 	}
 	$this->fractal_member_gzip_disk_restore = array();
 	$this->raster_canonical_hash_to_lazy_range = array();
@@ -13483,6 +14429,14 @@ function zip_folder($dir, $debug = false) {
 	}
 	$raw_payload_uncompressed = $this->encode_container_payload($raw_array_fractal_zipped_strings_of_files, '');
 	$literal_variants = $this->collect_literal_bundle_inner_variants_for_folder($this->zip_folder_root_for_members, $raw_array_files_by_path);
+	$innerPeelerVariants = $this->collect_fractal_inner_peeler_variants_for_folder($raw_array_files_by_path);
+	if($innerPeelerVariants !== array()) {
+		$literal_variants = array_merge($innerPeelerVariants, $literal_variants);
+	}
+	$innerRunGrammarVariants = $this->collect_fractal_inner_run_grammar_variants_for_folder($raw_array_files_by_path);
+	if($innerRunGrammarVariants !== array()) {
+		$literal_variants = array_merge($innerRunGrammarVariants, $literal_variants);
+	}
 	fractal_zip_encode_pipeline::pipeline_outer_step_rollup_zip_folder_segment('zip_folder_legacy_markers_multipass_encode_collect_literals');
 	$literal_best_contents = '';
 	$literal_best_tag = '';
@@ -13719,7 +14673,26 @@ function zip_folder($dir, $debug = false) {
 	}
 	$writePayload = $bestPayload;
 	if($bestLabel === 'literal' && $literal_best_contents !== '') {
-		$writePayload = $this->append_fractal_gzip_peel_restore_trailer($literal_best_contents, $this->fractal_member_gzip_disk_restore);
+		$writePayload = $this->append_restore_trailer_inside_outer_payload($literal_best_contents, $this->fractal_member_gzip_disk_restore);
+	}
+	$rootNativeLegacy = $this->zip_folder_root_for_members;
+	if(is_string($rootNativeLegacy) && $rootNativeLegacy !== '' && $raw_array_files_by_path !== array()) {
+		list($writePayload, $nativePickLegacy) = $this->folder_wire_after_literal_outer_try_native_folder_archives(
+			$rootNativeLegacy,
+			$writePayload,
+			$raw_array_files_by_path,
+			'zip_folder_legacy_multipass'
+		);
+		if($nativePickLegacy !== null) {
+			fractal_zip::$folder_zip_wire_best_outer_codec = ($nativePickLegacy === 'arc_native')
+				? 'arc'
+				: (($nativePickLegacy === '7z_native')
+					? '7z'
+					: (($nativePickLegacy === 'brotli_native') ? 'brotli' : 'zpaq'));
+			fractal_zip::$last_written_container_codec = fractal_zip::$folder_zip_wire_best_outer_codec;
+			fractal_zip::$last_outer_codec = fractal_zip::$folder_zip_wire_best_outer_codec;
+			fractal_zip::html_trace_print('legacy multipass path: native ' . htmlspecialchars($nativePickLegacy) . ' beat contest winner on wire bytes.<br>');
+		}
 	}
 	fractal_zip_encode_pipeline::pipeline_outer_step_rollup_zip_folder_segment('zip_folder_finalize_write_payload_trailer');
 	file_put_contents($dir . $this->fractal_zip_container_file_extension, $writePayload);
@@ -13814,6 +14787,577 @@ function collect_raw_files_for_bundle($dir) {
 	$this->folder_structure_was_made = true;
 	$this->folder_structure_scan_root = $iterRoot;
 	$this->folder_structure_raw_files_by_path = $out;
+	return $out;
+}
+
+function fractal_inner_run_grammar_candidates_enabled() {
+	$env = getenv('FRACTAL_ZIP_INNER_RUN_GRAMMAR');
+	if($env === false || trim((string)$env) === '') {
+		return true;
+	}
+	$v = strtolower(trim((string)$env));
+	return !($v === '0' || $v === 'false' || $v === 'off' || $v === 'no');
+}
+
+function fractal_inner_run_grammar_max_raw_bytes() {
+	$env = getenv('FRACTAL_ZIP_INNER_RUN_GRAMMAR_MAX_RAW_BYTES');
+	if($env === false || trim((string)$env) === '') {
+		return 4194304;
+	}
+	$n = (int)$env;
+	return max(0, $n);
+}
+
+function fractal_inner_operator_candidate_max_raw_bytes() {
+	$env = getenv('FRACTAL_ZIP_INNER_OPERATOR_MAX_RAW_BYTES');
+	if($env === false || trim((string)$env) === '') {
+		return 512;
+	}
+	$n = (int)$env;
+	return max(0, $n);
+}
+
+function fractal_inner_peeler_candidates_enabled(): bool {
+	$env = getenv('FRACTAL_ZIP_INNER_PEELER_CANDIDATES');
+	if($env === false || trim((string)$env) === '') {
+		return true;
+	}
+	$v = strtolower(trim((string)$env));
+	return !($v === '0' || $v === 'false' || $v === 'off' || $v === 'no');
+}
+
+function fractal_inner_peeler_max_total_raw_bytes(): int {
+	$env = getenv('FRACTAL_ZIP_INNER_PEELER_MAX_TOTAL_RAW_BYTES');
+	if($env === false || trim((string)$env) === '') {
+		return 4194304;
+	}
+	return max(0, (int)$env);
+}
+
+function fractal_inner_skip_native_compare_for_verified_tiny_payload(string $pick, string $fzcBody, array $rawFilesByPath): bool {
+	$env = getenv('FRACTAL_ZIP_INNER_SKIP_NATIVE_COMPARE_TINY_PAYLOAD');
+	if($env === false) {
+		$env = getenv('FRACTAL_ZIP_INNER_SKIP_NATIVE_COMPARE_SINGLE_MEMBER');
+	}
+	if($env !== false) {
+		$v = strtolower(trim((string)$env));
+		if($v === '0' || $v === 'false' || $v === 'off' || $v === 'no') {
+			return false;
+		}
+	}
+	if(!str_starts_with($pick, 'inner_verified_ops') || count($rawFilesByPath) > 2) {
+		return false;
+	}
+	$rawTotal = 0;
+	$payloadMembers = 0;
+	foreach($rawFilesByPath as $bytes) {
+		$n = strlen((string)$bytes);
+		$rawTotal += $n;
+		if($n > 4096) {
+			$payloadMembers++;
+		}
+	}
+	return $payloadMembers === 1 && $rawTotal >= 65536 && strlen($fzcBody) <= 512;
+}
+
+/**
+ * True when a verified run-grammar inner is so small relative to raw bytes that it is worth
+ * skipping older candidate builders and moving directly to the raw-vs-inner outer chooser.
+ *
+ * @param list<array{inner:string,tag:string}> $variants
+ * @param array<string,string> $rawFilesByPath
+ */
+function fractal_inner_run_grammar_variants_are_decisive(array $variants, array $rawFilesByPath): bool {
+	if($variants === array()) {
+		return false;
+	}
+	$rawTotal = 0;
+	foreach($rawFilesByPath as $bytes) {
+		$rawTotal += strlen((string)$bytes);
+	}
+	if($rawTotal < 4096) {
+		return false;
+	}
+	$bestInner = PHP_INT_MAX;
+	foreach($variants as $v) {
+		if(isset($v['inner'])) {
+			$bestInner = min($bestInner, strlen((string)$v['inner']));
+		}
+	}
+	if($bestInner === PHP_INT_MAX) {
+		return false;
+	}
+	return $bestInner <= max(512, (int)floor($rawTotal / 64));
+}
+
+function fractal_inner_run_grammar_include_loaded() {
+	return fractal_zip_inner_include_loaded($this);
+}
+
+/**
+ * Shift substring marker offsets when a member-local fractal_ref is appended to a shared folder-level reference tape.
+ */
+function fractal_inner_shift_substring_offsets(string $equiv, int $delta): string {
+	if($delta === 0 || $equiv === '') {
+		return $equiv;
+	}
+	list($Lq, $Mq, $Rq) = fractal_zip_marker_rx_quoted_delimiters();
+	$pattern = '/' . $Lq . '([0-9]+)' . $Mq . '([0-9]+)' . $Mq . '*([0-9]*)\**([0-9]*)s*([0-9\.]*)' . $Rq . '/is';
+	return preg_replace_callback($pattern, function(array $m) use ($delta): string {
+		$off = (int)$m[1] + $delta;
+		$out = $this->left_fractal_zip_marker . (string)$off . $this->mid_fractal_zip_marker . $m[2];
+		if(isset($m[3]) && $m[3] !== '') {
+			$out .= $this->mid_fractal_zip_marker . $m[3];
+		}
+		if(isset($m[4]) && $m[4] !== '') {
+			$out .= '*' . $m[4];
+		}
+		if(isset($m[5]) && $m[5] !== '') {
+			$out .= 's' . $m[5];
+		}
+		return $out . $this->right_fractal_zip_marker;
+	}, $equiv) ?? $equiv;
+}
+
+/**
+ * @return list<array<string,mixed>>
+ */
+function fractal_inner_run_grammar_rows_for_raw(string $raw) {
+	return fractal_zip_inner_run_grammar_rows($this, $raw, $this->fractal_inner_run_grammar_max_raw_bytes());
+}
+
+/**
+ * @return list<array<string,mixed>>
+ */
+function fractal_inner_candidate_rows_for_raw(string $raw) {
+	return fractal_zip_inner_candidate_rows(
+		$this,
+		$raw,
+		$this->fractal_inner_run_grammar_max_raw_bytes(),
+		$this->fractal_inner_operator_candidate_max_raw_bytes()
+	);
+}
+
+/**
+ * Add generic, verified inner process candidates for run grammars and decoder-safe operators.
+ *
+ * These candidates are encoded as normal FZC containers and then compete in the existing
+ * outer wire-size tournament. No fixture names or recipe hints are used; each member
+ * candidate is derived from raw bytes and verified through the production decoder.
+ *
+ * @param array<string,string> $rawFilesByPath
+ * @return list<array{inner:string,tag:string}>
+ */
+function collect_fractal_inner_run_grammar_variants_for_folder($rawFilesByPath) {
+	if(!$this->fractal_inner_run_grammar_candidates_enabled() || !is_array($rawFilesByPath) || $rawFilesByPath === array()) {
+		return array();
+	}
+	return fractal_zip_inner_candidates_for_folder(
+		$this,
+		$rawFilesByPath,
+		$this->fractal_inner_run_grammar_max_raw_bytes(),
+		$this->fractal_inner_operator_candidate_max_raw_bytes()
+	);
+}
+
+function fractal_inner_add_peeler_view(&$views, &$seen, $source, $view, $disk, $restore = null) {
+	$source = (string)$source;
+	$view = (string)$view;
+	$disk = (string)$disk;
+	if($source === '' || $view === '' || $view === $disk || strlen($view) < 64) {
+		return;
+	}
+	$maxTotal = $this->fractal_inner_peeler_max_total_raw_bytes();
+	if($maxTotal > 0 && strlen($view) > $maxTotal) {
+		return;
+	}
+	if(!$this->fractal_inner_peeler_view_proxy_promising($source, $view, $disk)) {
+		return;
+	}
+	$key = $source . "\0" . sha1($view, true);
+	if(isset($seen[$key])) {
+		return;
+	}
+	$seen[$key] = true;
+	$views[] = array('source' => $source, 'bytes' => $view, 'restore' => $restore === null ? $disk : $restore);
+}
+
+function fractal_inner_peeler_view_proxy_promising($source, $view, $disk): bool {
+	$source = (string)$source;
+	if($source === 'deep_unwrap' || $source === 'zlib_wrapper' || $source === 'raw_deflate_wrapper') {
+		return true;
+	}
+	$view = (string)$view;
+	$disk = (string)$disk;
+	if(strlen($view) < strlen($disk)) {
+		return true;
+	}
+	if(strlen($disk) > 2097152 || strlen($view) > 2097152) {
+		return false;
+	}
+	$dg = gzdeflate($disk, 1);
+	$vg = gzdeflate($view, 1);
+	if($dg === false || $vg === false) {
+		return false;
+	}
+	return strlen($vg) + 16 < (int)floor(strlen($dg) * 0.92);
+}
+
+function fractal_inner_chunk_payload_view($bytes) {
+	$bytes = (string)$bytes;
+	$n = strlen($bytes);
+	if($n < 24) {
+		return null;
+	}
+	if(substr($bytes, 0, 4) === 'RIFF' && $n >= 12) {
+		$decl = unpack('Vlen', substr($bytes, 4, 4));
+		if(is_array($decl) && isset($decl['len']) && (int)$decl['len'] + 8 <= $n) {
+			$pos = 12;
+			$hdrs = substr($bytes, 0, 12);
+			$payloads = '';
+			$count = 0;
+			while($pos + 8 <= $n) {
+				$type = substr($bytes, $pos, 4);
+				$szU = unpack('Vlen', substr($bytes, $pos + 4, 4));
+				if(!is_array($szU) || !isset($szU['len'])) {
+					return null;
+				}
+				$sz = (int)$szU['len'];
+				$payloadPos = $pos + 8;
+				if($sz < 0 || $payloadPos + $sz > $n) {
+					return null;
+				}
+				$hdrs .= $type . substr($bytes, $pos + 4, 4);
+				$payloads .= substr($bytes, $payloadPos, $sz);
+				$pos = $payloadPos + $sz + ($sz & 1);
+				$count++;
+			}
+			if($count >= 2 && $pos <= $n) {
+				return $payloads . $hdrs;
+			}
+		}
+	}
+	$pos = 0;
+	$hdrs = '';
+	$payloads = '';
+	$count = 0;
+	while($pos + 8 <= $n && $count < 4096) {
+		$type = substr($bytes, $pos, 4);
+		if(preg_match('/^[A-Za-z0-9_ .-]{4}$/', $type) !== 1) {
+			break;
+		}
+		$be = unpack('Nlen', substr($bytes, $pos + 4, 4));
+		if(!is_array($be) || !isset($be['len'])) {
+			break;
+		}
+		$sz = (int)$be['len'];
+		if($sz < 0 || $sz > $n || $pos + 8 + $sz > $n) {
+			break;
+		}
+		$hdrs .= $type . substr($bytes, $pos + 4, 4);
+		$payloads .= substr($bytes, $pos + 8, $sz);
+		$pos += 8 + $sz;
+		$count++;
+	}
+	if($count >= 3 && $pos === $n) {
+		return $payloads . $hdrs;
+	}
+	return null;
+}
+
+function fractal_inner_record_delimiter_view($bytes) {
+	$typed = $this->fractal_inner_record_delimiter_typed_view($bytes);
+	return $typed === null ? null : (string)$typed[0];
+}
+
+function fractal_inner_record_delimiter_typed_view($bytes) {
+	$bytes = (string)$bytes;
+	$n = strlen($bytes);
+	if($n < 128 || $n > 1048576) {
+		return null;
+	}
+	$delim = null;
+	foreach(array("\n", "\r\n", ",", "\t", "|") as $d) {
+		if(substr_count($bytes, $d) >= 8) {
+			$delim = $d;
+			break;
+		}
+	}
+	if($delim === null) {
+		return null;
+	}
+	$rows = explode($delim, $bytes);
+	if(count($rows) < 8 || count($rows) > 4096) {
+		return null;
+	}
+	$max = 0;
+	foreach($rows as $row) {
+		$max = max($max, strlen($row));
+	}
+	if($max <= 0 || $max > 4096) {
+		return null;
+	}
+	$lengths = array();
+	$allMax = true;
+	foreach($rows as $row) {
+		$l = strlen($row);
+		$lengths[] = $l;
+		if($l !== $max) {
+			$allMax = false;
+		}
+	}
+	$cols = array_fill(0, $max, '');
+	foreach($rows as $row) {
+		$l = strlen($row);
+		for($i = 0; $i < $max; $i++) {
+			$cols[$i] .= ($i < $l) ? $row[$i] : "\0";
+		}
+	}
+	return array(
+		implode('', $cols),
+		array(
+			'__fz_restore' => 'record_transpose',
+			'delim' => $delim,
+			'max' => $max,
+			'rows' => count($rows),
+			'lengths' => $allMax ? array() : $lengths,
+		),
+	);
+}
+
+function fractal_inner_numeric_views($bytes) {
+	$bytes = (string)$bytes;
+	$n = strlen($bytes);
+	$maxTotal = $this->fractal_inner_peeler_max_total_raw_bytes();
+	if($n < 128 || ($maxTotal > 0 && $n > $maxTotal)) {
+		return array();
+	}
+	$out = array();
+	$delta = '';
+	$prev = 0;
+	for($i = 0; $i < $n; $i++) {
+		$b = ord($bytes[$i]);
+		$delta .= chr(($b - $prev) & 255);
+		$prev = $b;
+	}
+	$out[] = array('numeric_delta', $delta, array('__fz_restore' => 'numeric_delta'));
+	foreach(array(2, 4, 8) as $lanes) {
+		$mod = $this->fractal_inner_modulo_lane_split_bytes($bytes, $lanes);
+		$out[] = array(
+			'modulo' . (string)$lanes . '_lane_split',
+			$mod,
+			$lanes === 4
+				? array('__fz_restore' => 'modulo4_lane_split', 'len' => $n)
+				: array('__fz_restore' => 'modulo_lane_split', 'lanes' => $lanes, 'len' => $n)
+		);
+	}
+	$nibbles = '';
+	for($i = 0; $i < $n; $i++) {
+		$b = ord($bytes[$i]);
+		$nibbles .= chr($b >> 4) . chr($b & 15);
+	}
+	$out[] = array('nibble_split', $nibbles, array('__fz_restore' => 'nibble_split'));
+	$planes = array_fill(0, 8, '');
+	for($bit = 0; $bit < 8; $bit++) {
+		$acc = 0;
+		$mask = 1;
+		for($i = 0; $i < $n; $i++) {
+			if((ord($bytes[$i]) & (1 << $bit)) !== 0) {
+				$acc |= $mask;
+			}
+			$mask <<= 1;
+			if($mask === 256) {
+				$planes[$bit] .= chr($acc);
+				$acc = 0;
+				$mask = 1;
+			}
+		}
+		if($mask !== 1) {
+			$planes[$bit] .= chr($acc);
+		}
+	}
+	$out[] = array('bitplane_split', implode('', $planes), array('__fz_restore' => 'bitplane_split', 'len' => $n));
+	return $out;
+}
+
+function fractal_inner_modulo_lane_split_bytes($bytes, $lanes) {
+	$bytes = (string)$bytes;
+	$lanes = max(2, min(64, (int)$lanes));
+	$n = strlen($bytes);
+	$out = '';
+	for($lane = 0; $lane < $lanes; $lane++) {
+		for($i = $lane; $i < $n; $i += $lanes) {
+			$out .= $bytes[$i];
+		}
+	}
+	return $out;
+}
+
+function fractal_inner_sqlite_page_view($bytes) {
+	$bytes = (string)$bytes;
+	$n = strlen($bytes);
+	if($n < 2048 || substr($bytes, 0, 16) !== "SQLite format 3\0") {
+		return null;
+	}
+	$u = unpack('nps', substr($bytes, 16, 2));
+	if(!is_array($u) || !isset($u['ps'])) {
+		return null;
+	}
+	$pageSize = (int)$u['ps'];
+	if($pageSize === 1) {
+		$pageSize = 65536;
+	}
+	if($pageSize < 512 || $pageSize > 65536 || ($pageSize & ($pageSize - 1)) !== 0 || $n < $pageSize * 2) {
+		return null;
+	}
+	$pages = intdiv($n, $pageSize);
+	if($pages < 2 || $pages > 4096) {
+		return null;
+	}
+	$headers = substr($bytes, 0, 100);
+	$payloads = '';
+	for($p = 0; $p < $pages; $p++) {
+		$base = $p * $pageSize;
+		$hdrLen = ($p === 0) ? 100 : 8;
+		$headers .= substr($bytes, $base, $hdrLen);
+		$payloads .= substr($bytes, $base + $hdrLen, $pageSize - $hdrLen);
+	}
+	return $payloads . $headers;
+}
+
+function fractal_inner_member_peeler_views($path, $disk) {
+	fractal_zip_ensure_literal_pac_stack_loaded();
+	$path = (string)$path;
+	$disk = (string)$disk;
+	$views = array();
+	$seen = array();
+	if($path !== '' && $disk !== '') {
+		list($unwrapped) = fractal_zip_literal_deep_unwrap_with_layers($path, $disk);
+		$this->fractal_inner_add_peeler_view($views, $seen, 'deep_unwrap', (string)$unwrapped, $disk);
+	}
+	if(strlen($disk) >= 16) {
+		$z = @gzuncompress($disk);
+		if(is_string($z)) {
+			$this->fractal_inner_add_peeler_view($views, $seen, 'zlib_wrapper', $z, $disk);
+		}
+		$rawInflate = @gzinflate($disk);
+		if(is_string($rawInflate)) {
+			$this->fractal_inner_add_peeler_view($views, $seen, 'raw_deflate_wrapper', $rawInflate, $disk);
+		}
+	}
+	$chunk = $this->fractal_inner_chunk_payload_view($disk);
+	if($chunk !== null) {
+		$this->fractal_inner_add_peeler_view($views, $seen, 'chunk_payload_split', $chunk, $disk);
+	}
+	$record = $this->fractal_inner_record_delimiter_typed_view($disk);
+	if($record !== null) {
+		$this->fractal_inner_add_peeler_view($views, $seen, 'record_transpose', (string)$record[0], $disk, $record[1] ?? null);
+	}
+	foreach($this->fractal_inner_numeric_views($disk) as $nv) {
+		$this->fractal_inner_add_peeler_view($views, $seen, (string)$nv[0], (string)$nv[1], $disk, $nv[2] ?? null);
+	}
+	$sqlite = $this->fractal_inner_sqlite_page_view($disk);
+	if($sqlite !== null) {
+		$this->fractal_inner_add_peeler_view($views, $seen, 'sqlite_page_payload', $sqlite, $disk);
+	}
+	return $views;
+}
+
+/**
+ * Run fractal-inner discovery on the existing reversible deep-unwrap byte view.
+ *
+ * This lane is intentionally separate from collect_fractal_inner_run_grammar_variants_for_folder():
+ * peeled candidates carry restore bytes, so they must compete in the normal tournament where
+ * append_fractal_gzip_peel_restore_trailer() accounts for those bytes.
+ *
+ * @param array<string,string> $rawFilesByPath
+ * @return list<array{inner:string,tag:string,lane:string,source:string,restore:array<string,string>,cost_hint:int}>
+ */
+function collect_fractal_inner_peeler_variants_for_folder($rawFilesByPath) {
+	if(!$this->fractal_inner_peeler_candidates_enabled() || !is_array($rawFilesByPath) || $rawFilesByPath === array()) {
+		return array();
+	}
+	$totalRaw = 0;
+	foreach($rawFilesByPath as $bytes) {
+		$totalRaw += strlen((string)$bytes);
+	}
+	$maxTotal = $this->fractal_inner_peeler_max_total_raw_bytes();
+	if($maxTotal > 0 && $totalRaw > $maxTotal) {
+		return array();
+	}
+	fractal_zip_ensure_literal_pac_stack_loaded();
+	$base = array();
+	$memberViews = array();
+	$sources = array();
+	foreach($rawFilesByPath as $path => $bytes) {
+		$p = (string)$path;
+		$disk = (string)$bytes;
+		$base[$p] = $disk;
+		foreach($this->fractal_inner_member_peeler_views($p, $disk) as $view) {
+			$source = (string)$view['source'];
+			$memberViews[$p][$source] = $view;
+			$sources[$source] = true;
+		}
+	}
+	if($sources === array()) {
+		return array();
+	}
+	$out = array();
+	foreach(array_keys($sources) as $source) {
+		$files = $base;
+		$restore = array();
+		$totalView = $totalRaw;
+		foreach($base as $p => $disk) {
+			if(isset($memberViews[$p][$source])) {
+				$view = $memberViews[$p][$source];
+				$viewBytes = (string)$view['bytes'];
+				$files[$p] = $viewBytes;
+				$restore[$p] = $view['restore'];
+				$totalView += strlen($viewBytes) - strlen((string)$disk);
+			}
+		}
+		if($restore === array() || ($maxTotal > 0 && $totalView > $maxTotal)) {
+			continue;
+		}
+		$typedRestoreOnly = true;
+		foreach($restore as $spec) {
+			if(!is_array($spec)) {
+				$typedRestoreOnly = false;
+				break;
+			}
+		}
+		if($typedRestoreOnly) {
+			$escaped = array();
+			foreach($files as $p => $bytes) {
+				$escaped[(string)$p] = $this->escape_literal_for_storage((string)$bytes);
+			}
+			$out[] = fractal_zip_candidate_from_inner(
+				$this->encode_container_payload($escaped, ''),
+				'peeler_literal:' . (string)$source,
+				'literal',
+				'peeler_literal:' . (string)$source,
+				$restore,
+				$totalView
+			);
+			if(count($out) >= 12) {
+				return $out;
+			}
+		}
+		$candidates = fractal_zip_inner_candidates_for_peeled_folder(
+			$this,
+			$files,
+			$restore,
+			$this->fractal_inner_run_grammar_max_raw_bytes(),
+			$this->fractal_inner_operator_candidate_max_raw_bytes(),
+			(string)$source
+		);
+		foreach($candidates as $candidate) {
+			$out[] = $candidate;
+			if(count($out) >= 12) {
+				return $out;
+			}
+		}
+	}
 	return $out;
 }
 
@@ -13958,6 +15502,192 @@ function try_build_folder_freearc_native_archive_blob($sourceDir, $rawFilesByPat
 }
 
 /**
+ * Build a native 7z folder archive using the same folder command as the benchmark 7z column.
+ *
+ * @param array<string,string>|null $rawFilesByPathOrNull
+ * @return string|null raw 7z bytes, or null on unsupported/failure
+ */
+function try_build_folder_7z_native_archive_blob($sourceDir, $rawFilesByPathOrNull = null) {
+	$seven = fractal_zip::seven_zip_executable();
+	if($seven === null) {
+		return null;
+	}
+	$rp = realpath((string) $sourceDir);
+	if($rp === false || !is_dir($rp)) {
+		return null;
+	}
+	$box = sys_get_temp_dir() . DS . 'fz7bench_' . substr(md5((string) $rp . "\0fz7bench_native"), 0, 16);
+	if(is_dir($box)) {
+		$this->recursive_remove_directory($box);
+	}
+	mkdir($box, 0755, true);
+	$useMemMap = $rawFilesByPathOrNull !== null && is_array($rawFilesByPathOrNull)
+		&& $this->folder_structure_was_made
+		&& $this->folder_structure_scan_root === $rp;
+	if($useMemMap) {
+		$this->materialize_raw_files_map_to_directory_for_native_arc_box($rawFilesByPathOrNull, $box);
+	} else {
+		$this->recursive_copy_directory_for_native_arc_box($rp, $box);
+	}
+	$arc = sys_get_temp_dir() . DS . 'fz7bench_' . md5($box) . '.7z';
+	if(is_file($arc)) {
+		@unlink($arc);
+	}
+	$cwd = getcwd();
+	$ret = -1;
+	if(@chdir($box)) {
+		$cmd = fractal_zip::shell_quote_arg_cached($seven) . ' a -t7z -mx=9'
+			. fractal_zip::seven_zip_mmt_shell_fragment_for_exec()
+			. ' -m0=lzma2 -bso0 -bsp0 -bd -y ' . fractal_zip::shell_quote_arg_cached($arc) . ' . 2>/dev/null';
+		exec($cmd, $xo, $ret);
+	}
+	if($cwd !== false) {
+		chdir($cwd);
+	}
+	$blob = null;
+	if($ret === 0 && is_file($arc)) {
+		$r = @file_get_contents($arc);
+		if($r !== false && $r !== '') {
+			$blob = $r;
+		}
+	}
+	if(is_file($arc)) {
+		@unlink($arc);
+	}
+	if(is_dir($box)) {
+		$this->recursive_remove_directory($box);
+	}
+	return $blob;
+}
+
+/**
+ * Same pipeline as benchmarks min-ext brotli: {@code tar cf - . | brotli -c -q N} in a temp dir (Unix).
+ *
+ * @param array<string,string>|null $rawFilesByPathOrNull
+ * @return string|null raw .br bytes or null
+ */
+function try_build_folder_brotli_native_tar_br_blob($sourceDir, $rawFilesByPathOrNull = null) {
+	if(PHP_OS_FAMILY === 'Windows') {
+		return null;
+	}
+	$brotliExe = fractal_zip::brotli_executable();
+	if($brotliExe === null || !fractal_zip::outer_skip_env_allows('FRACTAL_ZIP_SKIP_BROTLI')) {
+		return null;
+	}
+	if(trim((string) shell_exec('command -v tar 2>/dev/null')) === '') {
+		return null;
+	}
+	$rp = realpath((string) $sourceDir);
+	if($rp === false || !is_dir($rp)) {
+		return null;
+	}
+	$box = sys_get_temp_dir() . DS . 'fzbrbench_' . substr(md5((string) $rp . "\0fzbr_native"), 0, 16);
+	if(is_dir($box)) {
+		$this->recursive_remove_directory($box);
+	}
+	mkdir($box, 0755, true);
+	$useMemMap = $rawFilesByPathOrNull !== null && is_array($rawFilesByPathOrNull)
+		&& $this->folder_structure_was_made
+		&& $this->folder_structure_scan_root === $rp;
+	if($useMemMap) {
+		$this->materialize_raw_files_map_to_directory_for_native_arc_box($rawFilesByPathOrNull, $box);
+	} else {
+		$this->recursive_copy_directory_for_native_arc_box($rp, $box);
+	}
+	$outBr = sys_get_temp_dir() . DS . 'fzbrbench_' . md5($box . "\0br") . '.br';
+	if(is_file($outBr)) {
+		@unlink($outBr);
+	}
+	$bq = getenv('FRACTAL_ZIP_BENCH_BROTLI_QUALITY');
+	$q = ($bq === false || trim((string) $bq) === '') ? 11 : max(0, min(11, (int) trim((string) $bq)));
+	$compressorArgv = fractal_zip::shell_quote_arg_cached($brotliExe)
+		. fractal_zip::brotli_compress_extra_argv_shell_fragment()
+		. ' -c -q ' . $q;
+	$cwd = getcwd();
+	$ret = -1;
+	if(@chdir($box)) {
+		$cmd = 'tar cf - . 2>/dev/null | ' . $compressorArgv . ' > ' . fractal_zip::shell_quote_arg_cached($outBr) . ' 2>/dev/null';
+		exec($cmd, $xo, $ret);
+	}
+	if($cwd !== false) {
+		chdir($cwd);
+	}
+	$blob = null;
+	if($ret === 0 && is_file($outBr)) {
+		$r = @file_get_contents($outBr);
+		if($r !== false && $r !== '') {
+			$blob = $r;
+		}
+	}
+	if(is_file($outBr)) {
+		@unlink($outBr);
+	}
+	if(is_dir($box)) {
+		$this->recursive_remove_directory($box);
+	}
+
+	return $blob;
+}
+
+/**
+ * After fractal wire bytes are chosen (unified stream, bundle-only, gzip-fast adaptive, legacy multipass): try native FreeArc, 7z, tar|brotli, then zpaq when smaller.
+ *
+ * @param array<string,string> $rawFilesByPath
+ * @return array{0: string, 1: string|null} Wire body and native pick label when replaced, else {@code null} pick.
+ */
+function folder_wire_after_literal_outer_try_native_folder_archives($rootDir, $fzcBody, array $rawFilesByPath, string $pipelineSegmentPrefix): array {
+	$fzcBody = (string) $fzcBody;
+	if($rawFilesByPath === array()) {
+		return array($fzcBody, null);
+	}
+	if(fractal_zip::folder_native_wire_compare_fully_disabled()) {
+		return array($fzcBody, null);
+	}
+	$sumRaw = 0;
+	foreach($rawFilesByPath as $rb) {
+		$sumRaw += strlen((string) $rb);
+	}
+	fractal_zip_encode_pipeline::pipeline_outer_step_rollup_zip_folder_sync_clock();
+	$fzcPassthrough = $this->maybe_folder_freearc_native_smaller_than_fzc($rootDir, $fzcBody, $sumRaw, $rawFilesByPath);
+	fractal_zip_encode_pipeline::pipeline_outer_step_rollup_zip_folder_segment($pipelineSegmentPrefix . '_maybe_freearc_native_compare');
+	$nativePick = null;
+	if($fzcPassthrough !== null) {
+		$fzcBody = $fzcPassthrough;
+		$nativePick = 'arc_native';
+	}
+	fractal_zip_encode_pipeline::pipeline_outer_step_rollup_zip_folder_sync_clock();
+	$fzc7zNative = $this->maybe_folder_7z_native_smaller_than_fzc($rootDir, $fzcBody, $sumRaw, $rawFilesByPath);
+	fractal_zip_encode_pipeline::pipeline_outer_step_rollup_zip_folder_segment($pipelineSegmentPrefix . '_maybe_7z_native_compare');
+	if($fzc7zNative !== null) {
+		$fzcBody = $fzc7zNative;
+		$nativePick = '7z_native';
+	}
+	fractal_zip_encode_pipeline::pipeline_outer_step_rollup_zip_folder_sync_clock();
+	$fzcBrNative = $this->maybe_folder_brotli_native_smaller_than_fzc($rootDir, $fzcBody, $sumRaw, $rawFilesByPath);
+	fractal_zip_encode_pipeline::pipeline_outer_step_rollup_zip_folder_segment($pipelineSegmentPrefix . '_maybe_brotli_native_compare');
+	if($fzcBrNative !== null) {
+		$fzcBody = $fzcBrNative;
+		$nativePick = 'brotli_native';
+	}
+	if(fractal_zip::folder_native_skip_zpaq_after_tiny_wire(strlen($fzcBody), $sumRaw)) {
+		fractal_zip::$last_zpaq_method = null;
+		return array($fzcBody, $nativePick);
+	}
+	fractal_zip_encode_pipeline::pipeline_outer_step_rollup_zip_folder_sync_clock();
+	$fzcZpaqNative = $this->maybe_folder_zpaq_native_smaller_than_fzc($rootDir, $fzcBody, $rawFilesByPath);
+	fractal_zip_encode_pipeline::pipeline_outer_step_rollup_zip_folder_segment($pipelineSegmentPrefix . '_maybe_zpaq_native_compare');
+	if($fzcZpaqNative !== null) {
+		$fzcBody = $fzcZpaqNative;
+		$nativePick = 'zpaq_native';
+	}
+	if($nativePick === 'arc_native') {
+		fractal_zip::$last_zpaq_method = null;
+	}
+
+	return array($fzcBody, $nativePick);
+}
+
+/**
  * @param array<string,string>|null $rawFilesByPath In-memory bundle from collect_raw_files_for_bundle (same root as $dir) to skip re-reading files for Arc.
  * @return string|null raw FreeArc folder archive bytes if smaller than $fzcBody, else null
  */
@@ -13978,12 +15708,75 @@ function maybe_folder_freearc_native_smaller_than_fzc($dir, $fzcBody, $sumRawByt
 	if($native === null || $native === '') {
 		return null;
 	}
-	if(strlen($native) >= strlen($fzcBody)) {
+	$currentCodec = is_string(fractal_zip::$last_written_container_codec) ? fractal_zip::$last_written_container_codec : 'store';
+	if(!fractal_zip::outer_candidate_beats_current('arc', strlen($native), $currentCodec, strlen($fzcBody))) {
 		return null;
 	}
 	fractal_zip::$last_outer_codec = 'arc';
 	fractal_zip::$last_written_container_codec = 'arc';
 	return $native;
+}
+
+/**
+ * @param array<string,string>|null $rawFilesByPath
+ * @return string|null Bench-identical raw native folder {@code .7z} bytes when smaller than $fzcBody (matches min-ext 7z column). Legacy {@code N}/{@code FZ}+7z / {@code FZ7\x01} / {@code FZ7F\x01} still extract.
+ */
+function maybe_folder_7z_native_smaller_than_fzc($dir, $fzcBody, $sumRawBytes, $rawFilesByPath = null) {
+	$fzcBody = (string) $fzcBody;
+	if($fzcBody === '' || !fractal_zip::folder_native_7z_compare_enabled()) {
+		return null;
+	}
+	if(fractal_zip::outer_force_codec_is_gzip() || fractal_zip::outer_force_codec_is_zpaq()) {
+		return null;
+	}
+	$cap = fractal_zip::folder_native_7z_compare_max_raw_bytes();
+	if($cap > 0 && (int) $sumRawBytes > $cap) {
+		return null;
+	}
+	$native = $this->try_build_folder_7z_native_archive_blob($dir, $rawFilesByPath);
+	if($native === null || $native === '') {
+		return null;
+	}
+	$currentCodec = is_string(fractal_zip::$last_written_container_codec) ? fractal_zip::$last_written_container_codec : 'store';
+	if(!fractal_zip::outer_candidate_beats_current('7z', strlen($native), $currentCodec, strlen($fzcBody))) {
+		return null;
+	}
+	fractal_zip::$last_outer_codec = '7z';
+	fractal_zip::$last_written_container_codec = '7z';
+	return $native;
+}
+
+/**
+ * Native folder {@code tar cf - . | brotli} bytes prefixed with {@code FZLB\x01} (5 B) when smaller than $fzcBody (bench-aligned min-ext brotli).
+ *
+ * @param array<string,string>|null $rawFilesByPath
+ * @return string|null
+ */
+function maybe_folder_brotli_native_smaller_than_fzc($dir, $fzcBody, $sumRawBytes, $rawFilesByPath = null) {
+	$fzcBody = (string) $fzcBody;
+	if($fzcBody === '' || !fractal_zip::folder_native_brotli_compare_enabled()) {
+		return null;
+	}
+	if(fractal_zip::outer_force_codec_is_gzip() || fractal_zip::outer_force_codec_is_zpaq()) {
+		return null;
+	}
+	$cap = fractal_zip::folder_native_brotli_compare_max_raw_bytes();
+	if($cap > 0 && (int) $sumRawBytes > $cap) {
+		return null;
+	}
+	$native = $this->try_build_folder_brotli_native_tar_br_blob($dir, $rawFilesByPath);
+	if($native === null || $native === '') {
+		return null;
+	}
+	$wrapped = "FZLB\x01" . $native;
+	$currentCodec = is_string(fractal_zip::$last_written_container_codec) ? fractal_zip::$last_written_container_codec : 'store';
+	if(!fractal_zip::outer_candidate_beats_current('brotli', strlen($wrapped), $currentCodec, strlen($fzcBody))) {
+		return null;
+	}
+	fractal_zip::$last_outer_codec = 'brotli';
+	fractal_zip::$last_written_container_codec = 'brotli';
+
+	return $wrapped;
 }
 
 /**
@@ -14099,6 +15892,7 @@ function maybe_folder_zpaq_native_smaller_than_fzc($dir, $fzcBody, $rawFilesByPa
 	$winMeth = null;
 	$cwd = getcwd();
 	$fzcBodyLen = strlen($fzcBody);
+	$currentFzcCodec = is_string(fractal_zip::$last_written_container_codec) ? fractal_zip::$last_written_container_codec : 'store';
 	// One output path per call — unlink between method trials (same as a fresh temp name each time; avoids random_bytes + repeated shell-escape work).
 	$arcPath = sys_get_temp_dir() . DS . 'fzzp_native_' . md5($box) . '.zpaq';
 	if(@chdir($box)) {
@@ -14134,7 +15928,7 @@ function maybe_folder_zpaq_native_smaller_than_fzc($dir, $fzcBody, $rawFilesByPa
 						continue;
 					}
 					$rLen = strlen($r);
-					if($rLen <= $fzcBodyLen && $rLen < $nativeBestLen) {
+					if(fractal_zip::outer_candidate_beats_current('zpaq', $rLen, $currentFzcCodec, $fzcBodyLen) && $rLen < $nativeBestLen) {
 						$native = $r;
 						$nativeBestLen = $rLen;
 						$winMeth = $methArg;
@@ -14153,8 +15947,7 @@ function maybe_folder_zpaq_native_smaller_than_fzc($dir, $fzcBody, $rawFilesByPa
 					$r = @file_get_contents($arcPath);
 					if($r !== false && $r !== '') {
 						$rLen = strlen($r);
-						// <= wire: prefer native .zpaq on ties with wrapped fzc (same bytes, simpler on-disk format).
-						if($rLen <= $fzcBodyLen && $rLen < $nativeBestLen) {
+						if(fractal_zip::outer_candidate_beats_current('zpaq', $rLen, $currentFzcCodec, $fzcBodyLen) && $rLen < $nativeBestLen) {
 							$native = $r;
 							$nativeBestLen = $rLen;
 							$winMeth = $methArg;
@@ -14208,15 +16001,19 @@ function freearc_try_extract_native_folder_arc_to_directory($fullContents, $dest
 		return false;
 	}
 	$u = substr(md5(fractal_zip::hot_string_digest($fullContents) . "\0fzfc_arc\0" . (string) spl_object_id($this)), 0, 16);
-	$tmpArc = sys_get_temp_dir() . DS . 'fzfc_arc_' . $u . '.arc';
-	$tmpOut = sys_get_temp_dir() . DS . 'fzfc_x_' . $u;
-	if(@file_put_contents($tmpArc, $fullContents) === false) {
+	$sandbox = sys_get_temp_dir() . DS . 'fzfc_s_' . $u;
+	$tmpArc = $sandbox . DS . 'in.arc';
+	$tmpOut = $sandbox . DS . 'out';
+	if(is_dir($sandbox)) {
+		$this->recursive_remove_directory($sandbox);
+	}
+	if(!@mkdir($tmpOut, 0755, true) && !is_dir($tmpOut)) {
 		return false;
 	}
-	if(is_dir($tmpOut)) {
-		$this->recursive_remove_directory($tmpOut);
+	if(@file_put_contents($tmpArc, $fullContents) === false) {
+		$this->recursive_remove_directory($sandbox);
+		return false;
 	}
-	mkdir($tmpOut, 0755, true);
 	$cwd = getcwd();
 	$ret = -1;
 	if(chdir($tmpOut)) {
@@ -14228,28 +16025,23 @@ function freearc_try_extract_native_folder_arc_to_directory($fullContents, $dest
 		chdir($cwd);
 	}
 	if($ret !== 0) {
-		@unlink($tmpArc);
-		if(is_dir($tmpOut)) {
-			$this->recursive_remove_directory($tmpOut);
-		}
+		$this->recursive_remove_directory($sandbox);
 		return false;
 	}
 	$sd = @scandir($tmpOut);
 	$entries = is_array($sd) ? array_values(array_diff($sd, array('.', '..'))) : array();
 	$legacySingleI = (sizeof($entries) === 1 && isset($entries[0]) && $entries[0] === 'i' && is_file($tmpOut . DS . 'i'));
 	if($legacySingleI) {
-		$this->recursive_remove_directory($tmpOut);
-		@unlink($tmpArc);
+		$this->recursive_remove_directory($sandbox);
 		return false;
 	}
-	$this->recursive_copy_directory($tmpOut, $destRootDir);
-	$this->recursive_remove_directory($tmpOut);
-	@unlink($tmpArc);
+	$this->recursive_copy_archive_output_directory_safely($tmpOut, $destRootDir);
+	$this->recursive_remove_directory($sandbox);
 	$this->array_fractal_zipped_strings_of_files = array();
 	$this->fractal_string = '';
 	$this->fractal_gzip_peel_restore_map = array();
 	if($debug) {
-		print('Extracted native FreeArc folder archive (raw ARC bytes in .fzc).<br>');
+		fractal_zip::html_trace_print('Extracted native FreeArc folder archive (raw ARC bytes in .fzc).<br>');
 	}
 	return true;
 }
@@ -14278,24 +16070,25 @@ function zpaq_try_extract_native_folder_archive_to_directory($fullContents, $des
 		return false;
 	}
 	$u = substr(md5(fractal_zip::hot_string_digest($arc) . "\0fzpa_in\0" . (string) spl_object_id($this)), 0, 16);
-	$tmpArc = sys_get_temp_dir() . DS . 'fzpa_in_' . $u . '.zpaq';
-	$tmpOut = sys_get_temp_dir() . DS . 'fzpa_x_' . $u;
-	if(@file_put_contents($tmpArc, $arc) === false) {
+	$sandbox = sys_get_temp_dir() . DS . 'fzpa_s_' . $u;
+	$tmpArc = $sandbox . DS . 'in.zpaq';
+	$tmpOut = $sandbox . DS . 'out';
+	if(is_dir($sandbox)) {
+		$this->recursive_remove_directory($sandbox);
+	}
+	if(!@mkdir($tmpOut, 0755, true) && !is_dir($tmpOut)) {
 		return false;
 	}
-	if(is_dir($tmpOut)) {
-		$this->recursive_remove_directory($tmpOut);
+	if(@file_put_contents($tmpArc, $arc) === false) {
+		$this->recursive_remove_directory($sandbox);
+		return false;
 	}
-	mkdir($tmpOut, 0755, true);
 	$prefix = $this->command_prefix_with_local_lib();
 	$cmd = $prefix . fractal_zip::shell_quote_arg_cached($zpaqExe) . fractal_zip::zpaq_global_argv_shell_after_exe_from_env() . ' x ' . escapeshellarg($tmpArc)
 		. ' -to ' . escapeshellarg($tmpOut) . ' -force';
 	exec($cmd . ' 2>/dev/null', $xo, $ret);
 	if((int) $ret !== 0) {
-		@unlink($tmpArc);
-		if(is_dir($tmpOut)) {
-			$this->recursive_remove_directory($tmpOut);
-		}
+		$this->recursive_remove_directory($sandbox);
 		return false;
 	}
 	$sd = @scandir($tmpOut);
@@ -14306,19 +16099,140 @@ function zpaq_try_extract_native_folder_archive_to_directory($fullContents, $des
 		&& is_file($tmpOut . DS . $entries[0]));
 	if($singleInner) {
 		// This is a normal outer-zpaq payload (single inner archive member), not a native folder archive.
-		$this->recursive_remove_directory($tmpOut);
-		@unlink($tmpArc);
+		$this->recursive_remove_directory($sandbox);
 		return false;
 	}
-	$this->recursive_copy_directory($tmpOut, $destRootDir);
-	$this->recursive_remove_directory($tmpOut);
-	@unlink($tmpArc);
+	$this->recursive_copy_archive_output_directory_safely($tmpOut, $destRootDir);
+	$this->recursive_remove_directory($sandbox);
 	$this->array_fractal_zipped_strings_of_files = array();
 	$this->fractal_string = '';
 	$this->fractal_gzip_peel_restore_map = array();
 	if($debug) {
-		print('Extracted native zpaq folder archive (FZPA wrapper).<br>');
+		fractal_zip::html_trace_print('Extracted native zpaq folder archive (FZPA wrapper).<br>');
 	}
+	return true;
+}
+
+/**
+ * If payload is raw 7z ({@code 7z\\xBC\\xAF\\x27\\x1C…}), {@code N}+raw 7z, legacy compact {@code FZ}+raw 7z, {@code FZ7\x01}, or {@code FZ7F\x01} + native folder 7z archive, extract into $destRootDir.
+ */
+function seven_zip_try_extract_native_folder_archive_to_directory($fullContents, $destRootDir, $debug) {
+	$fullContents = (string) $fullContents;
+	$n = strlen($fullContents);
+	$b7 = fractal_zip::NATIVE_FOLDER_7Z_WIRE_BYTE;
+	$arc = null;
+	if($n >= 5 && substr($fullContents, 0, 4) === 'FZ7F' && $fullContents[4] === "\x01") {
+		$arc = substr($fullContents, 5);
+	} elseif($n >= 4 && substr($fullContents, 0, 3) === 'FZ7' && $fullContents[3] === "\x01") {
+		$arc = substr($fullContents, 4);
+	} elseif($n >= 7 && $fullContents !== '' && $fullContents[0] === $b7 && fractal_zip::payload_has_raw_seven_zip_signature(substr($fullContents, 1))) {
+		$arc = substr($fullContents, 1);
+	} elseif($n >= 8 && substr($fullContents, 0, 2) === 'FZ' && fractal_zip::payload_has_raw_seven_zip_signature(substr($fullContents, 2))) {
+		$arc = substr($fullContents, 2);
+	} elseif($n >= 6 && fractal_zip::payload_has_raw_seven_zip_signature($fullContents)) {
+		$arc = $fullContents;
+	}
+	if($arc === null) {
+		return false;
+	}
+	if($arc === '' || strlen($arc) < 2 || $arc[0] !== '7' || $arc[1] !== 'z') {
+		return false;
+	}
+	$seven = fractal_zip::seven_zip_executable();
+	if($seven === null) {
+		return false;
+	}
+	$u = substr(md5(fractal_zip::hot_string_digest($arc) . "\0fz7f_in\0" . (string) spl_object_id($this)), 0, 16);
+	$sandbox = sys_get_temp_dir() . DS . 'fz7f_s_' . $u;
+	$tmpArc = $sandbox . DS . 'in.7z';
+	$tmpOut = $sandbox . DS . 'out';
+	if(is_dir($sandbox)) {
+		$this->recursive_remove_directory($sandbox);
+	}
+	if(!@mkdir($tmpOut, 0755, true) && !is_dir($tmpOut)) {
+		return false;
+	}
+	if(@file_put_contents($tmpArc, $arc) === false) {
+		$this->recursive_remove_directory($sandbox);
+		return false;
+	}
+	$cmd = fractal_zip::shell_quote_arg_cached($seven)
+		. fractal_zip::seven_zip_mmt_shell_fragment_for_exec()
+		. ' x ' . fractal_zip::shell_quote_arg_cached($tmpArc) . ' -aoa -o' . fractal_zip::shell_quote_arg_cached($tmpOut);
+	exec($cmd . ' 2>/dev/null', $xo, $ret);
+	if((int) $ret !== 0) {
+		$this->recursive_remove_directory($sandbox);
+		return false;
+	}
+	$this->recursive_copy_archive_output_directory_safely($tmpOut, $destRootDir);
+	$this->recursive_remove_directory($sandbox);
+	$this->array_fractal_zipped_strings_of_files = array();
+	$this->fractal_string = '';
+	$this->fractal_gzip_peel_restore_map = array();
+	if($debug) {
+		fractal_zip::html_trace_print('Extracted native 7z folder archive (raw/N/FZ/FZ7/FZ7F).<br>');
+	}
+	return true;
+}
+
+/**
+ * If payload is {@code FZLB\x01} + raw brotli stream from {@code tar cf - . | brotli}, extract into $destRootDir (same as bench verify).
+ */
+function brotli_try_extract_native_folder_tar_br_to_directory($fullContents, $destRootDir, $debug) {
+	$fullContents = (string) $fullContents;
+	if(strlen($fullContents) < 5 || substr($fullContents, 0, 4) !== 'FZLB' || $fullContents[4] !== "\x01") {
+		return false;
+	}
+	if(DIRECTORY_SEPARATOR === '\\') {
+		return false;
+	}
+	if(trim((string) shell_exec('command -v tar 2>/dev/null')) === '') {
+		return false;
+	}
+	$brotliExe = fractal_zip::brotli_executable();
+	if($brotliExe === null) {
+		return false;
+	}
+	$br = substr($fullContents, 5);
+	if($br === '') {
+		return false;
+	}
+	$u = substr(md5(fractal_zip::hot_string_digest($fullContents) . "\0fzlb_in\0" . (string) spl_object_id($this)), 0, 16);
+	$sandbox = sys_get_temp_dir() . DS . 'fzlb_s_' . $u;
+	$tmpBr = $sandbox . DS . 'in.br';
+	$tmpOut = $sandbox . DS . 'out';
+	if(is_dir($sandbox)) {
+		$this->recursive_remove_directory($sandbox);
+	}
+	if(!@mkdir($tmpOut, 0755, true) && !is_dir($tmpOut)) {
+		return false;
+	}
+	if(@file_put_contents($tmpBr, $br) === false) {
+		$this->recursive_remove_directory($sandbox);
+		return false;
+	}
+	$cwd = getcwd();
+	$ret = -1;
+	if(@chdir($tmpOut)) {
+		$cmd = fractal_zip::shell_quote_arg_cached($brotliExe) . ' -d -c ' . fractal_zip::shell_quote_arg_cached($tmpBr) . ' 2>/dev/null | tar xf - 2>/dev/null';
+		exec($cmd, $xo, $ret);
+	}
+	if($cwd !== false) {
+		chdir($cwd);
+	}
+	if((int) $ret !== 0) {
+		$this->recursive_remove_directory($sandbox);
+		return false;
+	}
+	$this->recursive_copy_archive_output_directory_safely($tmpOut, $destRootDir);
+	$this->recursive_remove_directory($sandbox);
+	$this->array_fractal_zipped_strings_of_files = array();
+	$this->fractal_string = '';
+	$this->fractal_gzip_peel_restore_map = array();
+	if($debug) {
+		fractal_zip::html_trace_print('Extracted native tar|brotli folder archive (FZLB wrapper).<br>');
+	}
+
 	return true;
 }
 
@@ -14339,15 +16253,19 @@ function extract_freearc_native_archive_blob_to_directory($arcBlob, $destRootDir
 		fractal_zip::fatal_error('Payload is not a valid FreeArc archive.');
 	}
 	$u = substr(md5(fractal_zip::hot_string_digest($arcBlob) . "\0fzfa_in\0" . (string) spl_object_id($this)), 0, 16);
-	$tmpArc = sys_get_temp_dir() . DS . 'fzfa_in_' . $u . '.arc';
-	$tmpOut = sys_get_temp_dir() . DS . 'fzfa_x_' . $u;
+	$sandbox = sys_get_temp_dir() . DS . 'fzfa_s_' . $u;
+	$tmpArc = $sandbox . DS . 'in.arc';
+	$tmpOut = $sandbox . DS . 'out';
+	if(is_dir($sandbox)) {
+		$this->recursive_remove_directory($sandbox);
+	}
+	if(!@mkdir($tmpOut, 0755, true) && !is_dir($tmpOut)) {
+		fractal_zip::fatal_error('Failed to create temp FreeArc extract directory.');
+	}
 	if(file_put_contents($tmpArc, $arcBlob) === false) {
+		$this->recursive_remove_directory($sandbox);
 		fractal_zip::fatal_error('Failed to write temp FreeArc archive file.');
 	}
-	if(is_dir($tmpOut)) {
-		$this->recursive_remove_directory($tmpOut);
-	}
-	mkdir($tmpOut, 0755, true);
 	$cwd = getcwd();
 	$ret = -1;
 	if(chdir($tmpOut)) {
@@ -14359,17 +16277,13 @@ function extract_freearc_native_archive_blob_to_directory($arcBlob, $destRootDir
 		chdir($cwd);
 	}
 	if($ret !== 0) {
-		@unlink($tmpArc);
-		if(is_dir($tmpOut)) {
-			$this->recursive_remove_directory($tmpOut);
-		}
+		$this->recursive_remove_directory($sandbox);
 		fractal_zip::fatal_error('Failed to extract native FreeArc archive (arc x).');
 	}
-	$this->recursive_copy_directory($tmpOut, $destRootDir);
-	$this->recursive_remove_directory($tmpOut);
-	@unlink($tmpArc);
+	$this->recursive_copy_archive_output_directory_safely($tmpOut, $destRootDir);
+	$this->recursive_remove_directory($sandbox);
 	if($debug) {
-		print('Extracted native FreeArc folder archive.<br>');
+		fractal_zip::html_trace_print('Extracted native FreeArc folder archive.<br>');
 	}
 }
 
@@ -14409,6 +16323,33 @@ function read_varint_u32_from_stream($fh, $ctx) {
 		$shift += 7;
 		if($steps > 5 || $shift > 28) {
 			fractal_zip::fatal_error('Corrupt ' . $ctx . ' payload (varint too long).');
+		}
+	}
+	return $out;
+}
+
+/**
+ * Like {@see read_varint_u32_from_stream} but returns null on truncation / overflow instead of fatal_error.
+ * @param resource $fh
+ */
+function read_varint_u32_from_stream_soft($fh): ?int {
+	$shift = 0;
+	$out = 0;
+	$steps = 0;
+	while(true) {
+		$b = fread($fh, 1);
+		if($b === false || strlen($b) !== 1) {
+			return null;
+		}
+		$bb = ord($b);
+		$out |= (($bb & 0x7F) << $shift);
+		$steps++;
+		if(($bb & 0x80) === 0) {
+			break;
+		}
+		$shift += 7;
+		if($steps > 5 || $shift > 28) {
+			return null;
 		}
 	}
 	return $out;
@@ -14546,28 +16487,186 @@ function try_stream_xz_decompress_to_temp_file($srcPath, &$tmpPath) {
 }
 
 /**
+ * Normalize a relative archive member path for web FS single-file reads (forward slashes; rejects traversal).
+ */
+public static function normalize_web_fs_member_relpath(string $rel): ?string {
+	$rel = str_replace('\\', '/', trim($rel));
+	if($rel === '' || str_contains($rel, "\0") || str_starts_with($rel, '/') || preg_match('/^[A-Za-z]:/', $rel) === 1) {
+		return null;
+	}
+	foreach(explode('/', $rel) as $part) {
+		if($part === '' || $part === '.' || $part === '..') {
+			return null;
+		}
+	}
+	return $rel;
+}
+
+public static function container_filename_looks_like_fractal_zip(string $path): bool {
+	$low = strtolower($path);
+	return str_ends_with($low, '.fzc') || str_ends_with($low, '.fractalzip');
+}
+
+/**
  * Write decode_container_payload() output to disk (same layout as open_container legacy path).
  *
  * @param array{0: array<string,string>, 1: string, 2?: array<string,string>} $triple
  */
+function safe_container_member_output_path($rootDir, $memberPath) {
+	$root = rtrim((string)$rootDir, DS);
+	if($root === '') {
+		fractal_zip::fatal_error('Unsafe extract root.');
+	}
+	$rel = str_replace('\\', '/', (string)$memberPath);
+	if($rel === '' || str_contains($rel, "\0") || str_starts_with($rel, '/') || preg_match('/^[A-Za-z]:/', $rel) === 1) {
+		fractal_zip::fatal_error('Unsafe container member path.');
+	}
+	$parts = explode('/', $rel);
+	$clean = array();
+	foreach($parts as $part) {
+		if($part === '' || $part === '.' || $part === '..') {
+			fractal_zip::fatal_error('Unsafe container member path.');
+		}
+		$clean[] = $part;
+	}
+	return $root . DS . implode(DS, $clean);
+}
+
 function write_decoded_container_members_to_disk($rootDir, $triple, $debug, $markStreamingExtractUsed) {
 	$this->array_fractal_zipped_strings_of_files = $triple[0];
 	$this->fractal_string = $triple[1];
 	$this->fractal_gzip_peel_restore_map = isset($triple[2]) && is_array($triple[2]) ? $triple[2] : array();
 	fractal_zip::$open_container_streaming_extract_used = $markStreamingExtractUsed;
 	foreach($this->array_fractal_zipped_strings_of_files as $index => $value) {
-		$this->build_directory_structure_for($rootDir . DS . $index);
+		$outPath = $this->safe_container_member_output_path($rootDir, $index);
+		$this->build_directory_structure_for($outPath);
 		$zipped_contents = $value;
 		$unzipped_contents = $this->unzip($zipped_contents);
 		if(isset($this->fractal_gzip_peel_restore_map[$index])) {
-			$unzipped_contents = $this->fractal_gzip_peel_restore_map[$index];
+			$restore = $this->fractal_gzip_peel_restore_map[$index];
+			if(is_array($restore)) {
+				$unzipped_contents = $this->apply_fractal_restore_spec($restore, $unzipped_contents);
+			} else {
+				$unzipped_contents = $restore;
+			}
 		}
-		file_put_contents($rootDir . DS . $index, $unzipped_contents);
+		file_put_contents($outPath, $unzipped_contents);
 		if($debug) {
-			print('Extracted ' . $rootDir . DS . $index . '<br>');
+			fractal_zip::html_trace_print('Extracted ' . $outPath . '<br>');
 		}
 		$this->files_counter++;
 	}
+}
+
+function apply_fractal_restore_spec($restore, $peeledBytes) {
+	if(is_array($restore) && ($restore['__fz_restore'] ?? '') === 'numeric_delta') {
+		$peeledBytes = (string)$peeledBytes;
+		$out = '';
+		$acc = 0;
+		for($i = 0, $n = strlen($peeledBytes); $i < $n; $i++) {
+			$acc = ($acc + ord($peeledBytes[$i])) & 255;
+			$out .= chr($acc);
+		}
+		return $out;
+	}
+	if(is_array($restore) && (($restore['__fz_restore'] ?? '') === 'modulo4_lane_split' || ($restore['__fz_restore'] ?? '') === 'modulo_lane_split')) {
+		$peeledBytes = (string)$peeledBytes;
+		$n = max(0, (int)($restore['len'] ?? 0));
+		$lanesCount = (($restore['__fz_restore'] ?? '') === 'modulo4_lane_split') ? 4 : max(2, min(64, (int)($restore['lanes'] ?? 2)));
+		if(strlen($peeledBytes) !== $n) {
+			fractal_zip::fatal_error('Corrupt FZR1 modulo lane restore length.');
+		}
+		$laneLens = array();
+		for($lane = 0; $lane < $lanesCount; $lane++) {
+			$laneLens[$lane] = intdiv($n + $lanesCount - 1 - $lane, $lanesCount);
+			if($n <= $lane) {
+				$laneLens[$lane] = 0;
+			}
+		}
+		$lanes = array();
+		$at = 0;
+		for($lane = 0; $lane < $lanesCount; $lane++) {
+			$lanes[$lane] = substr($peeledBytes, $at, $laneLens[$lane]);
+			$at += $laneLens[$lane];
+		}
+		$out = '';
+		$idx = array_fill(0, $lanesCount, 0);
+		for($i = 0; $i < $n; $i++) {
+			$lane = $i % $lanesCount;
+			$out .= $lanes[$lane][$idx[$lane]];
+			$idx[$lane]++;
+		}
+		return $out;
+	}
+	if(is_array($restore) && ($restore['__fz_restore'] ?? '') === 'nibble_split') {
+		$peeledBytes = (string)$peeledBytes;
+		$n = strlen($peeledBytes);
+		if(($n & 1) !== 0) {
+			fractal_zip::fatal_error('Corrupt FZR1 nibble restore length.');
+		}
+		$out = '';
+		for($i = 0; $i < $n; $i += 2) {
+			$out .= chr(((ord($peeledBytes[$i]) & 15) << 4) | (ord($peeledBytes[$i + 1]) & 15));
+		}
+		return $out;
+	}
+	if(is_array($restore) && ($restore['__fz_restore'] ?? '') === 'bitplane_split') {
+		$peeledBytes = (string)$peeledBytes;
+		$n = max(0, (int)($restore['len'] ?? 0));
+		$planeLen = intdiv($n + 7, 8);
+		if(strlen($peeledBytes) !== $planeLen * 8) {
+			fractal_zip::fatal_error('Corrupt FZR1 bitplane restore length.');
+		}
+		$out = array_fill(0, $n, 0);
+		for($bit = 0; $bit < 8; $bit++) {
+			$plane = substr($peeledBytes, $bit * $planeLen, $planeLen);
+			for($j = 0, $pn = strlen($plane); $j < $pn; $j++) {
+				$packed = ord($plane[$j]);
+				for($k = 0; $k < 8; $k++) {
+					$idx = ($j * 8) + $k;
+					if($idx >= $n) {
+						break;
+					}
+					if(($packed & (1 << $k)) !== 0) {
+						$out[$idx] |= (1 << $bit);
+					}
+				}
+			}
+		}
+		$s = '';
+		foreach($out as $b) {
+			$s .= chr($b);
+		}
+		return $s;
+	}
+	if(is_array($restore) && ($restore['__fz_restore'] ?? '') === 'record_transpose') {
+		$peeledBytes = (string)$peeledBytes;
+		$delim = (string)($restore['delim'] ?? "\n");
+		$max = max(0, (int)($restore['max'] ?? 0));
+		$rows = max(0, (int)($restore['rows'] ?? 0));
+		if($max <= 0 || $rows <= 0 || strlen($peeledBytes) !== $max * $rows) {
+			fractal_zip::fatal_error('Corrupt FZR1 record transpose restore dimensions.');
+		}
+		$lengths = (isset($restore['lengths']) && is_array($restore['lengths'])) ? $restore['lengths'] : array();
+		if($lengths === array()) {
+			$lengths = array_fill(0, $rows, $max);
+		}
+		if(sizeof($lengths) !== $rows) {
+			fractal_zip::fatal_error('Corrupt FZR1 record transpose row lengths.');
+		}
+		$outRows = array_fill(0, $rows, '');
+		for($col = 0; $col < $max; $col++) {
+			$base = $col * $rows;
+			for($row = 0; $row < $rows; $row++) {
+				if($col < (int)$lengths[$row]) {
+					$outRows[$row] .= $peeledBytes[$base + $row];
+				}
+			}
+		}
+		return implode($delim, $outRows);
+	}
+	fractal_zip::fatal_error('Unknown fractal restore spec.');
+	return '';
 }
 
 /**
@@ -14578,6 +16677,16 @@ function container_outer_needs_legacy_full_read($head) {
 		return false;
 	}
 	if(substr($head, 0, 2) === '7z') {
+		return true;
+	}
+	$b7 = fractal_zip::NATIVE_FOLDER_7Z_WIRE_BYTE;
+	if(strlen($head) >= 7 && isset($head[0]) && $head[0] === $b7 && fractal_zip::payload_has_raw_seven_zip_signature(substr($head, 1))) {
+		return true;
+	}
+	if(strlen($head) >= 8 && substr($head, 0, 2) === 'FZ' && fractal_zip::payload_has_raw_seven_zip_signature(substr($head, 2))) {
+		return true;
+	}
+	if(strlen($head) >= 5 && substr($head, 0, 4) === 'FZLB' && $head[4] === "\x01") {
 		return true;
 	}
 	$bMagic = fractal_zip::OUTER_BROTLI_MAGIC;
@@ -14649,11 +16758,11 @@ function extract_fzb4_bundle_streaming_from_path($bundlePath, $rootDir, $debug) 
 		$raw = $this->decode_bundle_literal_member($mode, $rawStored);
 		$escaped = $this->escape_literal_for_storage($raw);
 		$unzipped = $this->unzip($escaped);
-		$outPath = $rootDir . DS . str_replace('/', DS, $path);
+		$outPath = $this->safe_container_member_output_path($rootDir, $path);
 		$this->build_directory_structure_for($outPath);
 		file_put_contents($outPath, $unzipped);
 		if($debug) {
-			print('Extracted ' . $outPath . '<br>');
+			fractal_zip::html_trace_print('Extracted ' . $outPath . '<br>');
 		}
 		$this->files_counter++;
 		$this->array_fractal_zipped_strings_of_files[$path] = '';
@@ -14662,9 +16771,160 @@ function extract_fzb4_bundle_streaming_from_path($bundlePath, $rootDir, $debug) 
 	fclose($fh);
 	if($debug) {
 		$micro_time_taken = microtime(true) - $this->initial_micro_time;
-		print('Time taken opening container: ' . $micro_time_taken . ' seconds.<br>');
+		fractal_zip::html_trace_print('Time taken opening container: ' . $micro_time_taken . ' seconds.<br>');
 	}
 	return true;
+}
+
+/**
+ * Scan an on-disk FZB4 bundle and return decoded bytes for one member without writing others.
+ * Returns null if missing, corrupt at varint/path level, or decode/unzip fails without raising (best-effort for hostile blobs).
+ */
+function fzb4_try_read_member_bytes_from_bundle_path(string $bundlePath, string $normRel): ?string {
+	$fh = @fopen($bundlePath, 'rb');
+	if($fh === false) {
+		return null;
+	}
+	if(fread($fh, 4) !== 'FZB4') {
+		fclose($fh);
+		return null;
+	}
+	$this->fractal_string = '';
+	$prevPath = '';
+	while(true) {
+		$pos = ftell($fh);
+		if($pos === false) {
+			fclose($fh);
+			return null;
+		}
+		$probe = fread($fh, 1);
+		if($probe === false || $probe === '') {
+			break;
+		}
+		fseek($fh, $pos);
+		$prefixLen = $this->read_varint_u32_from_stream_soft($fh);
+		if($prefixLen === null) {
+			fclose($fh);
+			return null;
+		}
+		$suffixLen = $this->read_varint_u32_from_stream_soft($fh);
+		if($suffixLen === null) {
+			fclose($fh);
+			return null;
+		}
+		if($prefixLen > strlen($prevPath)) {
+			fclose($fh);
+			return null;
+		}
+		$pathSuffix = $suffixLen > 0 ? fread($fh, $suffixLen) : '';
+		if(strlen($pathSuffix) !== $suffixLen) {
+			fclose($fh);
+			return null;
+		}
+		$path = substr($prevPath, 0, $prefixLen) . $pathSuffix;
+		$modeCh = fread($fh, 1);
+		if($modeCh === false || strlen($modeCh) !== 1) {
+			fclose($fh);
+			return null;
+		}
+		$mode = ord($modeCh);
+		$dataLen = $this->read_varint_u32_from_stream_soft($fh);
+		if($dataLen === null) {
+			fclose($fh);
+			return null;
+		}
+		$rawStored = $dataLen > 0 ? fread($fh, $dataLen) : '';
+		if(strlen($rawStored) !== $dataLen) {
+			fclose($fh);
+			return null;
+		}
+		$want = ($path === $normRel);
+		if(!$want) {
+			$prevPath = $path;
+			continue;
+		}
+		try {
+			$raw = $this->decode_bundle_literal_member($mode, $rawStored);
+			$escaped = $this->escape_literal_for_storage($raw);
+			$unzipped = $this->unzip($escaped);
+		} catch(Throwable $e) {
+			fclose($fh);
+			return null;
+		}
+		fclose($fh);
+		return $unzipped;
+	}
+	fclose($fh);
+	return null;
+}
+
+/**
+ * @return list<string>|null member paths in order, or null if the bundle header/path layer is corrupt
+ */
+function fzb4_try_list_member_paths_from_bundle_path(string $bundlePath): ?array {
+	$fh = @fopen($bundlePath, 'rb');
+	if($fh === false) {
+		return null;
+	}
+	if(fread($fh, 4) !== 'FZB4') {
+		fclose($fh);
+		return null;
+	}
+	$out = array();
+	$prevPath = '';
+	while(true) {
+		$pos = ftell($fh);
+		if($pos === false) {
+			fclose($fh);
+			return null;
+		}
+		$probe = fread($fh, 1);
+		if($probe === false || $probe === '') {
+			break;
+		}
+		fseek($fh, $pos);
+		$prefixLen = $this->read_varint_u32_from_stream_soft($fh);
+		if($prefixLen === null) {
+			fclose($fh);
+			return null;
+		}
+		$suffixLen = $this->read_varint_u32_from_stream_soft($fh);
+		if($suffixLen === null) {
+			fclose($fh);
+			return null;
+		}
+		if($prefixLen > strlen($prevPath)) {
+			fclose($fh);
+			return null;
+		}
+		$pathSuffix = $suffixLen > 0 ? fread($fh, $suffixLen) : '';
+		if(strlen($pathSuffix) !== $suffixLen) {
+			fclose($fh);
+			return null;
+		}
+		$path = substr($prevPath, 0, $prefixLen) . $pathSuffix;
+		$modeCh = fread($fh, 1);
+		if($modeCh === false || strlen($modeCh) !== 1) {
+			fclose($fh);
+			return null;
+		}
+		$dataLen = $this->read_varint_u32_from_stream_soft($fh);
+		if($dataLen === null) {
+			fclose($fh);
+			return null;
+		}
+		if($dataLen > 0) {
+			$skip = fread($fh, $dataLen);
+			if($skip === false || strlen($skip) !== $dataLen) {
+				fclose($fh);
+				return null;
+			}
+		}
+		$out[] = $path;
+		$prevPath = $path;
+	}
+	fclose($fh);
+	return $out;
 }
 
 /**
@@ -14706,7 +16966,7 @@ function open_container_streaming_if_applicable($filename, $rootDir, $debug) {
 			$this->write_decoded_container_members_to_disk($rootDir, $triple, $debug, true);
 			if($debug) {
 				$micro_time_taken = microtime(true) - $this->initial_micro_time;
-				print('Time taken opening container: ' . $micro_time_taken . ' seconds.<br>');
+				fractal_zip::html_trace_print('Time taken opening container: ' . $micro_time_taken . ' seconds.<br>');
 			}
 			return true;
 		}
@@ -14742,7 +17002,7 @@ function open_container_streaming_if_applicable($filename, $rootDir, $debug) {
 
 function open_container($filename, $debug = false) {
 	if($debug) {
-		print('Opening fractal zip container: ' . $filename . '<br>');
+		fractal_zip::html_trace_print('Opening fractal zip container: ' . $filename . '<br>');
 	}
 	$root_directory_of_container_file = substr($filename, 0, fractal_zip::strpos_last($filename, DS));
 	fractal_zip::$open_container_streaming_extract_used = false;
@@ -14755,7 +17015,7 @@ function open_container($filename, $debug = false) {
 		fractal_zip::$open_container_streaming_extract_used = false;
 		if($debug) {
 			$micro_time_taken = microtime(true) - $this->initial_micro_time;
-			print('Time taken opening container: ' . $micro_time_taken . ' seconds.<br>');
+			fractal_zip::html_trace_print('Time taken opening container: ' . $micro_time_taken . ' seconds.<br>');
 		}
 		return;
 	}
@@ -14763,7 +17023,23 @@ function open_container($filename, $debug = false) {
 		fractal_zip::$open_container_streaming_extract_used = false;
 		if($debug) {
 			$micro_time_taken = microtime(true) - $this->initial_micro_time;
-			print('Time taken opening container: ' . $micro_time_taken . ' seconds.<br>');
+			fractal_zip::html_trace_print('Time taken opening container: ' . $micro_time_taken . ' seconds.<br>');
+		}
+		return;
+	}
+	if($this->seven_zip_try_extract_native_folder_archive_to_directory($contents, $root_directory_of_container_file, $debug)) {
+		fractal_zip::$open_container_streaming_extract_used = false;
+		if($debug) {
+			$micro_time_taken = microtime(true) - $this->initial_micro_time;
+			fractal_zip::html_trace_print('Time taken opening container: ' . $micro_time_taken . ' seconds.<br>');
+		}
+		return;
+	}
+	if($this->brotli_try_extract_native_folder_tar_br_to_directory($contents, $root_directory_of_container_file, $debug)) {
+		fractal_zip::$open_container_streaming_extract_used = false;
+		if($debug) {
+			$micro_time_taken = microtime(true) - $this->initial_micro_time;
+			fractal_zip::html_trace_print('Time taken opening container: ' . $micro_time_taken . ' seconds.<br>');
 		}
 		return;
 	}
@@ -14791,24 +17067,24 @@ function open_container($filename, $debug = false) {
 	$this->write_decoded_container_members_to_disk($root_directory_of_container_file, $array_fractal_string_and_equivalences, $debug, false);
 	if($debug) {
 		$micro_time_taken = microtime(true) - $this->initial_micro_time;
-		print('Time taken opening container: ' . $micro_time_taken . ' seconds.<br>');
+		fractal_zip::html_trace_print('Time taken opening container: ' . $micro_time_taken . ' seconds.<br>');
 	}
 }
 
 function open_container_allowing_individual_extraction($filename, $debug = false) {
 	if($debug) {
-		print('Opening fractal zip container: ' . $filename . '<br>');
+		fractal_zip::html_trace_print('Opening fractal zip container: ' . $filename . '<br>');
 	}
 	$root_directory_of_container_file = substr($filename, 0, fractal_zip::strpos_last($filename, DS));
 	fractal_zip::$open_container_streaming_extract_used = false;
 	if($this->open_container_streaming_if_applicable($filename, $root_directory_of_container_file, $debug)) {
 		$this->fractal_gzip_peel_restore_map = array();
 		foreach($this->array_fractal_zipped_strings_of_files as $index => $value) {
-			print('<a href="do.php?action=extract_file&path=' . fs::query_encode($filename) . '&file_to_extract=' . $index . '">Extract: ' . $index . '</a><br>');
+			fractal_zip::html_trace_print('<a href="do.php?action=extract_file&path=' . fs::query_encode($filename) . '&file_to_extract=' . $index . '">Extract: ' . $index . '</a><br>');
 		}
 		if($debug) {
 			$micro_time_taken = microtime(true) - $this->initial_micro_time;
-			print('Time taken opening container allowing individual extraction: ' . $micro_time_taken . ' seconds.<br>');
+			fractal_zip::html_trace_print('Time taken opening container allowing individual extraction: ' . $micro_time_taken . ' seconds.<br>');
 		}
 		return;
 	}
@@ -14817,7 +17093,7 @@ function open_container_allowing_individual_extraction($filename, $debug = false
 		fractal_zip::$open_container_streaming_extract_used = false;
 		if($debug) {
 			$micro_time_taken = microtime(true) - $this->initial_micro_time;
-			print('Time taken opening container allowing individual extraction: ' . $micro_time_taken . ' seconds.<br>');
+			fractal_zip::html_trace_print('Time taken opening container allowing individual extraction: ' . $micro_time_taken . ' seconds.<br>');
 		}
 		return;
 	}
@@ -14825,7 +17101,23 @@ function open_container_allowing_individual_extraction($filename, $debug = false
 		fractal_zip::$open_container_streaming_extract_used = false;
 		if($debug) {
 			$micro_time_taken = microtime(true) - $this->initial_micro_time;
-			print('Time taken opening container allowing individual extraction: ' . $micro_time_taken . ' seconds.<br>');
+			fractal_zip::html_trace_print('Time taken opening container allowing individual extraction: ' . $micro_time_taken . ' seconds.<br>');
+		}
+		return;
+	}
+	if($this->seven_zip_try_extract_native_folder_archive_to_directory($contents, $root_directory_of_container_file, $debug)) {
+		fractal_zip::$open_container_streaming_extract_used = false;
+		if($debug) {
+			$micro_time_taken = microtime(true) - $this->initial_micro_time;
+			fractal_zip::html_trace_print('Time taken opening container allowing individual extraction: ' . $micro_time_taken . ' seconds.<br>');
+		}
+		return;
+	}
+	if($this->brotli_try_extract_native_folder_tar_br_to_directory($contents, $root_directory_of_container_file, $debug)) {
+		fractal_zip::$open_container_streaming_extract_used = false;
+		if($debug) {
+			$micro_time_taken = microtime(true) - $this->initial_micro_time;
+			fractal_zip::html_trace_print('Time taken opening container allowing individual extraction: ' . $micro_time_taken . ' seconds.<br>');
 		}
 		return;
 	}
@@ -14846,11 +17138,11 @@ function open_container_allowing_individual_extraction($filename, $debug = false
 	$this->fractal_gzip_peel_restore_map = isset($array_fractal_string_and_equivalences[2]) && is_array($array_fractal_string_and_equivalences[2]) ? $array_fractal_string_and_equivalences[2] : array();
 	
 	foreach($this->array_fractal_zipped_strings_of_files as $index => $value) {
-		print('<a href="do.php?action=extract_file&path=' . fs::query_encode($filename) . '&file_to_extract=' . $index . '">Extract: ' . $index . '</a><br>');
+		fractal_zip::html_trace_print('<a href="do.php?action=extract_file&path=' . fs::query_encode($filename) . '&file_to_extract=' . $index . '">Extract: ' . $index . '</a><br>');
 	}
 	if($debug) {
 		$micro_time_taken = microtime(true) - $this->initial_micro_time;
-		print('Time taken opening container allowing individual extraction: ' . $micro_time_taken . ' seconds.<br>');
+		fractal_zip::html_trace_print('Time taken opening container allowing individual extraction: ' . $micro_time_taken . ' seconds.<br>');
 	}
 }
 
@@ -14858,53 +17150,354 @@ function extract_container($filename) {
 	$this->open_container($filename);
 	if(fractal_zip::$open_container_streaming_extract_used) {
 		$micro_time_taken = microtime(true) - $this->initial_micro_time;
-		print('Time taken extracting files from fractal_zip container: ' . $micro_time_taken . ' seconds.<br>');
+		fractal_zip::html_trace_print('Time taken extracting files from fractal_zip container: ' . $micro_time_taken . ' seconds.<br>');
 		return;
 	}
 	//$root_directory_of_container_file = substr($filename, 0, fractal_zip::strpos_last($filename, DS));
 		foreach($this->array_fractal_zipped_strings_of_files as $index => $value) {
-		//$this->build_directory_structure_for($root_directory_of_container_file . DS . $index);
-		$this->build_directory_structure_for($index);
+		$outPath = $this->safe_container_member_output_path((string)getcwd(), $index);
+		$this->build_directory_structure_for($outPath);
 		$zipped_contents = $value;
 		$unzipped_contents = $this->unzip($zipped_contents);
 		if(isset($this->fractal_gzip_peel_restore_map[$index])) {
-			$unzipped_contents = $this->fractal_gzip_peel_restore_map[$index];
+			$restore = $this->fractal_gzip_peel_restore_map[$index];
+			$unzipped_contents = is_array($restore) ? $this->apply_fractal_restore_spec($restore, $unzipped_contents) : $restore;
 		}
-		//file_put_contents($root_directory_of_container_file . DS . $index, $unzipped_contents);
-		//print('Extracted ' . $root_directory_of_container_file . DS . $index . '<br>');
-		file_put_contents($index, $unzipped_contents);
-		print('Extracted ' . $index . '<br>');
+		file_put_contents($outPath, $unzipped_contents);
+		fractal_zip::html_trace_print('Extracted ' . $outPath . '<br>');
 		$this->files_counter++;
 	}
 	$micro_time_taken = microtime(true) - $this->initial_micro_time;
-	print('Time taken extracting files from fractal_zip container: ' . $micro_time_taken . ' seconds.<br>');
+	fractal_zip::html_trace_print('Time taken extracting files from fractal_zip container: ' . $micro_time_taken . ' seconds.<br>');
 }
 
 function extract_file_from_container($filename, $file) {
+	$normFile = fractal_zip::normalize_web_fs_member_relpath(str_replace('\\', '/', (string) $file));
+	if($normFile === null) {
+		fractal_zip::fatal_error('Unsafe or invalid container member path.');
+	}
+	$wb = $this->try_read_container_member_bytes_for_web_fs((string) $filename, $normFile);
+	if(!empty($wb['ok']) && isset($wb['bytes'])) {
+		$outPath = $this->safe_container_member_output_path((string) getcwd(), $normFile);
+		$this->build_directory_structure_for($outPath);
+		file_put_contents($outPath, $wb['bytes']);
+		fractal_zip::html_trace_print('Extracted ' . $outPath . '<br>');
+		$this->files_counter++;
+		$micro_time_taken = microtime(true) - $this->initial_micro_time;
+		fractal_zip::html_trace_print('Time taken extracting: ' . $micro_time_taken . ' seconds.<br>');
+		return;
+	}
 	$this->open_container($filename);
 	if(fractal_zip::$open_container_streaming_extract_used) {
-		fractal_zip::fatal_error('extract_file_from_container is not supported for containers opened via the streaming FZB4 path; open the full container with open_container or extract_container.');
-	}
-	//$root_directory_of_container_file = substr($filename, 0, fractal_zip::strpos_last($filename, DS));
-	foreach($this->array_fractal_zipped_strings_of_files as $index => $value) {
-		if($file === $index) {
-			//$this->build_directory_structure_for($root_directory_of_container_file . DS . $index);
-			$this->build_directory_structure_for($index);
-			$zipped_contents = $value;
-			$unzipped_contents = $this->unzip($zipped_contents);
-			if(isset($this->fractal_gzip_peel_restore_map[$index])) {
-				$unzipped_contents = $this->fractal_gzip_peel_restore_map[$index];
-			}
-			//file_put_contents($root_directory_of_container_file . DS . $index, $unzipped_contents);
-			//print('Extracted ' . $root_directory_of_container_file . DS . $index . '<br>');
-			file_put_contents($index, $unzipped_contents);
-			print('Extracted ' . $index . '<br>');
-			$this->files_counter++;
+		$containerDir = substr((string) $filename, 0, fractal_zip::strpos_last((string) $filename, DS));
+		$srcPath = $this->safe_container_member_output_path($containerDir, $normFile);
+		if(!is_file($srcPath)) {
+			fractal_zip::fatal_error('Member not found after streaming extract: ' . $normFile);
 		}
+		$outPath = $this->safe_container_member_output_path((string) getcwd(), $normFile);
+		$this->build_directory_structure_for($outPath);
+		if(!@copy($srcPath, $outPath)) {
+			fractal_zip::fatal_error('Failed to copy extracted member to output path.');
+		}
+		fractal_zip::html_trace_print('Extracted ' . $outPath . '<br>');
+		$this->files_counter++;
+		$micro_time_taken = microtime(true) - $this->initial_micro_time;
+		fractal_zip::html_trace_print('Time taken extracting: ' . $micro_time_taken . ' seconds.<br>');
+		return;
+	}
+	foreach($this->array_fractal_zipped_strings_of_files as $index => $value) {
+		$idxNorm = fractal_zip::normalize_web_fs_member_relpath(str_replace('\\', '/', (string) $index));
+		$match = ($idxNorm === $normFile) || ((string) $index === (string) $file);
+		if(!$match) {
+			continue;
+		}
+		$outPath = $this->safe_container_member_output_path((string) getcwd(), $normFile);
+		$this->build_directory_structure_for($outPath);
+		$zipped_contents = $value;
+		$unzipped_contents = $this->unzip($zipped_contents);
+		if(isset($this->fractal_gzip_peel_restore_map[$index])) {
+			$restore = $this->fractal_gzip_peel_restore_map[$index];
+			$unzipped_contents = is_array($restore) ? $this->apply_fractal_restore_spec($restore, $unzipped_contents) : $restore;
+		}
+		file_put_contents($outPath, $unzipped_contents);
+		fractal_zip::html_trace_print('Extracted ' . $outPath . '<br>');
+		$this->files_counter++;
 	}
 	$micro_time_taken = microtime(true) - $this->initial_micro_time;
-	//print('Time taken extracting ' . $file . ' from fractal_zip container ' . $filename . ': ' . $micro_time_taken . ' seconds.<br>');
-	print('Time taken extracting: ' . $micro_time_taken . ' seconds.<br>');
+	fractal_zip::html_trace_print('Time taken extracting: ' . $micro_time_taken . ' seconds.<br>');
+}
+
+/**
+ * Decode one logical member for integration behind a web filesystem (`.fzc` / `.fractalzip`).
+ * When the outer is plain FZB4 or deflate/zlib-wrapped FZB4, skips writing unrelated files to disk.
+ *
+ * Return shape:
+ *   ok=true:  bytes (raw decoded member), lane (short diagnostic string)
+ *   ok=false: code ∈ {
+ *     bad_member_path, missing_container, empty_container,
+ *     native_outer_single_member_unsupported,
+ *     fzcd_single_member_unsupported,
+ *     member_not_found, decode_failed
+ *   }
+ *
+ * @return array{ok:bool, bytes?:string, code?:string, lane?:string, hint?:string, folder_native_wire_kind?:string|null, members_preview?: list<string>}
+ */
+function try_read_container_member_bytes_for_web_fs(string $containerPath, string $memberRelPath): array {
+	$norm = fractal_zip::normalize_web_fs_member_relpath($memberRelPath);
+	if($norm === null) {
+		return array('ok' => false, 'code' => 'bad_member_path');
+	}
+	if(!is_file($containerPath) || !is_readable($containerPath)) {
+		return array('ok' => false, 'code' => 'missing_container');
+	}
+	$head = @file_get_contents($containerPath, false, null, 0, 64);
+	if($head === false || $head === '') {
+		return array('ok' => false, 'code' => 'empty_container');
+	}
+	$xzOuter = strlen($head) >= 6 && substr($head, 0, 6) === "\xFD\x37\x7A\x58\x5A\x00";
+	if(!$xzOuter && $this->container_outer_needs_legacy_full_read($head)) {
+		$folderNativeKind = fractal_zip::native_folder_wire_outer_kind_from_head($head);
+		$hint = 'Outer is 7z/Arc/zstd/brotli/xz-framed-with-non-FZB-inner; use full extract or native tool member APIs.';
+		if($folderNativeKind !== null) {
+			$hint = 'Native folder passthrough outer (' . $folderNativeKind . '): selective member read is unsupported; use full extract.';
+		}
+
+		return array(
+			'ok' => false,
+			'code' => 'native_outer_single_member_unsupported',
+			'hint' => $hint,
+			'folder_native_wire_kind' => $folderNativeKind,
+		);
+	}
+	if($xzOuter) {
+		$tmpXz = '';
+		if($this->try_stream_xz_decompress_to_temp_file($containerPath, $tmpXz)) {
+			$h = @fopen($tmpXz, 'rb');
+			if($h === false) {
+				@unlink($tmpXz);
+				return array('ok' => false, 'code' => 'decode_failed');
+			}
+			$sig = fread($h, 4);
+			fclose($h);
+			if($sig === 'FZB4') {
+				$bytes = $this->fzb4_try_read_member_bytes_from_bundle_path($tmpXz, $norm);
+				@unlink($tmpXz);
+				if($bytes !== null) {
+					return array('ok' => true, 'bytes' => $bytes, 'lane' => 'fzb4+xz_outer');
+				}
+				return array('ok' => false, 'code' => 'member_not_found');
+			}
+			if($sig === 'FZCD') {
+				@unlink($tmpXz);
+				return array('ok' => false, 'code' => 'fzcd_single_member_unsupported');
+			}
+			$inner = @file_get_contents($tmpXz);
+			@unlink($tmpXz);
+			if($inner === false || $inner === '') {
+				return array('ok' => false, 'code' => 'decode_failed');
+			}
+			return $this->web_fs_finish_member_from_decoded_inner($inner, $norm);
+		}
+	}
+	$tmpInfl = '';
+	if($this->try_stream_inflate_to_fzb4_temp_file($containerPath, $tmpInfl)) {
+		$bytes = $this->fzb4_try_read_member_bytes_from_bundle_path($tmpInfl, $norm);
+		@unlink($tmpInfl);
+		if($bytes !== null) {
+			return array('ok' => true, 'bytes' => $bytes, 'lane' => 'fzb4+deflate_outer');
+		}
+		return array('ok' => false, 'code' => 'member_not_found');
+	}
+	if(substr($head, 0, 4) === 'FZB4') {
+		$bytes = $this->fzb4_try_read_member_bytes_from_bundle_path($containerPath, $norm);
+		if($bytes !== null) {
+			return array('ok' => true, 'bytes' => $bytes, 'lane' => 'fzb4_plain');
+		}
+		return array('ok' => false, 'code' => 'member_not_found');
+	}
+	if(substr($head, 0, 4) === 'FZCD') {
+		return array('ok' => false, 'code' => 'fzcd_single_member_unsupported');
+	}
+	$raw = @file_get_contents($containerPath);
+	if($raw === false) {
+		return array('ok' => false, 'code' => 'missing_container');
+	}
+	$inner = $this->adaptive_decompress($raw);
+	return $this->web_fs_finish_member_from_decoded_inner($inner, $norm);
+}
+
+/**
+ * Cheap fingerprint + member-list probe for ops tools and web FS gateways (same payload shape as `fractal_zip_cli.php inspect --json`).
+ *
+ * @return array{
+ *   ok: bool,
+ *   code?: string,
+ *   path?: string,
+ *   container_bytes?: int|null,
+ *   magic_prefix_hex?: string,
+ *   sig4_utf8_fallback?: string,
+ *   xz_outer?: bool,
+ *   outer_needs_legacy_full_read?: bool,
+ *   folder_native_wire_kind?: string|null,
+ *   member_list_ok?: bool,
+ *   member_list_code?: string|null,
+ *   member_count?: int,
+ *   members_preview?: list<string>
+ * }
+ */
+function inspect_container_for_web_fs(string $containerPath): array {
+	$abs = realpath($containerPath);
+	if($abs === false || !is_file($abs)) {
+		return array('ok' => false, 'code' => 'not_found');
+	}
+	$sz = filesize($abs);
+	$head = @file_get_contents($abs, false, null, 0, 64);
+	$head = $head === false ? '' : $head;
+	$sig4 = strlen($head) >= 4 ? substr($head, 0, 4) : '';
+	$xzOuter = strlen($head) >= 6 && substr($head, 0, 6) === "\xFD\x37\x7A\x58\x5A\x00";
+	$legacyOuter = $this->container_outer_needs_legacy_full_read($head);
+	$folderNativeKind = fractal_zip::native_folder_wire_outer_kind_from_head($head);
+	$list = $this->try_list_container_members_for_web_fs($abs);
+	$nMembers = isset($list['members']) && is_array($list['members']) ? count($list['members']) : 0;
+	$magicHex = bin2hex(substr($head, 0, min(16, strlen($head))));
+	return array(
+		'ok' => true,
+		'path' => $abs,
+		'container_bytes' => is_int($sz) ? $sz : null,
+		'magic_prefix_hex' => $magicHex,
+		'sig4_utf8_fallback' => preg_replace('/[^\x20-\x7E]/', '.', $sig4),
+		'xz_outer' => $xzOuter,
+		'outer_needs_legacy_full_read' => $legacyOuter,
+		'folder_native_wire_kind' => $folderNativeKind,
+		'member_list_ok' => !empty($list['ok']),
+		'member_list_code' => isset($list['code']) ? (string) $list['code'] : null,
+		'member_count' => $nMembers,
+		'members_preview' => array_slice($list['members'] ?? array(), 0, 32),
+	);
+}
+
+/**
+ * @return array{ok:bool, members?: list<string>, code?:string, hint?:string, folder_native_wire_kind?:string|null}
+ */
+function try_list_container_members_for_web_fs(string $containerPath): array {
+	if(!is_file($containerPath) || !is_readable($containerPath)) {
+		return array('ok' => false, 'code' => 'missing_container');
+	}
+	$head = @file_get_contents($containerPath, false, null, 0, 64);
+	if($head === false || $head === '') {
+		return array('ok' => false, 'code' => 'empty_container');
+	}
+	$xzOuter = strlen($head) >= 6 && substr($head, 0, 6) === "\xFD\x37\x7A\x58\x5A\x00";
+	if(!$xzOuter && $this->container_outer_needs_legacy_full_read($head)) {
+		$folderNativeKind = fractal_zip::native_folder_wire_outer_kind_from_head($head);
+		$hint = 'Listing requires full decode or native archive listing for this outer wrapper.';
+		if($folderNativeKind !== null) {
+			$hint = 'Native folder passthrough outer (' . $folderNativeKind . '): member listing without full extract is unsupported.';
+		}
+
+		return array(
+			'ok' => false,
+			'code' => 'native_outer_single_member_unsupported',
+			'hint' => $hint,
+			'folder_native_wire_kind' => $folderNativeKind,
+		);
+	}
+	if($xzOuter) {
+		$tmpXz = '';
+		if($this->try_stream_xz_decompress_to_temp_file($containerPath, $tmpXz)) {
+			$h = @fopen($tmpXz, 'rb');
+			if($h === false) {
+				@unlink($tmpXz);
+				return array('ok' => false, 'code' => 'decode_failed');
+			}
+			$sig = fread($h, 4);
+			fclose($h);
+			if($sig === 'FZB4') {
+				$list = $this->fzb4_try_list_member_paths_from_bundle_path($tmpXz);
+				@unlink($tmpXz);
+				if($list === null) {
+					return array('ok' => false, 'code' => 'decode_failed');
+				}
+				return array('ok' => true, 'members' => $list);
+			}
+			if($sig === 'FZCD') {
+				@unlink($tmpXz);
+				return array('ok' => false, 'code' => 'fzcd_single_member_unsupported');
+			}
+			$inner = @file_get_contents($tmpXz);
+			@unlink($tmpXz);
+			if($inner === false || $inner === '') {
+				return array('ok' => false, 'code' => 'decode_failed');
+			}
+			return $this->web_fs_finish_list_from_decoded_inner($inner);
+		}
+	}
+	$tmpInfl = '';
+	if($this->try_stream_inflate_to_fzb4_temp_file($containerPath, $tmpInfl)) {
+		$list = $this->fzb4_try_list_member_paths_from_bundle_path($tmpInfl);
+		@unlink($tmpInfl);
+		if($list === null) {
+			return array('ok' => false, 'code' => 'decode_failed');
+		}
+		return array('ok' => true, 'members' => $list);
+	}
+	if(substr($head, 0, 4) === 'FZB4') {
+		$list = $this->fzb4_try_list_member_paths_from_bundle_path($containerPath);
+		if($list === null) {
+			return array('ok' => false, 'code' => 'decode_failed');
+		}
+		return array('ok' => true, 'members' => $list);
+	}
+	if(substr($head, 0, 4) === 'FZCD') {
+		return array('ok' => false, 'code' => 'fzcd_single_member_unsupported');
+	}
+	$raw = @file_get_contents($containerPath);
+	if($raw === false) {
+		return array('ok' => false, 'code' => 'missing_container');
+	}
+	$inner = $this->adaptive_decompress($raw);
+	return $this->web_fs_finish_list_from_decoded_inner($inner);
+}
+
+/**
+ * @return array{ok:bool, bytes?:string, code?:string, lane?:string, members_preview?: list<string>}
+ */
+function web_fs_finish_member_from_decoded_inner(string $inner, string $norm): array {
+	$triple = $this->decode_container_payload($inner);
+	if(!is_array($triple) || !isset($triple[0], $triple[1]) || !is_array($triple[0])) {
+		return array('ok' => false, 'code' => 'decode_failed');
+	}
+	$map = $triple[0];
+	$this->fractal_string = (string) $triple[1];
+	$this->fractal_gzip_peel_restore_map = isset($triple[2]) && is_array($triple[2]) ? $triple[2] : array();
+	if(!isset($map[$norm])) {
+		$keys = array_keys($map);
+		return array(
+			'ok' => false,
+			'code' => 'member_not_found',
+			'members_preview' => array_slice($keys, 0, 32),
+		);
+	}
+	$zipped = $map[$norm];
+	$out = $this->unzip($zipped);
+	if(isset($this->fractal_gzip_peel_restore_map[$norm])) {
+		$restore = $this->fractal_gzip_peel_restore_map[$norm];
+		$out = is_array($restore) ? $this->apply_fractal_restore_spec($restore, $out) : $restore;
+	}
+	return array('ok' => true, 'bytes' => $out, 'lane' => 'legacy_inner');
+}
+
+/**
+ * @return array{ok:bool, members?: list<string>, code?:string}
+ */
+function web_fs_finish_list_from_decoded_inner(string $inner): array {
+	$triple = $this->decode_container_payload($inner);
+	if(!is_array($triple) || !isset($triple[0]) || !is_array($triple[0])) {
+		return array('ok' => false, 'code' => 'decode_failed');
+	}
+	$keys = array_keys($triple[0]);
+	sort($keys);
+	return array('ok' => true, 'members' => $keys);
 }
 
 function build_directory_structure_for($filename) {
@@ -14982,7 +17575,8 @@ function unzip($string, $fractal_string = false, $decode = true) {
 	}
 	
 	//fractal_zip::warning_once('will have to write a parser rather than using regular expressions... probably faster and more accurate');
-	preg_match_all('/' . fractal_zip::preg_escape($this->left_fractal_zip_marker) . $this->fractal_zipping_pass . fractal_zip::preg_escape($this->mid_fractal_zip_marker) . '([0-9]+)\-([0-9]+)' . fractal_zip::preg_escape($this->mid_fractal_zip_marker) . $this->fractal_zipping_pass . fractal_zip::preg_escape($this->right_fractal_zip_marker) . '/is', $string, $fractal_zipped_ranges);
+	$rxFractalZippedRanges = '/' . fractal_zip::preg_escape($this->left_fractal_zip_marker) . $this->fractal_zipping_pass . fractal_zip::preg_escape($this->mid_fractal_zip_marker) . '([0-9]+)\-([0-9]+)' . fractal_zip::preg_escape($this->mid_fractal_zip_marker) . $this->fractal_zipping_pass . fractal_zip::preg_escape($this->right_fractal_zip_marker) . '/is';
+	preg_match_all($rxFractalZippedRanges, $string, $fractal_zipped_ranges);
 	//print('$fractal_zipped_ranges: ');var_dump($fractal_zipped_ranges);
 	foreach($fractal_zipped_ranges[0] as $index => $value) {
 		$start_offset = $fractal_zipped_ranges[1][$index];
@@ -15153,14 +17747,20 @@ function create_fractal_file($filename, $equivalence_string, $fractal_string) {
 	$fractally_processed_string = $this->fractally_process_string($equivalence_string, $fractal_string);
 	$this->build_directory_structure_for($filename);
 	file_put_contents($filename, $fractally_processed_string);
-	print($filename . ' was created.<br>');
+	fractal_zip::html_trace_print($filename . ' was created.<br>');
 }
 
-function recursive_substring_replace($equivalence_string, $fractal_string) {
+function recursive_substring_replace($equivalence_string, $fractal_string, $recursion_depth = 0) {
 	$this->fractal_marker_ctx_publish();
+	$maxStack = fractal_zip::max_recursive_substring_replace_depth();
+	if($maxStack > 0 && $recursion_depth >= $maxStack) {
+		fractal_zip::warning_once('recursive_substring_replace: nested call depth cap exceeded (pathological substring nesting); aborting expansion.');
+		return $equivalence_string;
+	}
 	$initial_equivalence_string = $equivalence_string;
-	$Lrx = preg_quote(fractal_zip::$fractal_marker_ctx_left, '/');
-	if(preg_match('/' . $Lrx . '[0-9]/s', $equivalence_string) !== 1) {
+	list($Lq, $Mq, $Rq) = fractal_zip_marker_rx_quoted_delimiters();
+	$rxRecursiveSubstringLrxDigit = '/' . $Lq . '[0-9]/is';
+	if(preg_match($rxRecursiveSubstringLrxDigit, $equivalence_string) !== 1) {
 		return $equivalence_string;
 	}
 	if(!fractal_zip::is_fractally_clean_for_unzip($equivalence_string)) {
@@ -15170,14 +17770,21 @@ function recursive_substring_replace($equivalence_string, $fractal_string) {
 	$flen = strlen($fractal_string);
 	$debug_counter = 0;
 	$maxSubstrIters = max(2000, min(200000, strlen($equivalence_string) * 16 + 4096));
-	while(preg_match('/' . $Lrx . '[0-9]/is', $equivalence_string) === 1) {
+	$rxSubstringMainRecursiveReplace = '/' . fractal_zip_marker_rx_substring_main() . '/is';
+	$rxSub = '/' . $Lq . '([0-9]+)' . $Mq . '([0-9]+)' . $Rq . '/is';
+	while(preg_match($rxRecursiveSubstringLrxDigit, $equivalence_string) === 1) {
 		if($debug_counter >= $maxSubstrIters) {
 			fractal_zip::warning_once('recursive_substring_replace: iteration cap exceeded (likely binary false positives or very deep markers); returning partial expansion.');
 			return $equivalence_string;
 		}
 		$debug_counter++;
+		$runCapProbe = fractal_zip::inner_substring_probe_running_equiv_cap();
+		if($runCapProbe > 0 && strlen($equivalence_string) > $runCapProbe) {
+			fractal_zip::warning_once('recursive_substring_replace: running equivalence cap exceeded (inner substring-map probe); aborting expansion.');
+			return '';
+		}
 		//preg_match_all('/<([0-9]+)"([0-9]+)"*([0-9]*)\**([0-9]*)s*([0-9\.]*)>/is', $equivalence_string, $substring_operation_matches, PREG_OFFSET_CAPTURE);
-		if(preg_match('/' . fractal_zip_marker_rx_substring_main() . '/is', $equivalence_string, $substring_operation_matches, PREG_OFFSET_CAPTURE) !== 1) {
+		if(preg_match($rxSubstringMainRecursiveReplace, $equivalence_string, $substring_operation_matches, PREG_OFFSET_CAPTURE) !== 1) {
 			fractal_zip::warning_once('substring op: &lt;digit seen but no complete &lt;off&quot;len&quot;...&gt; marker; stopping substring expansion.');
 			return $equivalence_string;
 		}
@@ -15210,13 +17817,11 @@ function recursive_substring_replace($equivalence_string, $fractal_string) {
 				//print('$substring: ');var_dump($substring);
 				if($substring_recursion_counter > 1) {
 					//print('uhhh0003<br>');
-					$rxSub = '/' . preg_quote(fractal_zip::$fractal_marker_ctx_left, '/') . '([0-9]+)' . preg_quote(fractal_zip::$fractal_marker_ctx_mid, '/') . '([0-9]+)' . preg_quote(fractal_zip::$fractal_marker_ctx_right, '/') . '/is';
 					$substring = preg_replace($rxSub, fractal_zip::$fractal_marker_ctx_left . '$1' . fractal_zip::$fractal_marker_ctx_mid . '$2' . fractal_zip::$fractal_marker_ctx_mid . ($substring_recursion_counter - 1) . fractal_zip::$fractal_marker_ctx_right, $substring);
 					//print('$equivalence_string after processing a substring operation: ');var_dump($equivalence_string);
 			//		$processed_a_subtring_operation = true;
 				} else {
 					//print('uhhh0004<br>');
-					$rxSub = '/' . preg_quote(fractal_zip::$fractal_marker_ctx_left, '/') . '([0-9]+)' . preg_quote(fractal_zip::$fractal_marker_ctx_mid, '/') . '([0-9]+)' . preg_quote(fractal_zip::$fractal_marker_ctx_right, '/') . '/is';
 					$substring = preg_replace($rxSub, '', $substring);
 				}
 				$single_substring = $substring;
@@ -15270,7 +17875,7 @@ function recursive_substring_replace($equivalence_string, $fractal_string) {
 					fractal_zip::warning_once('Expanded substring exceeds FRACTAL_ZIP_MAX_SUBSTRING_TUPLE_EXPAND_BYTES before nested recursive_substring_replace.');
 					return $initial_equivalence_string;
 				}
-				$substring = $this->recursive_substring_replace($substring, $fractal_string);
+				$substring = $this->recursive_substring_replace($substring, $fractal_string, $recursion_depth + 1);
 				$this->substring_cache[$substring_operation_matches[0][0]] = $substring;
 			}
 			$matchStr = $substring_operation_matches[0][0];
@@ -15315,7 +17920,7 @@ function fractally_process_string($equivalence_string, $fractal_string = false) 
 	//$debug_counter = 0;
 	
 	$this->substring_cache = array();
-	$equivalence_string = $this->recursive_substring_replace($equivalence_string, $fractal_string);
+	$equivalence_string = $this->recursive_substring_replace($equivalence_string, $fractal_string, 0);
 	
 	/*if(preg_match('/<[0-9]/is', $equivalence_string) === 1) { // do substring operations first
 		$substring_offset = -1; // initialization
@@ -15379,7 +17984,14 @@ function fractally_process_string($equivalence_string, $fractal_string = false) 
 	//while(strpos($equivalence_string, '<') !== false) {
 	$debug_counter44 = 0;
 	$maxFractalProcessPasses = max(256, min(50000, strlen($equivalence_string) * 8 + 512));
-	while(preg_match('/<[^r]/is', $equivalence_string) === 1) { // ignore replace operations at this step
+	$fqFractallyLeft = preg_quote($this->left_fractal_zip_marker, '/');
+	$fqFractallyRight = preg_quote($this->right_fractal_zip_marker, '/');
+	$rxFractallyMainPass = '/' . $fqFractallyLeft . '[^r]/is';
+	$rxFractallyGradient = '/' . $fqFractallyLeft . 'g([^>]+)"([0-9]+)"([^\*>]+)\**([0-9]{0,})' . $fqFractallyRight . '/is';
+	$rxFractallyRowLength = '/' . $fqFractallyLeft . 'l([0-9]+)' . $fqFractallyRight . '/is';
+	$rxFractallySkipSpan = '/' . $fqFractallyLeft . 's[^<>]+' . $fqFractallyRight . '/is';
+	$rxFractallySkipUniform = '/' . $fqFractallyLeft . 's([0-9]+)' . $fqFractallyRight . '/is';
+	while(preg_match($rxFractallyMainPass, $equivalence_string) === 1) { // ignore replace operations at this step
 		//print('fractally_process_string002<br>');
 		$debug_counter44++;
 		if($debug_counter44 > $maxFractalProcessPasses) {
@@ -15457,10 +18069,10 @@ function fractally_process_string($equivalence_string, $fractal_string = false) 
 		*/
 		
 		//print('gradient1<br>');
-		if(strpos($equivalence_string, '<g') !== false) { // gradient
+		if(strpos($equivalence_string, $this->left_fractal_zip_marker . 'g') !== false) { // gradient
 			//print('gradient2<br>');
 			fractal_zip::warning_once('excluding * from the end character is not general. maybe swap positions of end character and tuple');
-			preg_match_all('/<g([^>]+)"([0-9]+)"([^\*>]+)\**([0-9]{0,})>/is', $equivalence_string, $gradient_operation_matches, PREG_OFFSET_CAPTURE);
+			preg_match_all($rxFractallyGradient, $equivalence_string, $gradient_operation_matches, PREG_OFFSET_CAPTURE);
 			//print('$gradient_operation_matches: ');var_dump($gradient_operation_matches);
 			$counter = sizeof($gradient_operation_matches[0]) - 1;
 			while($counter > -1) {
@@ -15488,7 +18100,7 @@ function fractally_process_string($equivalence_string, $fractal_string = false) 
 			}
 		}
 		//print('$equivalence_string after gradient: ');var_dump($equivalence_string);
-		if(preg_match('/<l([0-9]+)>/is', $equivalence_string, $row_length_operation_matches)) {
+		if(preg_match($rxFractallyRowLength, $equivalence_string, $row_length_operation_matches)) {
 			//fractal_zip::warning_once('forcing row length of 9');
 			//$row_length = 9;
 			$row_length = $row_length_operation_matches[1]; // dirty hack?
@@ -15500,7 +18112,7 @@ function fractally_process_string($equivalence_string, $fractal_string = false) 
 		}
 		//print('$equivalence_string after row length: ');var_dump($equivalence_string);
 		//preg_match_all('/<[^r][^<>]+>/is', $equivalence_string, $operation_matches, PREG_OFFSET_CAPTURE);
-		preg_match_all('/<[s][^<>]+>/is', $equivalence_string, $operation_matches, PREG_OFFSET_CAPTURE); // only skip; substring is handled above?
+		preg_match_all($rxFractallySkipSpan, $equivalence_string, $operation_matches, PREG_OFFSET_CAPTURE); // only skip; substring is handled above?
 		//print('$operation_matches: ');var_dump($operation_matches);
 		if(sizeof($operation_matches[0]) > 0) {
 			$equivalence_offset = 0;
@@ -15527,7 +18139,7 @@ function fractally_process_string($equivalence_string, $fractal_string = false) 
 					$equivalence_offset += strlen($raw_text);
 					print('$new_string, $delayed_strings after adding text before the operation: ');var_dump($new_string, $delayed_strings);
 				}*/
-				if($operation_string[1] === 's') { // skip
+				if(strlen($operation_string) > strlen($this->left_fractal_zip_marker) && substr($operation_string, strlen($this->left_fractal_zip_marker), 1) === 's') { // skip
 					// take care of all skip operations then go back to checking for operations
 					$equivalence_string = substr($equivalence_string, $equivalence_offset);
 					//$equivalence_offset = 0; // would prefer to cleverly step the offset back; but is that possible?
@@ -15537,13 +18149,33 @@ function fractally_process_string($equivalence_string, $fractal_string = false) 
 					$rows = array();
 					while(strlen($equivalence_string) > 0) { // is this correct?
 						$position = 0;
-						preg_match('/<s([0-9]+)>/is', $equivalence_string, $skip_operation_matches); // would a parser be faster? optimize later
-						$skip_counter = $skip_operation_matches[1];
+						preg_match($rxFractallySkipUniform, $equivalence_string, $skip_operation_matches); // would a parser be faster? optimize later
+						if (!isset($skip_operation_matches[1])) {
+							fractal_zip::warning_once('fractally_process_string: expected uniform &lt;sN&gt; skip at start of remainder; flushing skip remainder.');
+							$rows[] = $equivalence_string;
+							$equivalence_string = '';
+							break;
+						}
+						$skip_counter = (int) $skip_operation_matches[1];
+						if ($skip_counter < 1) {
+							fractal_zip::warning_once('fractally_process_string: skip counter &lt; 1; flushing skip remainder.');
+							$rows[] = $equivalence_string;
+							$equivalence_string = '';
+							break;
+						}
 						$tile = '';
+						$lop = $this->left_fractal_zip_marker;
+						$rop = $this->right_fractal_zip_marker;
+						$lopLen = strlen($lop);
+						$ropLen = strlen($rop);
 						while($position < strlen($equivalence_string) && $skip_counter > 0) {
-							if($equivalence_string[$position] === '<') {
-								$tile .= substr($equivalence_string, $position, strpos($equivalence_string, '>', $position) + 1 - $position);
-								$position = strpos($equivalence_string, '>', $position);
+							if($lopLen > 0 && substr($equivalence_string, $position, $lopLen) === $lop) {
+								$endOp = strpos($equivalence_string, $rop, $position);
+								if($endOp === false) {
+									break;
+								}
+								$tile .= substr($equivalence_string, $position, $endOp + $ropLen - $position);
+								$position = $endOp + $ropLen - 1;
 							} else {
 								$tile .= $equivalence_string[$position];
 								$skip_counter--;
@@ -15556,7 +18188,13 @@ function fractally_process_string($equivalence_string, $fractal_string = false) 
 					//	}
 						fractal_zip::warning_once('forcing two-dimensional rectangle for skipping in unzip');
 						fractal_zip::warning_once('forcing only uniform skip operations in unzip');
-						$tile_pieces = explode($skip_operation_matches[0], $tile);
+						$skip_sep = $skip_operation_matches[0];
+						if ($skip_sep === '') {
+							fractal_zip::warning_once('fractally_process_string: empty uniform skip delimiter; treating tile as single piece.');
+							$tile_pieces = array($tile);
+						} else {
+							$tile_pieces = explode($skip_sep, $tile);
+						}
 						$row_index = 0;
 						$found_a_row_with_space = false;
 						foreach($rows as $row_index => $row) {
@@ -15601,8 +18239,9 @@ function fractally_process_string($equivalence_string, $fractal_string = false) 
 		}
 	}
 	// seem to need to do spanning operations later than self-cloing operations
-	if(strpos($equivalence_string, '<r') !== false) {
-		preg_match_all('/<r([^"]+)"([^>]+)>(.*?)<\/r>/is', $equivalence_string, $replace_operation_matches, PREG_OFFSET_CAPTURE); // do we need LOM since there is nesting structure?
+	if(strpos($equivalence_string, $this->left_fractal_zip_marker . 'r') !== false) {
+		$rxFractallyReplace = '/' . $fqFractallyLeft . 'r([^"]+)"([^>]+)>(.*?)<\/r>/is';
+		preg_match_all($rxFractallyReplace, $equivalence_string, $replace_operation_matches, PREG_OFFSET_CAPTURE); // do we need LOM since there is nesting structure?
 		$counter = sizeof($replace_operation_matches[0]) - 1;
 		while($counter > -1) {
 			$search = $replace_operation_matches[1][$counter][0];
@@ -15961,6 +18600,7 @@ function zip($string, $entry_filename, $debug = false, $equivalence_original_ove
 		// really ugly; assuming that everything fits into a single expression
 		$zipped_string = str_replace('>', '"' . $recursion_counter . '>', $zipped_string);
 		print('$this->fractal_string, $string, $recursion_counter: ');var_dump($this->fractal_string, $string, $recursion_counter);*/
+		// Alternating slice experiments are handled by the generic inner append/replace search.
 		
 		//$zipped_string = $string;
 		//$zipped_string = htmlspecialchars($string);
@@ -16239,11 +18879,12 @@ function zip($string, $entry_filename, $debug = false, $equivalence_original_ove
 							$row++;
 							$height++;
 							if($height < $tile_height) {
-								if($skipping_string[strlen($skipping_string) - 1] === '>') { // shouldn't have consecutive skip statements
+								$ropLenTs = strlen($this->right_fractal_zip_marker);
+								if($ropLenTs > 0 && substr($skipping_string, -$ropLenTs) === $this->right_fractal_zip_marker) { // shouldn't have consecutive skip statements
 									$row_length += $tile_width;
 									continue 3;
 								}
-								$skipping_string .= '<s' . $tile_width * $tile_height . '>';
+								$skipping_string .= $this->left_fractal_zip_marker . 's' . ($tile_width * $tile_height) . $this->right_fractal_zip_marker;
 								//$skipping_commands++;
 								$column -= $tile_width;
 								$width = 0;
@@ -16288,7 +18929,7 @@ function zip($string, $entry_filename, $debug = false, $equivalence_original_ove
 				//	}
 					$fractal_string = $fractal_substring_result[0];
 					$zipped_string = $fractal_substring_result[1];
-					$zipped_string = '<l' . $row_length . '>' . $zipped_string;
+					$zipped_string = $this->left_fractal_zip_marker . 'l' . $row_length . $this->right_fractal_zip_marker . $zipped_string;
 					if(strlen($fractal_string) === 0) {
 						
 					} else {
@@ -16566,7 +19207,7 @@ function minimally_new_substr($string) {
 //$subs = get_all_substrings("a b c", " ");
 //print_r($subs);
 
-function all_substrings_count($string, $minimum_count = 1) { // minimum_count is unused
+function all_substrings_count($string, $minimum_count = 1, ?array $haystack_byte_presence = null) { // minimum_count is unused; optional haystack_byte_presence = fz_inner_byte_presence_map($string) to skip rebuild
 	$slen = strlen($string);
 	$maxFractal = fractal_zip::max_fractal_analysis_bytes();
 	if($maxFractal > 0 && $slen > $maxFractal) {
@@ -16576,8 +19217,11 @@ function all_substrings_count($string, $minimum_count = 1) { // minimum_count is
 	$counter = 0;
 	$minimum_counter_skip = 1;
 	$substr_records = array();
+	// Sliding-window start length (legacy fractal_string scaling + clamp). **Not** the append slice gate: multipass uses
+	// {@see fz_inner_append_min_corpus_slice_bytes()} at replace time (`end−start ≥ append_depth+1`). Lowering this floor
+	// without revisiting counter_skip semantics changes which substrings appear — do not swap in step-index blindly.
+	$minimum_substr_length = max(2, min($this->substr_scan_minimum_length(), 5));
 	$baseMaxExpr = fractal_zip::maximum_substr_expression_length();
-	$minimum_substr_length = $baseMaxExpr;
 	$length_string = (string) $slen;
 	$multiple = 15 - strlen($length_string);
 	if($multiple < 3) {
@@ -16602,9 +19246,11 @@ function all_substrings_count($string, $minimum_count = 1) { // minimum_count is
 	$maxSubstrRecordEntries = $coarseCfg['max_records'];
 	fractal_zip::warning_once('I believe there is room at this counter_skip to sacrifice compression for speed');
 	fractal_zip::warning_once('hacking counter_skip');
+	$ascProf = function_exists('fz_inner_profile_enabled') && function_exists('fz_inner_profile_add_ns') && fz_inner_profile_enabled();
+	$tAscSeg = $ascProf ? hrtime(true) : 0;
 	//$highest_substr_count = 0;
 	while($counter < $slen - $minimum_substr_length) {
-		if(sizeof($substr_records) > $maxSubstrRecordEntries) {
+		if(count($substr_records) > $maxSubstrRecordEntries) {
 			break;
 		}
 		//$best_substr = false;
@@ -16617,32 +19263,30 @@ function all_substrings_count($string, $minimum_count = 1) { // minimum_count is
 			if($p >= $slen) {
 				break;
 			}
-			if($sliding_counter >= $maximum_substr_length && $string[$p + 1] !== $string[$p]) {
+			$nextSame = ($p + 1 < $slen && $string[$p + 1] === $string[$p]);
+			if($sliding_counter >= $maximum_substr_length && !$nextSame) {
 				break;
 			}
-			if($string[$p + 1] === $string[$p]) {
+			if($nextSame) {
 			} else {
 				$substr = substr($string, $counter, $sliding_counter);
-				$count = $substr_records[$substr];
-				if(isset($count)) {
-					//if($count > $highest_substr_count) {
-					//	$highest_substr_count = $count;
-					//}
-					//$counter_skip++; // just crazy enough to work??
-					$counter_skip = strlen($substr);
-					//$counter_skip = strlen($substr) * $substr_records[$substr];
-					//break; // preferring data at the start?
-					//if($count === $highest_substr_count) {
-					//	break;
-					//}
+				if(isset($substr_records[$substr])) {
+					$substr_records[$substr]++;
+					$counter_skip = $sliding_counter;
+				} else {
+					$substr_records[$substr] = 1;
 				}
-				$substr_records[$substr]++;
 				//$best_substr = $substr;
 			}
 			$sliding_counter++;
 			//$sliding_counter += $minimum_substr_length; // balls to the walls
 		}
-		$substr_records[substr($string, $counter, $sliding_counter)]++;
+		$tailPiece = substr($string, $counter, $sliding_counter);
+		if(isset($substr_records[$tailPiece])) {
+			$substr_records[$tailPiece]++;
+		} else {
+			$substr_records[$tailPiece] = 1;
+		}
 		//if($best_substr !== false) {
 		//	$substr_records[$best_substr]++;
 		//}
@@ -16652,6 +19296,10 @@ function all_substrings_count($string, $minimum_count = 1) { // minimum_count is
 		}
 		//print('$counter_skip: ');var_dump($counter_skip);
 		$counter += $counter_skip;
+	}
+	if ($ascProf) {
+		fz_inner_profile_add_ns('expand.asc.slide_probe', (int) (hrtime(true) - $tAscSeg));
+		$tAscSeg = hrtime(true);
 	}
 	//print('$substr_records after first order: ');var_dump($substr_records);exit(0);
 	// effectively doing second order processing?
@@ -16682,34 +19330,122 @@ function all_substrings_count($string, $minimum_count = 1) { // minimum_count is
 		$counter++;
 	}*/
 	//$substr_records = fractal_zip::get_all_substrings($string);
-	foreach($substr_records as $substr => $count) {
-		if($count < 2 || !fractal_zip::is_fractally_clean($substr)) {
-			unset($substr_records[$substr]);
+	// Sliding-window tallies above are a coarse probe, not true occurrence counts (short literals like `aaaaa`
+	// can probe-count <2 while substr_count(raw,·)≥2). Gate duplicates on actual non‑overlapping counts and
+	// store those for scoring so inner pass‑1 / duplicate‑substring candidates match theequiv/raw semantics.
+	/** @var array<string, true> $haystackByte */
+	if ($haystack_byte_presence !== null) {
+		$haystackByte = $haystack_byte_presence;
+	} else {
+		$haystackByte = array();
+		for ($hb = 0; $hb < $slen; $hb++) {
+			$haystackByte[$string[$hb]] = true;
+		}
+	}
+	$haystackRejectMask = '';
+	for ($ib = 0; $ib < 256; $ib++) {
+		$b = chr($ib);
+		if(!isset($haystackByte[$b])) {
+			$haystackRejectMask .= $b;
+		}
+	}
+	$substr_kept = array();
+	foreach($substr_records as $substr => $_probeCount) {
+		$needleLen = strlen($substr);
+		// substr_count() counts non-overlapping occurrences; two hits need byte span ≥ 2·len(needle).
+		if($needleLen === 0 || $needleLen * 2 > $slen) {
+			continue;
+		}
+		if(strcspn($substr, $haystackRejectMask) !== $needleLen) {
+			continue;
+		}
+		if(!fractal_zip::is_fractally_clean($substr)) {
+			continue;
+		}
+		// Greedy left-to-right non-overlapping tally matches PHP substr_count(); single scan in core.
+		$realCount = substr_count($string, $substr);
+		if($realCount < 2) {
+			continue;
+		}
+		$substr_kept[$substr] = $realCount;
+	}
+	$substr_records = $substr_kept;
+	if ($ascProf) {
+		fz_inner_profile_add_ns('expand.asc.verify_dup_counts', (int) (hrtime(true) - $tAscSeg));
+		$tAscSeg = hrtime(true);
+	}
+	$prim = fractal_zip::pure_repetition_primitive_unit($string);
+	if($prim !== null) {
+		$pl = strlen($prim);
+		if($pl >= $minimum_substr_length && fractal_zip::is_fractally_clean($prim)) {
+			$nc = intdiv($slen, $pl);
+			if($nc >= 2 && str_repeat($prim, $nc) === $string) {
+				if(!isset($substr_records[$prim]) || $substr_records[$prim] < $nc) {
+					$substr_records[$prim] = $nc;
+				}
+			}
 		}
 	}
 	//print('$substr_records: ');var_dump($substr_records);
 	fractal_zip::warning_once('sort the substrings according to the most promising and hopefully this in combination with only acting on better than average substrings will save some time');
 	// could be smarter here!
-	$scored_substr_records = array();
+	/** @var array<int, int> $markerLenByPieceLen */
+	$markerLenByPieceLen = array();
+	/** @var list<array{0:int,1:int,2:int,3:int,4:string,5:int}> $scoredRows estLin, len, -count, -(len²·count), substr, foreach-order tiebreak */
+	$scoredRows = array();
+	$foreachOrd = 0;
 	foreach($substr_records as $substr => $count) {
 		$len = strlen($substr);
-		// Favor long, repeated chunks (better fractal structure) over tiny high-frequency pieces.
-		$scored_substr_records[$substr] = $len * $len * $count;
+		if(!isset($markerLenByPieceLen[$len])) {
+			$markerLenByPieceLen[$len] = $this->estimate_inner_pass1_marker_strlen($len);
+		}
+		$mLen = $markerLenByPieceLen[$len];
+		$estLin = $len + $slen - $count * ($len - $mLen);
+		if($estLin >= $slen) {
+			$estLin = $slen;
+		}
+		// Primary: lowest naive pass-1 linear (empty dict). Tie: shorter piece. Tie: higher count. Legacy tie: len²·count. Final tie: substr_records iteration order.
+		$scoredRows[] = array($estLin, $len, -$count, -($len * $len * $count), $substr, $foreachOrd++);
 	}
-	asort($scored_substr_records, SORT_NUMERIC);
-	$scored_substr_records = array_reverse($scored_substr_records);
-	//print('$scored_substr_records: ');var_dump($scored_substr_records);
+	usort($scoredRows, static function (array $a, array $b): int {
+		if($a[0] !== $b[0]) {
+			return $a[0] <=> $b[0];
+		}
+		if($a[1] !== $b[1]) {
+			return $a[1] <=> $b[1];
+		}
+		if($a[2] !== $b[2]) {
+			return $a[2] <=> $b[2];
+		}
+		if($a[3] !== $b[3]) {
+			return $a[3] <=> $b[3];
+		}
+		return $a[5] <=> $b[5];
+	});
+	//print('$scoredRows: ');var_dump($scoredRows);
 	$baseTopK = $this->effective_substring_top_k();
 	$topK = $coarseCfg['enabled'] ? min($baseTopK, $coarseCfg['top_k_cap']) : $baseTopK;
-	$scored_substr_records = array_slice($scored_substr_records, 0, $topK, true);
+	// Bench / research: enumerate every scored duplicate substring (can be large on big inputs).
+	static $allSubstringCandidatesTakeAll = null;
+	if($allSubstringCandidatesTakeAll === null) {
+		$envAll = getenv('FRACTAL_ZIP_ALL_SUBSTRING_CANDIDATES');
+		$allSubstringCandidatesTakeAll = ($envAll === '1' || strtolower(trim((string) $envAll)) === 'true' || strtolower(trim((string) $envAll)) === 'yes');
+	}
+	if(!$allSubstringCandidatesTakeAll) {
+		$scoredRows = array_slice($scoredRows, 0, $topK);
+	}
 	//$scored_substr_records = array_slice($scored_substr_records, 0, sizeof($segments_array)); // trying to balance for the fact that a very nice and long duplicated substring would be split of multiple segments
 	//print('$scored_substr_records top1: ');var_dump($scored_substr_records);
 	$sorted_substr_records = array();
-	foreach($scored_substr_records as $substr => $score) {
+	foreach($scoredRows as $row) {
+		$substr = $row[4];
 		$sorted_substr_records[$substr] = $substr_records[$substr];
 	}
 	//print('$substr_records, $sorted_substr_records: ');var_dump($substr_records, $sorted_substr_records);exit(0);
 	//return $substr_records;
+	if ($ascProf) {
+		fz_inner_profile_add_ns('expand.asc.score_sort_topk', (int) (hrtime(true) - $tAscSeg));
+	}
 	return $sorted_substr_records;
 }
 
@@ -16725,14 +19461,15 @@ function all_substrings_count_old($string, $minimum_count = 1) { // tricky to co
 	$segments_array = str_split($string, $this->segment_length);
 	//$segments_array = str_split($string, fractal_zip::maximum_substr_expression_length() * 10);
 	$all_segments_substr_records = array();
+	$scanMinOld = fractal_zip::substr_scan_minimum_length();
+	$maxExpr = fractal_zip::maximum_substr_expression_length();
 	foreach($segments_array as $string) {
 		$segLen = strlen($string);
-		$maxExpr = fractal_zip::maximum_substr_expression_length();
 		$counter = 0;
 		//$saved_substr_count = -1;
 		$saved_substr = '';
 		$substr_records = array();
-		while($counter < $segLen - $maxExpr) {
+		while($counter < $segLen - $scanMinOld) {
 			//fractal_zip::warning_once('minimally_new_substr processing disabled since we may be creating terribly deep 1000+ dimensional arrays');
 			//$minimally_new_substr = fractal_zip::minimally_new_substr(substr($string, $counter));
 			//if($minimally_new_substr === '') {
@@ -17081,7 +19818,7 @@ function walk_the_path($path, $fractal_paths) {
 	//if($this->walk_the_path_debug_counter > 1) {
 	//	fractal_zip::fatal_error('$this->walk_the_path_debug_counter > 1');
 	//}
-	if(sizeof($path) > 1) {
+	if(count($path) > 1) {
 		return fractal_zip::walk_the_path(array_slice($path, 1), $fractal_paths[$path[0]][0]);
 	} else {
 		return $fractal_paths[$path[0]];
@@ -17106,25 +19843,40 @@ function recursive_fractal_substring($string, $fractal_string, $fractal_paths = 
 		$initial_path = $path;
 		if($recursion_counter === 0) {
 			$this->recursive_fractal_entry_strlen = strlen($initial_string);
+			$this->recursive_fractal_max_seconds = fractal_zip::max_recursive_fractal_seconds();
+			$this->recursive_fractal_max_analysis_bytes = fractal_zip::max_fractal_analysis_bytes();
 		}
-		$maxFractalRec = fractal_zip::max_fractal_analysis_bytes();
+		if($this->recursive_fractal_max_seconds === null) {
+			$this->recursive_fractal_max_seconds = fractal_zip::max_recursive_fractal_seconds();
+		}
+		if($this->recursive_fractal_max_analysis_bytes === null) {
+			$this->recursive_fractal_max_analysis_bytes = fractal_zip::max_fractal_analysis_bytes();
+		}
+		$maxFractalRec = $this->recursive_fractal_max_analysis_bytes;
 		$recStrLen = strlen($initial_string);
 		if($maxFractalRec > 0 && $recStrLen > $maxFractalRec) {
 			return $fractal_paths;
 		}
-		$maxDepth = fractal_zip::max_recursive_fractal_depth();
-		$maxDepth = fractal_zip::fractal_large_entry_effective_max_depth((int) $this->recursive_fractal_entry_strlen, $maxDepth);
-		if($recursion_counter > $maxDepth) {
+		if($recursion_counter === 0 || $this->recursive_fractal_effective_max_depth === null) {
+			$bd = fractal_zip::max_recursive_fractal_depth();
+			$this->recursive_fractal_effective_max_depth = fractal_zip::fractal_large_entry_effective_max_depth((int) $this->recursive_fractal_entry_strlen, $bd);
+		}
+		if($recursion_counter > $this->recursive_fractal_effective_max_depth) {
 			fractal_zip::warning_once('recursive_fractal_substring depth limit reached; pruning deep branch');
 			return $fractal_paths;
 		}
-		$maxSeconds = fractal_zip::max_recursive_fractal_seconds();
-		if($maxSeconds > 0 && microtime(true) - $this->initial_micro_time > $maxSeconds) {
+		if($this->recursive_fractal_max_seconds > 0 && microtime(true) - $this->initial_micro_time > $this->recursive_fractal_max_seconds) {
 			fractal_zip::warning_once('recursive_fractal_substring time budget reached; pruning deep branch');
 			return $fractal_paths;
 		}
-		$this->fractal_marker_ctx_publish();
-		$maxSubstrExprRfs = fractal_zip::maximum_substr_expression_length();
+		if($recursion_counter === 0
+			|| (string) fractal_zip::$fractal_marker_ctx_left !== (string) $this->left_fractal_zip_marker
+			|| (string) fractal_zip::$fractal_marker_ctx_mid !== (string) $this->mid_fractal_zip_marker
+			|| (string) fractal_zip::$fractal_marker_ctx_right !== (string) $this->right_fractal_zip_marker
+			|| (string) fractal_zip::$fractal_marker_ctx_range !== (string) $this->range_shorthand_marker) {
+			$this->fractal_marker_ctx_publish();
+		}
+		$maxSubstrExprRfs = fractal_zip::substr_scan_minimum_length();
 		$thisStringLenRfs = strlen($this->string);
 
 		// looking to add to fractal_string
@@ -17330,10 +20082,12 @@ function recursive_fractal_substring($string, $fractal_string, $fractal_paths = 
 		//}
 		
 		$badInterior = $this->left_fractal_zip_marker . $this->mid_fractal_zip_marker;
-		if(strpos($string, $badInterior) !== false) { // debug: malformed "<mid" without offset digits
-			print('$string: ');var_dump($string);
+		if(strpos($initial_string, $badInterior) !== false) { // debug: malformed "<mid" without offset digits (frame input; both substr loops reset $string from this)
+			print('$initial_string: ');var_dump($initial_string);
 			fractal_zip::fatal_error('strpos($string, left+mid without digits) !== false 1');
 		}
+		list($Lq, $Mq, $Rq) = fractal_zip_marker_rx_quoted_delimiters();
+		$rxRecDig = '/' . $Lq . '([0-9]+)' . $Mq . '([0-9]+)' . $Mq . '([0-9])/s';
 		
 		//print('$string, $fractal_string, $substr_records: ');var_dump($string, $fractal_string, $substr_records);
 		foreach($substr_records as $piece => $piece_count) {
@@ -17399,6 +20153,7 @@ function recursive_fractal_substring($string, $fractal_string, $fractal_paths = 
 			$string = $initial_string;
 			$fractal_string = $initial_fractal_string;
 			$path = $initial_path;
+			$avgScores = fractal_zip::average($scores);
 			
 			//$recursion_markerless_piece = preg_replace('/<([0-9]+)"([0-9]+)"*([0-9]*)>/is', '<$1"$2>', $piece); // remove recursion markers when comparing to fractal_string
 			$recursion_markerless_piece = fractal_zip::recursion_markerless($piece); // remove recursion markers when comparing to fractal_string
@@ -17525,7 +20280,9 @@ function recursive_fractal_substring($string, $fractal_string, $fractal_paths = 
 			//	print('$piece, $fractal_paths, $string, $fractal_string, $path2: ');var_dump($piece, $fractal_paths, $string, $fractal_string, $path);
 			//	fractal_zip::fatal_error('$substr_records_debug_counter > 28');
 			//}
-				$score = $thisStringLenRfs / (strlen($string) + strlen($fractal_string)); // crude?
+				$strLenCur = strlen($string);
+				$fractalLenCur = strlen($fractal_string);
+				$score = $thisStringLenRfs / ($strLenCur + $fractalLenCur); // crude?
 				fractal_zip::warning_once('need to tune this fractal_path branch trimming score1 can we progressively determine the fractal dimension?');
 				//print('rfs0003.71<br>');exit(0);
 				//print('$score, fractal_zip::average($scores), $this->silent_validate($string, $fractal_string, $this->string): ');var_dump($score, fractal_zip::average($scores), $this->silent_validate($string, $fractal_string, $this->string));
@@ -17547,7 +20304,7 @@ function recursive_fractal_substring($string, $fractal_string, $fractal_paths = 
 				//if($score > $recursion_counter && $score > $last_score && $this->silent_validate($string, $fractal_string, $this->string)) {
 				//if($score > $recursion_counter && $score > $best_score && $this->silent_validate($string, $fractal_string, $this->string)) {
 				//if($score > $last_score && $this->silent_validate($string, $fractal_string, $this->string)) {
-				if($recStrLen - strlen($string) > $maxSubstrExprRfs && $score > fractal_zip::average($scores) && $this->silent_validate($string, $fractal_string, $this->string)) {
+				if($recStrLen - $strLenCur >= $maxSubstrExprRfs && $score > $avgScores && $this->silent_validate($string, $fractal_string, $this->string)) {
 					//print('adding to fractal_paths<br>');
 					//$string = preg_replace('/<([0-9]+)"([0-9]+)"1(\**[0-9]*)(s*[0-9]*)>/is', '<$1"$2$3$4>', $string); // unmarked recursion_counter is understood by later code as recursion_counter = 1
 					//$fractal_paths[$piece] = array($this->recursive_fractal_substring($string, $fractal_string, array(), $path, $recursion_counter + 1, $score * $this->fractal_path_branch_trimming_multiplier), $string, $fractal_string);
@@ -17589,11 +20346,14 @@ function recursive_fractal_substring($string, $fractal_string, $fractal_paths = 
 		//$recursion_markerless_string = preg_replace('/<([0-9]+)"([0-9]+)"*([0-9]*)>/is', '<$1"$2>', $string); // remove recursion markers when comparing to fractal_string
 		//print('$recursion_markerless_string: ');var_dump($recursion_markerless_string);
 		$debug_counter45 = 0;
+		$recursion_markerless_initial_string = fractal_zip::recursion_markerless($initial_string);
+		$rxSubstringMainReplace = '/' . fractal_zip_marker_rx_substring_main() . '/is';
 		foreach($fractal_substr_records as $piece => $piece_count) {
 			$string = $initial_string;
 			$fractal_string = $initial_fractal_string;
 			//print('$string, $fractal_string before looking to use a substring of the fractal_string: ');var_dump($string, $fractal_string);
 			$path = $initial_path;
+			$avgScores = fractal_zip::average($scores);
 			/*fractal_zip::warning_once('hack4729');
 			if($recursion_counter === 1) {
 				if($piece !== 'bbbbbbaaaaaaaaaaaaabaaaaaaaaaaaaabbbbbb') { // fix improving fractal_string
@@ -17616,9 +20376,6 @@ function recursive_fractal_substring($string, $fractal_string, $fractal_paths = 
 			
 			
 			// looking to improve the string (and fractal_string?)
-			if(strpos($string, $badInterior) !== false) { // debug
-				fractal_zip::fatal_error('strpos($string, left+mid without digits) !== false');
-			}
 			$string_match_position = fractal_zip::strpos_ignoring_operations($string, $piece);
 			$recursion_marked_piece = substr($string, $string_match_position, $this->length_including_operations);
 			$recursion_markerless_piece = fractal_zip::recursion_markerless($piece);
@@ -17627,7 +20384,7 @@ function recursive_fractal_substring($string, $fractal_string, $fractal_paths = 
 			//$match_positions = array();
 			//$recursion_markerless_piece = preg_replace('/<([0-9]+)"([0-9]+)"*([0-9]*)>/is', '<$1"$2>', $piece); // remove recursion markers when comparing to fractal_string
 			//print('$string, $piece, $fractal_string before checking if fractal_string should be improved: ');var_dump($string, $piece, $fractal_string);
-			if(strpos(fractal_zip::recursion_markerless($string), $piece) === false) { // if we directly find it in the string then we do not have to improve the fractal_string
+			if(strpos($recursion_markerless_initial_string, $piece) === false) { // if we directly find it in the string then we do not have to improve the fractal_string
 				//print('$piece, $string, $fractal_string, $recursion_counter before looking to improve the string2: ');var_dump($piece, $string, $fractal_string, $recursion_counter);
 			//if($recursion_counter === 0) {
 			//	print('adding $piece to $string 3<br>');
@@ -17660,7 +20417,7 @@ function recursive_fractal_substring($string, $fractal_string, $fractal_paths = 
 						//	fractal_zip::fatal_error('$debug_counter38 > 11');
 						//}
 						$did_something = false;
-						if(preg_match('/' . fractal_zip_marker_rx_substring_main() . '/is', $replace, $matches, PREG_OFFSET_CAPTURE, $replace_offset)) { // would a parser be faster? optimize later
+						if(preg_match($rxSubstringMainReplace, $replace, $matches, PREG_OFFSET_CAPTURE, $replace_offset)) { // would a parser be faster? optimize later
 							$recursion_markerless_replace = fractal_zip::recursion_markerless($replace);
 							//print('$matches: ');var_dump($matches);
 						//preg_match_all('/<([0-9]+)"' . strlen($piece) . '>/is', $piece, $matches, PREG_OFFSET_CAPTURE); // ??
@@ -17760,7 +20517,6 @@ function recursive_fractal_substring($string, $fractal_string, $fractal_paths = 
 						}
 					}*/
 					//print('$search, $replace, $fractal_string, $piece, $match_position after improving the whole string2: ');var_dump($search, $replace, $fractal_string, $piece, $match_position);
-					$rxRecDig = '/' . preg_quote(fractal_zip::$fractal_marker_ctx_left, '/') . '([0-9]+)' . preg_quote(fractal_zip::$fractal_marker_ctx_mid, '/') . '([0-9]+)' . preg_quote(fractal_zip::$fractal_marker_ctx_mid, '/') . '([0-9])/s';
 					if(preg_match($rxRecDig, $fractal_string, $recursion_marker_in_fractal_string_matches)) { // debug
 						print('$fractal_string: ');var_dump($fractal_string);
 						fractal_zip::fatal_error('recursion marker in fractal_string found');
@@ -17794,10 +20550,11 @@ function recursive_fractal_substring($string, $fractal_string, $fractal_paths = 
 				
 				//print('$fractal_string, $recursion_markerless_piece, $match_position: ');var_dump($fractal_string, $recursion_markerless_piece, $match_position);
 				if($match_position !== false) {
+					$pieceLenForMark = strlen($piece);
 					if($recursion_counter > 0) {
-						$marked_range_string = $this->left_fractal_zip_marker . $match_position . $this->mid_fractal_zip_marker . strlen($piece) . $this->mid_fractal_zip_marker . ($recursion_counter + 1) . $this->right_fractal_zip_marker;
+						$marked_range_string = $this->left_fractal_zip_marker . $match_position . $this->mid_fractal_zip_marker . $pieceLenForMark . $this->mid_fractal_zip_marker . ($recursion_counter + 1) . $this->right_fractal_zip_marker;
 					} else {
-						$marked_range_string = $this->left_fractal_zip_marker . $match_position . $this->mid_fractal_zip_marker . strlen($piece) . $this->right_fractal_zip_marker;
+						$marked_range_string = $this->left_fractal_zip_marker . $match_position . $this->mid_fractal_zip_marker . $pieceLenForMark . $this->right_fractal_zip_marker;
 					}
 					//$real_string_match_position = fractal_zip::strpos_ignoring_operations($string, $piece);
 					//$recursion_marked_piece = substr($string, $string_match_position, $this->length_including_operations);
@@ -17807,7 +20564,9 @@ function recursive_fractal_substring($string, $fractal_string, $fractal_paths = 
 				//	$string = fractal_zip::tuples($string, $marked_range_string);
 					//print('$string 44: ');var_dump($string);
 					$path[] = $piece;
-					$score = $thisStringLenRfs / (strlen($string) + strlen($fractal_string)); // crude?
+					$strLenCur = strlen($string);
+					$fractalLenCur = strlen($fractal_string);
+					$score = $thisStringLenRfs / ($strLenCur + $fractalLenCur); // crude?
 					//print('$string, $fractal_string, $this->string for silent_validate when looking to improve the string (and fractal_string?): ');var_dump($string, $fractal_string, $this->string);
 					//$debug_counter45++;
 					//if($debug_counter45 > 20) {
@@ -17827,7 +20586,7 @@ function recursive_fractal_substring($string, $fractal_string, $fractal_paths = 
 					//if($score > $recursion_counter && $score > $last_score && $this->silent_validate($string, $fractal_string, $this->string)) {
 					//if($score > $recursion_counter && $score > $best_score && $this->silent_validate($string, $fractal_string, $this->string)) {
 					//if($score > $last_score && $this->silent_validate($string, $fractal_string, $this->string)) {
-					if($recStrLen - strlen($string) > $maxSubstrExprRfs && $score > fractal_zip::average($scores) && $this->silent_validate($string, $fractal_string, $this->string)) {
+					if($recStrLen - $strLenCur >= $maxSubstrExprRfs && $score > $avgScores && $this->silent_validate($string, $fractal_string, $this->string)) {
 					// recursion_counter clumsily acts for speed? but only for the test_files
 						//$fractal_paths[$piece] = array($this->recursive_fractal_substring($string, $fractal_string, array(), $path, $recursion_counter + 1, $score * $this->fractal_path_branch_trimming_multiplier), $string, $fractal_string);
 						$fractal_paths[$piece] = array($this->recursive_fractal_substring($string, $fractal_string, array(), $path, $recursion_counter + 1, $score), $string, $fractal_string);
@@ -18095,7 +20854,7 @@ function recursive_fractal_substring($string, $fractal_string, $fractal_paths = 
 					$recursion_marked_something = true;
 					continue;
 				} else {
-					print('degreedying<br>');
+					fractal_zip::html_trace_print('degreedying<br>');
 					$degreedied_backwards = false;
 					foreach($fractal_string_operator_parameters as $index => $value) {
 						if($value[0] === $tag_matches[1][$tag_index][0]) {
@@ -18171,7 +20930,8 @@ function recursive_fractal_substring($string, $fractal_string, $fractal_paths = 
 }
 
 function simple_substring_expressions_only($string) {
-	preg_match_all('/' . fractal_zip_marker_rx_substring_main() . '/is', $string, $matches, PREG_OFFSET_CAPTURE); // would a parser be faster? optimize later
+	$rxSubstringMainSimple = '/' . fractal_zip_marker_rx_substring_main() . '/is';
+	preg_match_all($rxSubstringMainSimple, $string, $matches, PREG_OFFSET_CAPTURE); // would a parser be faster? optimize later
 	//print('$matches in simple_substring_expressions_only: ');var_dump($matches);
 	$counter = sizeof($matches[0]) - 1;
 	while($counter > -1) {
@@ -18199,7 +20959,8 @@ function multiples($string, $operation) {
 }
 
 function tuples($string, $operation) {
-	preg_match_all('/' . $operation . '/is', $string, $matches, PREG_OFFSET_CAPTURE);
+	$rxTuples = '/' . $operation . '/is';
+	preg_match_all($rxTuples, $string, $matches, PREG_OFFSET_CAPTURE);
 	//print('$matches in tuples: ');var_dump($matches);
 	$counter = sizeof($matches[0]) - 1;
 	$tuple = 1;
@@ -18237,6 +20998,9 @@ public static function bracket_delimiters_well_ordered($piece) {
 	if(strlen($L) !== 1 || strlen($R) !== 1) {
 		return true;
 	}
+	if(strcspn($piece, $L[0] . $R[0]) === strlen($piece)) {
+		return true;
+	}
 	$firstLt = strpos($piece, $L);
 	$firstGt = strpos($piece, $R);
 	if($firstLt !== false && $firstGt !== false && $firstGt < $firstLt) {
@@ -18254,15 +21018,18 @@ public static function bracket_delimiters_well_ordered($piece) {
 }
 
 function is_fractally_clean($piece) { // pretty hacky
+	$L = fractal_zip::$fractal_marker_ctx_left;
+	$R = fractal_zip::$fractal_marker_ctx_right;
+	if(strlen($L) === 1 && strlen($R) === 1 && strcspn($piece, $L[0] . $R[0]) === strlen($piece)) {
+		return true;
+	}
 	if(!fractal_zip::bracket_delimiters_well_ordered($piece)) { // questionably throw out partial operators
 		return false;
 	}
-	$L = fractal_zip::$fractal_marker_ctx_left;
-	$R = fractal_zip::$fractal_marker_ctx_right;
 	if(strlen($L) !== 1 || strlen($R) !== 1) {
 		return true;
 	}
-	if(substr_count($piece, $R) === 1 && substr_count($piece, $L) === 1 && strpos($piece, $L) === 0 && strpos(strrev($piece), $R) === 0) { // questionably throw out pieces that are only a single operator
+	if(substr_count($piece, $R) === 1 && substr_count($piece, $L) === 1 && strpos($piece, $L) === 0 && substr($piece, -1) === $R) { // questionably throw out pieces that are only a single operator (same as strpos(strrev($piece), $R)===0 when |R|===1)
 		return false;
 	}/* elseif(strpos($piece, '<<') !== false || strpos($piece, '>>') !== false) { // ugly but probably effective until something smarter is done
 		return false;	
@@ -18330,6 +21097,9 @@ function strpos_ignoring_operations($haystack, $needle, $offset = 0) {
 	$ropLen = strlen($rop);
 	$needle = fractal_zip::tagless($needle);
 	$needleLen = strlen($needle);
+	if($needleLen === 0) {
+		return false;
+	}
 	$haystackLen = strlen($haystack);
 	$needle_offset = 0;
 	while($offset < $haystackLen) {
@@ -18950,7 +21720,7 @@ static function xz_executable() {
 
 /**
  * Path to `zpaq` (http://mattmahoney.net/dc/zpaq.html), or null. Override: <code>FRACTAL_ZIP_ZPAQ</code> full path.
- * Skip trials: <code>FRACTAL_ZIP_SKIP_ZPAQ=1</code>. Inner-size gates: <code>FRACTAL_ZIP_MIN_ZPAQ_INNER_BYTES</code> (default 0),
+ * Skip trials: <code>FRACTAL_ZIP_SKIP_ZPAQ=1</code>. Inner-size gates: <code>FRACTAL_ZIP_MIN_ZPAQ_INNER_BYTES</code> (default 8192),
  * <code>FRACTAL_ZIP_MAX_ZPAQ_INNER_BYTES</code> (default 6291456; <code>0</code> = no cap).
  */
 static function zpaq_executable() {
@@ -18990,7 +21760,7 @@ static function zpaq_executable() {
 	return $found;
 }
 
-/** Minimum inner bytes before trying zpaq outer (default 0: bytes-first on small payloads; set higher to skip tiny inners). */
+/** Minimum inner bytes before trying zpaq outer (default 8192; set 0 for bytes-first tiny-payload sweeps). */
 public static function min_zpaq_inner_bytes(): int {
 	static $cached = null;
 	if($cached !== null) {
@@ -18998,7 +21768,7 @@ public static function min_zpaq_inner_bytes(): int {
 	}
 	$e = getenv('FRACTAL_ZIP_MIN_ZPAQ_INNER_BYTES');
 	if($e === false || trim((string) $e) === '') {
-		return $cached = 0;
+		return $cached = 8192;
 	}
 	return $cached = max(0, (int) trim((string) $e));
 }
@@ -19017,6 +21787,45 @@ public static function max_zpaq_inner_bytes(): int {
 		return $cached = 6291456;
 	}
 	return $cached = max(0, (int) trim((string) $e));
+}
+
+/**
+ * Strong brotli outer vs inner length can justify skipping **zpaq** slow-wave work only.
+ * It must **not** clear the general slow outer sweep: 7z/LZMA2 (and arc when eligible) may still beat brotli by a few bytes
+ * on midsize binaries (e.g. Squash {@code test_files127}). Tunables: {@see skip_zpaq_after_strong_brotli_max_inner_bytes},
+ * {@see skip_zpaq_after_strong_brotli_inner_div}; disable entirely with {@code FRACTAL_ZIP_SKIP_ZPAQ_AFTER_STRONG_BROTLI=0}.
+ */
+public static function skip_zpaq_after_strong_brotli_enabled(): bool {
+	static $cached = null;
+	if($cached !== null) {
+		return $cached;
+	}
+	$e = getenv('FRACTAL_ZIP_SKIP_ZPAQ_AFTER_STRONG_BROTLI');
+	return $cached = ($e === false || trim((string) $e) === '') ? true : !in_array(strtolower(trim((string) $e)), array('0', 'false', 'off', 'no'), true);
+}
+
+public static function skip_zpaq_after_strong_brotli_max_inner_bytes(): int {
+	static $cached = null;
+	if($cached !== null) {
+		return $cached;
+	}
+	$e = getenv('FRACTAL_ZIP_SKIP_ZPAQ_AFTER_STRONG_BROTLI_MAX_INNER_BYTES');
+	if($e === false || trim((string) $e) === '') {
+		return $cached = 262144;
+	}
+	return $cached = max(0, (int) trim((string) $e));
+}
+
+public static function skip_zpaq_after_strong_brotli_inner_div(): int {
+	static $cached = null;
+	if($cached !== null) {
+		return $cached;
+	}
+	$e = getenv('FRACTAL_ZIP_SKIP_ZPAQ_AFTER_STRONG_BROTLI_INNER_DIV');
+	if($e === false || trim((string) $e) === '') {
+		return $cached = 4;
+	}
+	return $cached = max(1, (int) trim((string) $e));
 }
 
 /**
@@ -19213,6 +22022,9 @@ function outer_7z_m0_candidates($innerLen, $literalBundleHuge = false) {
 		$lzma[] = 'lzma2:fb=192';
 		$lzma[] = 'lzma2:fb=273';
 	} elseif($innerLen > 12288) {
+		// Default lzma2 profile first: some midsize Squash literals (e.g. sum-like dirs) beat fb=128 by a few bytes vs min-ext 7z sweeps.
+		$lzma[] = 'lzma2';
+		$lzma[] = 'lzma2:fb=64';
 		$lzma[] = 'lzma2:fb=128';
 		$lzma[] = 'lzma2:fb=192';
 	} else {
@@ -20445,9 +23257,11 @@ function adaptive_compress_brotli_outer_full_quality_lgwin_refine(
 		if(!$outerTextlike) {
 			$lgwinTrials[] = array('q' => $lgwinQual, 'w' => 16);
 		}
-		if(($outerTextlike || $ultraSingleTxtRawSweep || $jpegEmbeddedBrotliLgwinSweep) && !$speedMode && !fractal_zip::disable_brotli_q11_textlike_lgwin_extra_sweep()
+		$fzbNonTextLgwinExtra = $bundleInnerFzws && !$outerTextlike && $innerLen >= 64 && $innerLen <= 524288;
+		$denseLgwinSweep = ($jpegEmbeddedBrotliLgwinSweep || $fzbNonTextLgwinExtra);
+		if(($outerTextlike || $ultraSingleTxtRawSweep || $jpegEmbeddedBrotliLgwinSweep || $fzbNonTextLgwinExtra) && !$speedMode && !fractal_zip::disable_brotli_q11_textlike_lgwin_extra_sweep()
 			&& $innerLen > 0 && $innerLen <= 524288) {
-			foreach(array(20, 22, 24) as $xLw) {
+			foreach(($denseLgwinSweep ? array(17, 18, 19, 20, 21, 22, 23, 24) : array(20, 22, 24)) as $xLw) {
 				$lgwinTrials[] = array('q' => $lgwinQual, 'w' => $xLw);
 			}
 		}
@@ -20509,7 +23323,7 @@ function adaptive_compress_brotli_outer_full_quality_lgwin_refine(
  * When brotli outer is extremely small vs inner (ratio knobs FRACTAL_ZIP_SKIP_SLOW_OUTERS_AFTER_BROTLI_*), skip xz / reopen-7z sweep for speed.
  * Highly gzip-compressible text-like FZB: FRACTAL_ZIP_SKIP_ZSTD_TEXTLIKE_FZB_GZIP_DIV (default 50) skips zstd when gzLen*div < innerLen (brotli usually wins outer).
  * FreeArc outer: FRACTAL_ZIP_ARC_METHOD=1..9 single trial; else FRACTAL_ZIP_ARC_OUTER_METHODS=comma list; else inners ≥ FRACTAL_ZIP_ARC_OUTER_DUAL_MIN_BYTES (unset ⇒ 64 KiB) try -m4..9 and -m5/-m9 -mx (FRACTAL_ZIP_ARC_OUTER_DUAL_METHODS=0 ⇒ -m5 only; FRACTAL_ZIP_ARC_OUTER_MX=0 skips -mx).
- * zpaq outer (optional binary on PATH or FRACTAL_ZIP_ZPAQ): FRACTAL_ZIP_SKIP_ZPAQ=1 disables; FRACTAL_ZIP_MIN_ZPAQ_INNER_BYTES (default 0); FRACTAL_ZIP_MAX_ZPAQ_INNER_BYTES (default 6291456, 0 = no cap); FRACTAL_ZIP_ZPAQ_METHOD (default 5, or full argv fragment starting with -); FRACTAL_ZIP_ZPAQ_TIMEOUT_SEC wraps the add on Unix when set.
+ * zpaq outer (optional binary on PATH or FRACTAL_ZIP_ZPAQ): FRACTAL_ZIP_SKIP_ZPAQ=1 disables; FRACTAL_ZIP_MIN_ZPAQ_INNER_BYTES (default 8192; set 0 for tiny bytes-first sweeps); FRACTAL_ZIP_MAX_ZPAQ_INNER_BYTES (default 6291456, 0 = no cap); FRACTAL_ZIP_ZPAQ_METHOD (default 5, or full argv fragment starting with -); FRACTAL_ZIP_ZPAQ_TIMEOUT_SEC wraps the add on Unix when set.
  * Unified-stream folders: when outer is zpaq, {@see maybe_folder_zpaq_native_smaller_than_fzc} may replace the wrapped inner with a native raw-tree .zpaq if smaller (adaptive runs capped by FRACTAL_ZIP_FOLDER_NATIVE_ZPAQ_COMPARE_MAX_RAW_BYTES, default 8 MiB merged raw; no cap when FRACTAL_ZIP_FORCE_OUTER=zpaq).
  * Bench / A–B: <code>FRACTAL_ZIP_FORCE_OUTER=zpaq</code> skips the outer tournament and keeps zpaq-only behavior (no fallback to 7z/arc/zstd; if zpaq is unavailable/fails, inner is stored unchanged). <code>FRACTAL_ZIP_ZPAQ_OUTER_SWEEP=1</code> forces a multi‑<code>-method</code> sweep at any size; when unset, inners ≤ <code>FRACTAL_ZIP_ZPAQ_OUTER_AUTO_SWEEP_MAX_INNER_BYTES</code> (default 2 MiB, <code>0</code>=off) sweep too. Optional comma list: <code>FRACTAL_ZIP_ZPAQ_OUTER_METHODS</code> (else 6,5,4,3 for inners ≤min(2 MiB, auto cap), else 5,4,3).
  * Outer brotli window: FRACTAL_ZIP_BROTLI_LGWIN=0..24 (optional). Full refinement (after fast Q1 / medium Q3): FZB* + Q11 tries -w 16, then on text-like inners ≤512 KiB also -w 20, -w 22, and -w 24 unless FRACTAL_ZIP_DISABLE_BROTLI_Q11_TEXTLIKE_LGWIN_EXTRA_SWEEP=1 or FRACTAL_ZIP_SPEED=1.
@@ -20517,7 +23331,7 @@ function adaptive_compress_brotli_outer_full_quality_lgwin_refine(
  * Set <code>FRACTAL_ZIP_ALLOW_OUTER_EXPANSION=1</code> to keep legacy behavior (use best outer even when it does not shrink the payload).
  * Verbose slow-branch skips: set {@code FRACTAL_ZIP_PIPELINE_OUTER_STEP_VERBOSE=1} together with {@code FRACTAL_ZIP_PIPELINE_OUTER_STEP_LOG=1} for zero-time {@code skipped_outer_*} lines when xz / 7z / arc / zpaq outer sections do not run.
  * Benchmark outer prediction: <code>FRACTAL_ZIP_DUMP_PRE_OUTER_INNER</code> path ⇒ write inner bytes once; <code>FRACTAL_ZIP_PRE_OUTER_PROBE_ONLY=1</code> ⇒ skip gzip baseline and all outer trials (return identity inner; {@see fractal_zip::$last_outer_codec} <code>store</code>).
- * Runtime outer prediction (Squash-style layered probes): unset/<code>1</code> ⇒ layered ranking runs immediately after the gzip baseline (before zstd/brotli). Gzip-margin hints trim slow outers only after {@code outer_compression_ratchet_level}: tiny inners (ratchet {@code 0}) keep full 7z/arc/zpaq exploration; ratchet {@code 2} trims heavy trials on huge near‑incompressible payloads when zpaq‑like compression would dominate wall time. {@code FRACTAL_ZIP_OUTER_RATCHET_*}, {@code FRACTAL_ZIP_ZPAQ_OUTER_HIGH_METHOD_MAX_INNER_BYTES}. Skips probes when gzip baseline ratio is high ({@code FRACTAL_ZIP_OUTER_PREDICT_MAX_GZIP_LEN_FRAC}). <code>FRACTAL_ZIP_OUTER_PREDICT=0</code> disables. Tunables: <code>FRACTAL_ZIP_OUTER_PREDICT_MIN_INNER_BYTES</code>, <code>FRACTAL_ZIP_OUTER_PREDICT_PROBE_MAX_BYTES</code> (unset ⇒ 8 MiB max probe prefix; <code>FRACTAL_ZIP_SPEED=1</code> ⇒ 2 MiB unless set), <code>FRACTAL_ZIP_OUTER_PREDICT_TIMEOUT_SEC</code> (unset ⇒ 30 s default; <code>FRACTAL_ZIP_SPEED=1</code> ⇒ 12 s default unless set), <code>FRACTAL_ZIP_OUTER_PREDICT_LAYER3_HIGH</code> (unset ⇒ skip L3 high-tier subprocess on L2 winner — mapped family unchanged; <code>1</code> ⇒ full probes). <code>FRACTAL_ZIP_OUTER_PREDICT_DEBUG=1</code> ⇒ stderr line (family, ratchet, lanes, gzip gate). <code>FRACTAL_ZIP_DEFER_SLOW_PREDICT_LANES_TO_PARALLEL_WAVE</code> (else legacy <code>FRACTAL_ZIP_DEFER_ZPAQ_PREDICT_TO_PARALLEL_WAVE</code>; unset ⇒ on): when prediction names zpaq/7z/arc and the parallel slow outer wave would run that codec with another slow codec, skip the matching early predict lane ({@see fractal_zip::defer_slow_predict_lanes_to_parallel_wave_enabled}); <code>0</code> restores dedicated predict lanes.
+ * Runtime outer prediction (Squash-style layered probes): unset/<code>1</code> ⇒ layered ranking runs immediately after the gzip baseline (before zstd/brotli). Gzip-margin hints trim slow outers only after {@code outer_compression_ratchet_level}: tiny inners (ratchet {@code 0}) keep full 7z/arc/zpaq exploration; ratchet {@code 2} trims heavy trials on huge near‑incompressible payloads when zpaq‑like compression would dominate wall time. {@code FRACTAL_ZIP_OUTER_RATCHET_*}, {@code FRACTAL_ZIP_ZPAQ_OUTER_HIGH_METHOD_MAX_INNER_BYTES}. Skips probes when gzip baseline ratio is very high ({@code FRACTAL_ZIP_OUTER_PREDICT_MAX_GZIP_LEN_FRAC}, default <code>0.999</code>; {@see fractal_zip::outer_prediction_skip_layered_for_gzip_baseline}). <code>FRACTAL_ZIP_OUTER_PREDICT=0</code> disables. Tunables: <code>FRACTAL_ZIP_OUTER_PREDICT_MIN_INNER_BYTES</code>, <code>FRACTAL_ZIP_OUTER_PREDICT_MAX_INNER_BYTES</code> (unset ⇒ 8 MiB cap; <code>FRACTAL_ZIP_ULTRA=1</code> ⇒ uncapped), <code>FRACTAL_ZIP_OUTER_PREDICT_PROBE_MAX_BYTES</code> (unset ⇒ 8 MiB max probe prefix; <code>FRACTAL_ZIP_SPEED=1</code> ⇒ 2 MiB unless set), <code>FRACTAL_ZIP_OUTER_PREDICT_TIMEOUT_SEC</code> (unset ⇒ 30 s default; <code>FRACTAL_ZIP_SPEED=1</code> ⇒ 12 s default unless set), <code>FRACTAL_ZIP_OUTER_PREDICT_LAYER3_HIGH</code> (unset ⇒ skip L3 high-tier subprocess on L2 winner — mapped family unchanged; <code>1</code> ⇒ full probes). <code>FRACTAL_ZIP_OUTER_PREDICT_DEBUG=1</code> ⇒ stderr line (family, ratchet, lanes, gzip gate). <code>FRACTAL_ZIP_DEFER_SLOW_PREDICT_LANES_TO_PARALLEL_WAVE</code> (else legacy <code>FRACTAL_ZIP_DEFER_ZPAQ_PREDICT_TO_PARALLEL_WAVE</code>; unset ⇒ on): when prediction names zpaq/7z/arc and the parallel slow outer wave would run that codec with another slow codec, skip the matching early predict lane ({@see fractal_zip::defer_slow_predict_lanes_to_parallel_wave_enabled}); <code>0</code> restores dedicated predict lanes.
  *
  * @param string|null $outerStopAfter When {@see fractal_zip::ADAPTIVE_OUTER_STOP_AFTER_FAST_MERGE}, return after the gzip/zstd/brotli tournament (used by legacy {@code zip_folder} fast shootout; one full slow stack runs only on the chosen wire).
  */
@@ -20590,7 +23404,10 @@ function adaptive_compress($string, $outerStopAfter = null) {
 	$outerPredictSkippedCompressibility = false;
 	$predictForkPid = null;
 	$predictForkTd = null;
-	if(fractal_zip::outer_prediction_runtime_enabled() && $innerLen >= fractal_zip::outer_prediction_min_inner_bytes()) {
+	$outerPredictMaxInner = fractal_zip::outer_prediction_max_inner_bytes();
+	if(fractal_zip::outer_prediction_runtime_enabled()
+		&& $innerLen >= fractal_zip::outer_prediction_min_inner_bytes()
+		&& ($outerPredictMaxInner <= 0 || $innerLen <= $outerPredictMaxInner)) {
 		if(fractal_zip::outer_prediction_skip_layered_for_gzip_baseline($innerLen, $gzLen)) {
 			$outerPredictSkippedCompressibility = true;
 		} elseif(fractal_zip_encode_pipeline::speculative_outer_prediction_overlap_enabled()
@@ -20779,7 +23596,7 @@ function adaptive_compress($string, $outerStopAfter = null) {
 	$fzcFlatSquashSingleUltra = ($innerLen >= 6 && isset($fzcFlatUltraSigSet[$hFlatU]));
 	$ultraSingleTxtRawSweep = fractal_zip::ultra_compression_enabled() && (
 		($innerLen >= 5 && $sigTop === 'FZS1')
-		|| ($innerLen >= 8 && $sigTop === 'FZTA' && ord($string[4]) === 1)
+		|| ($innerLen >= 8 && $sigTop === 'FZTA' && (ord($string[4]) === 1 || ord($string[4]) === 2))
 		|| ($innerLen >= 8 && $sigTop === 'FZCT')
 		|| ($innerLen >= 9 && $sigTop === 'FZCH')
 		|| ($innerLen >= 7 && $sigTop === 'FZCJ')
@@ -21003,7 +23820,7 @@ function adaptive_compress($string, $outerStopAfter = null) {
 		return $bestBlob;
 	}
 	$strongTinyBrotliOuter = false;
-	if($speedMode && $bestCodec === 'brotli' && $fzbHuge && $outerTextlike && $innerLen > 0) {
+	if($bestCodec === 'brotli' && $isHuge && $innerLen > 0) {
 		$skipCap = fractal_zip::skip_slow_outers_after_brotli_max_inner_bytes();
 		$ratioNum = fractal_zip::skip_slow_outers_after_brotli_inner_div();
 		if($skipCap > 0 && $innerLen <= $skipCap && $bestLen * $ratioNum < $innerLen) {
@@ -21140,12 +23957,25 @@ function adaptive_compress($string, $outerStopAfter = null) {
 	if(fractal_zip::ultra_compression_enabled()) {
 		$skipSlowOuterSweep = false;
 	}
+	if($strongTinyBrotliOuter && !fractal_zip::ultra_compression_enabled()) {
+		$skipSlowOuterSweep = true;
+	}
 	$outerStep('after_outer_ratchet');
 
 	// Full brotli refinement runs after predict lanes (rollup 4.3): Q10/Q11 + lgwin when layered prediction’s #1 family is brotli ({@see fractal_zip_outer_predict_mapped_winner}), or fallbacks when prediction names arc/zpaq (see {@see brotli_full_outer_arc_textlike_max_inner_bytes}, {@see brotli_full_outer_arc_zpaq_non_textlike_max_inner_bytes}) or zstd/xz ({@see brotli_full_outer_zstd_xz_textlike_max_inner_bytes}), or when the fast tier already leads with brotli (Q1) — otherwise we would ship medium Q3 or fast Q1 as the final outer. Medium tier never runs if full tier runs (test_files13, test_files74–76).
 	$brArcTxtMax = fractal_zip::brotli_full_outer_arc_textlike_max_inner_bytes();
 	$brArcNonTxtMax = fractal_zip::brotli_full_outer_arc_zpaq_non_textlike_max_inner_bytes();
 	$brZstdXzTxtMax = fractal_zip::brotli_full_outer_zstd_xz_textlike_max_inner_bytes();
+	$fzbLitMaxForFullBrotli = fractal_zip::fzb_literal_brotli_q11_max_inner_bytes_effective();
+	$compactFzbLiteralFullBrotliOk = $bundleInnerFzws
+		&& $fzbLitMaxForFullBrotli > 0
+		&& $innerLen > 0
+		&& $innerLen <= $fzbLitMaxForFullBrotli
+		&& !fractal_zip::disable_fzb_literal_brotli_q11();
+	$compactFullBrotliMax = fractal_zip::compact_brotli_full_fallback_max_inner_bytes();
+	$compactFullBrotliOk = $compactFullBrotliMax > 0
+		&& $innerLen > 0
+		&& $innerLen <= $compactFullBrotliMax;
 	$arcZpaqFullBrotliOk = ($outerPredFamily === 'arc' || $outerPredFamily === 'zpaq')
 		&& $innerLen > 0 && $brArcTxtMax > 0 && $innerLen <= $brArcTxtMax
 		&& ($outerTextlike || ($brArcNonTxtMax > 0 && $innerLen <= $brArcNonTxtMax));
@@ -21155,6 +23985,8 @@ function adaptive_compress($string, $outerStopAfter = null) {
 			|| $arcZpaqFullBrotliOk
 			|| (($outerPredFamily === 'zstd' || $outerPredFamily === 'xz')
 				&& $outerTextlike && $innerLen > 0 && $brZstdXzTxtMax > 0 && $innerLen <= $brZstdXzTxtMax)
+			|| $compactFzbLiteralFullBrotliOk
+			|| $compactFullBrotliOk
 			|| ($bestCodec === 'brotli' && $innerLen > 0));
 	$fzAdaptiveMediumBrotliQ = 3;
 	if(!$brotliHugeProbe && $canTryBrotli && $brotliExe !== null
@@ -21181,7 +24013,19 @@ function adaptive_compress($string, $outerStopAfter = null) {
 	$ranOuter7zPredictSweep = false;
 	$ranOuterArcPredictLane = false;
 	$arcBefore7zForWave = fractal_zip::arc_before_7z_enabled();
-	$waveWouldZpaq = !$speedMode && $zpaqExe !== null && fractal_zip::outer_skip_env_allows('FRACTAL_ZIP_SKIP_ZPAQ') && $zpaqInnerEligible && $slowOuterAllowed;
+	$skipZpaqAfterStrongBrotli = false;
+	if(!fractal_zip::ultra_compression_enabled()
+		&& $bestCodec === 'brotli'
+		&& fractal_zip::skip_zpaq_after_strong_brotli_enabled()) {
+		$zpaqBrotliSkipMax = fractal_zip::skip_zpaq_after_strong_brotli_max_inner_bytes();
+		$zpaqBrotliSkipDiv = fractal_zip::skip_zpaq_after_strong_brotli_inner_div();
+		$skipZpaqAfterStrongBrotli = $zpaqBrotliSkipMax > 0
+			&& $innerLen > 0
+			&& $innerLen <= $zpaqBrotliSkipMax
+			&& $bestLen * $zpaqBrotliSkipDiv < $innerLen;
+		// Intentionally do not set $skipSlowOuterSweep: zpaq skip is cost-only; 7z can still beat brotli by a few bytes (Squash test_files127).
+	}
+	$waveWouldZpaq = !$skipZpaqAfterStrongBrotli && !$speedMode && $zpaqExe !== null && fractal_zip::outer_skip_env_allows('FRACTAL_ZIP_SKIP_ZPAQ') && $zpaqInnerEligible && $slowOuterAllowed;
 	$waveWould7z = !$skipSlowOuterSweep && !$ranOuter7zPredictSweep && $canTry7z;
 	$waveWouldArc = !$skipSlowOuterSweep && !$ranOuterArcPredictLane && (!$arcBefore7zForWave) && $canTryArc && $slowOuterAllowed;
 	$waveSlowCodecKinds = (int) $waveWould7z + (int) $waveWouldArc + (int) $waveWouldZpaq;
@@ -21287,6 +24131,32 @@ function adaptive_compress($string, $outerStopAfter = null) {
 			}
 		}
 		$outerStep('after_brotli_full_outer');
+	}
+	if(!$strongTinyBrotliOuter && $bestCodec === 'brotli' && $isHuge && $innerLen > 0) {
+		$skipCap = fractal_zip::skip_slow_outers_after_brotli_max_inner_bytes();
+		$ratioNum = fractal_zip::skip_slow_outers_after_brotli_inner_div();
+		if($skipCap > 0 && $innerLen <= $skipCap && $bestLen * $ratioNum < $innerLen) {
+			$strongTinyBrotliOuter = true;
+			if(!fractal_zip::ultra_compression_enabled()) {
+				$skipSlowOuterSweep = true;
+			}
+		}
+	}
+	if(!$skipZpaqAfterStrongBrotli
+		&& !fractal_zip::ultra_compression_enabled()
+		&& $bestCodec === 'brotli'
+		&& fractal_zip::skip_zpaq_after_strong_brotli_enabled()) {
+		$zpaqBrotliSkipMax = fractal_zip::skip_zpaq_after_strong_brotli_max_inner_bytes();
+		$zpaqBrotliSkipDiv = fractal_zip::skip_zpaq_after_strong_brotli_inner_div();
+		if($zpaqBrotliSkipMax > 0
+			&& $innerLen > 0
+			&& $innerLen <= $zpaqBrotliSkipMax
+			&& $bestLen * $zpaqBrotliSkipDiv < $innerLen) {
+			$skipZpaqAfterStrongBrotli = true;
+			$waveWouldZpaq = false;
+			$waveWouldZpaqAfterPredictLanes = false;
+			// Same as early gate: do not assign $skipSlowOuterSweep — keep 7z/arc trials.
+		}
 	}
 	if(fractal_zip::outer_prediction_debug_enabled()) {
 		fprintf(STDERR, "[fz outer_predict] family=%s ratchet=%d inner_len=%d zpaq_early_lane=%s 7z_early_lane=%s arc_early_lane=%s skipped_gzip_gate=%s skip_slow_sweep=%s\n", $outerPredFamily === null ? '—' : $outerPredFamily, $outerRatchet, $innerLen, $ranOuterZpaqPredictLane ? '1' : '0', $ranOuter7zPredictSweep ? '1' : '0', $ranOuterArcPredictLane ? '1' : '0', $outerPredictSkippedCompressibility ? '1' : '0', $skipSlowOuterSweep ? '1' : '0');
@@ -21411,7 +24281,7 @@ function adaptive_compress($string, $outerStopAfter = null) {
 	if(!$skipSlowOuterSweep && !$ranOuterArcPredictLane && (!$arcBefore7z) && $canTryArc && $slowOuterAllowed) {
 		$waveKinds[] = 'arc';
 	}
-	if($waveWouldZpaqAfterPredictLanes) {
+	if(!$skipSlowOuterSweep && $waveWouldZpaqAfterPredictLanes) {
 		$waveKinds[] = 'zpaq';
 	}
 	// Layered prediction named a slow outer: run that codec's heavy trial only (not parallel/sequential 7z+arc+zpaq).
@@ -21930,7 +24800,8 @@ function tagless($variable) {
 		}
 		//fractal_zip::fatal_error('tagless() expects string input');
 	}
-	return preg_replace('/<[^<>]*>/is', '', $variable);
+	static $rxTaglessStrip = '/<[^<>]*>/is';
+	return preg_replace($rxTaglessStrip, '', $variable);
 }
 
 function var_dump_full() {
@@ -21954,7 +24825,7 @@ function var_dump_full() {
 		} elseif($data_type == 'integer' || $data_type == 'float' || $data_type == 'chr' || $data_type == 'boolean' || $data_type == 'NULL') {
 			// these are already compact enough
 		} else {
-			print('<span style="color: orange;">Unhandled data type in var_dump_full: ' . gettype($value) . '</span><br>');
+			fractal_zip::html_trace_print('<span style="color: orange;">Unhandled data type in var_dump_full: ' . gettype($value) . '</span><br>');
 		}
 		var_dump($value);
 	}
@@ -21981,7 +24852,7 @@ function average($array) {
 	foreach($array as $value) {
 		$sum += $value;
 	}
-	return $sum / sizeof($array);
+	return $sum / count($array);
 }
 
 function preg_escape($string) {

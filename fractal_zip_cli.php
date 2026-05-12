@@ -12,6 +12,16 @@
  *       If output_directory is set: copies the .fzc there first, then extracts next to that copy.
  *       After extract, prints one absolute path per member file (sorted).
  *
+ *   php fractal_zip_cli.php member-list [--json] <path.fzc>
+ *       Lists logical member paths (web-fs API; FZB4-friendly outers without full legacy decode when possible).
+ *
+ *   php fractal_zip_cli.php member-read [--json] <path.fzc> <memberRelPath> [output_file]
+ *       Decodes one member: writes binary to stdout if output_file omitted, else to the given path.
+ *       With --json: one JSON object on stdout (member-read uses bytes_base64 when writing to stdout).
+ *
+ *   php fractal_zip_cli.php inspect [--json] <path.fzc|.fractalzip>
+ *       Quick container fingerprint + member-list probe (decode-light).
+ *
  *   php fractal_zip_cli.php help
  *
  *   php fractal_zip_cli.php zip --ultra <directory>
@@ -97,6 +107,25 @@ require_once $repoRoot . DIRECTORY_SEPARATOR . 'fractal_zip.php';
 $verbose = getenv('FRACTAL_ZIP_CLI_VERBOSE') === '1';
 
 /**
+ * Strip `--json` from member-* argv tails (flag may appear anywhere among remaining args).
+ *
+ * @param array<int, string> $args
+ * @return array{0: list<string>, 1: bool}
+ */
+function fractal_zip_cli_strip_member_json_flag(array $args): array {
+	$json = false;
+	$out = array();
+	foreach ($args as $a) {
+		if ($a === '--json') {
+			$json = true;
+			continue;
+		}
+		$out[] = $a;
+	}
+	return array($out, $json);
+}
+
+/**
  * @return list<string> absolute paths (sorted) for members recorded during open_container / streaming extract
  */
 function fractal_zip_cli_extracted_member_full_paths(fractal_zip $fz, string $rootDir): array
@@ -128,11 +157,14 @@ fractal_zip CLI
   php fractal_zip_cli.php zip --ultra <directory>
   php fractal_zip_cli.php extract <file.fzc> [output_directory]
   php fractal_zip_cli.php extract --ultra <file.fzc> [output_directory]
+  php fractal_zip_cli.php member-list [--json] <file.fzc>
+  php fractal_zip_cli.php member-read [--json] <file.fzc> <memberRelPath> [output_file]
+  php fractal_zip_cli.php inspect [--json] <file.fzc>
   php fractal_zip_cli.php help
 
 --ultra (or FRACTAL_ZIP_ULTRA=1): bytes-first “try hardest” env preset for smallest .fzc (slow).
 
-Set FRACTAL_ZIP_CLI_VERBOSE=1 to show library HTML/debug output during zip/extract.
+Set FRACTAL_ZIP_CLI_VERBOSE=1 to show library HTML/debug output during zip/extract/member-*/inspect.
 
 TXT;
 	exit(0);
@@ -219,6 +251,193 @@ if ($cmd === 'extract') {
 		}
 	} else {
 		echo "Extracted under {$rootDisp} (member path list unavailable; check directory contents).\n";
+	}
+	exit(0);
+}
+
+if ($cmd === 'member-list') {
+	list($argvList, $jsonList) = fractal_zip_cli_strip_member_json_flag($argvList);
+	if ($argvList === []) {
+		if ($jsonList) {
+			echo json_encode(array('ok' => false, 'code' => 'missing_path'), JSON_UNESCAPED_SLASHES) . "\n";
+		} else {
+			fwrite(STDERR, "member-list: missing .fzc path.\n");
+		}
+		exit(1);
+	}
+	$fzcIn = $argvList[0];
+	$fzcAbs = realpath($fzcIn);
+	if ($fzcAbs === false || !is_file($fzcAbs)) {
+		if ($jsonList) {
+			echo json_encode(array('ok' => false, 'code' => 'not_found'), JSON_UNESCAPED_SLASHES) . "\n";
+		} else {
+			fwrite(STDERR, "member-list: file not found: {$fzcIn}\n");
+		}
+		exit(1);
+	}
+	if (!$verbose) {
+		ob_start();
+	}
+	$fz = new fractal_zip(null, true, false, null, false);
+	$r = $fz->try_list_container_members_for_web_fs($fzcAbs);
+	if (!$verbose) {
+		ob_end_clean();
+	}
+	if (empty($r['ok'])) {
+		if ($jsonList) {
+			echo json_encode(array(
+				'ok' => false,
+				'code' => (string) ($r['code'] ?? 'failed'),
+			), JSON_UNESCAPED_SLASHES) . "\n";
+		} else {
+			fwrite(STDERR, 'member-list: ' . (string) ($r['code'] ?? 'failed') . "\n");
+		}
+		exit(1);
+	}
+	if ($jsonList) {
+		echo json_encode(array(
+			'ok' => true,
+			'members' => $r['members'] ?? array(),
+		), JSON_UNESCAPED_SLASHES) . "\n";
+		exit(0);
+	}
+	foreach ($r['members'] ?? array() as $m) {
+		echo (string) $m . "\n";
+	}
+	exit(0);
+}
+
+if ($cmd === 'member-read') {
+	list($argvList, $jsonRead) = fractal_zip_cli_strip_member_json_flag($argvList);
+	if ($argvList === [] || !isset($argvList[1])) {
+		if ($jsonRead) {
+			echo json_encode(array('ok' => false, 'code' => 'usage'), JSON_UNESCAPED_SLASHES) . "\n";
+		} else {
+			fwrite(STDERR, "member-read: usage: member-read [--json] <file.fzc> <memberRelPath> [output_file]\n");
+		}
+		exit(1);
+	}
+	$fzcIn = $argvList[0];
+	$member = (string) $argvList[1];
+	$outFile = isset($argvList[2]) ? (string) $argvList[2] : null;
+	$fzcAbs = realpath($fzcIn);
+	if ($fzcAbs === false || !is_file($fzcAbs)) {
+		if ($jsonRead) {
+			echo json_encode(array('ok' => false, 'code' => 'not_found'), JSON_UNESCAPED_SLASHES) . "\n";
+		} else {
+			fwrite(STDERR, "member-read: file not found: {$fzcIn}\n");
+		}
+		exit(1);
+	}
+	if (!$verbose) {
+		ob_start();
+	}
+	$fz = new fractal_zip(null, true, false, null, false);
+	$r = $fz->try_read_container_member_bytes_for_web_fs($fzcAbs, $member);
+	if (!$verbose) {
+		ob_end_clean();
+	}
+	if (empty($r['ok'])) {
+		$err = array(
+			'ok' => false,
+			'code' => (string) ($r['code'] ?? 'failed'),
+		);
+		if (!empty($r['members_preview']) && is_array($r['members_preview'])) {
+			$err['members_preview'] = $r['members_preview'];
+		}
+		if ($jsonRead) {
+			echo json_encode($err, JSON_UNESCAPED_SLASHES) . "\n";
+		} else {
+			fwrite(STDERR, 'member-read: ' . $err['code'] . "\n");
+			if (isset($err['members_preview'])) {
+				fwrite(STDERR, 'members_preview: ' . implode(', ', array_slice($err['members_preview'], 0, 16)) . "\n");
+			}
+		}
+		exit(1);
+	}
+	$bytes = (string) ($r['bytes'] ?? '');
+	$lane = isset($r['lane']) ? (string) $r['lane'] : null;
+	if ($outFile !== null && $outFile !== '') {
+		if (file_put_contents($outFile, $bytes) === false) {
+			if ($jsonRead) {
+				echo json_encode(array('ok' => false, 'code' => 'write_failed'), JSON_UNESCAPED_SLASHES) . "\n";
+			} else {
+				fwrite(STDERR, "member-read: cannot write: {$outFile}\n");
+			}
+			exit(1);
+		}
+		if ($jsonRead) {
+			echo json_encode(array(
+				'ok' => true,
+				'path' => $outFile,
+				'bytes_written' => strlen($bytes),
+				'lane' => $lane,
+			), JSON_UNESCAPED_SLASHES) . "\n";
+		} else {
+			echo 'Wrote ' . (string) strlen($bytes) . ' bytes to ' . $outFile . "\n";
+		}
+		exit(0);
+	}
+	if ($jsonRead) {
+		echo json_encode(array(
+			'ok' => true,
+			'bytes_base64' => base64_encode($bytes),
+			'lane' => $lane,
+		), JSON_UNESCAPED_SLASHES) . "\n";
+		exit(0);
+	}
+	echo $bytes;
+	exit(0);
+}
+
+if ($cmd === 'inspect') {
+	list($argvList, $jsonInspect) = fractal_zip_cli_strip_member_json_flag($argvList);
+	if ($argvList === []) {
+		if ($jsonInspect) {
+			echo json_encode(array('ok' => false, 'code' => 'missing_path'), JSON_UNESCAPED_SLASHES) . "\n";
+		} else {
+			fwrite(STDERR, "inspect: missing archive path.\n");
+		}
+		exit(1);
+	}
+	$pathIn = $argvList[0];
+	if (!$verbose) {
+		ob_start();
+	}
+	$fz = new fractal_zip(null, true, false, null, false);
+	$payload = $fz->inspect_container_for_web_fs($pathIn);
+	if (!$verbose) {
+		ob_end_clean();
+	}
+	if (empty($payload['ok'])) {
+		if ($jsonInspect) {
+			echo json_encode(array('ok' => false, 'code' => (string) ($payload['code'] ?? 'not_found')), JSON_UNESCAPED_SLASHES) . "\n";
+		} else {
+			fwrite(STDERR, 'inspect: file not found: ' . $pathIn . "\n");
+		}
+		exit(1);
+	}
+	$xzOuter = !empty($payload['xz_outer']);
+	$legacyOuter = !empty($payload['outer_needs_legacy_full_read']);
+	$nMembers = (int) ($payload['member_count'] ?? 0);
+	$magicHex = (string) ($payload['magic_prefix_hex'] ?? '');
+	if ($jsonInspect) {
+		echo json_encode($payload, JSON_UNESCAPED_SLASHES) . "\n";
+		exit(0);
+	}
+	echo 'path: ' . $payload['path'] . "\n";
+	echo 'container_bytes: ' . ($payload['container_bytes'] !== null ? (string) $payload['container_bytes'] : '?') . "\n";
+	echo 'magic_prefix_hex: ' . $magicHex . "\n";
+	echo 'sig4 (printable): ' . $payload['sig4_utf8_fallback'] . "\n";
+	echo 'xz_outer: ' . ($xzOuter ? 'yes' : 'no') . "\n";
+	echo 'outer_needs_legacy_full_read: ' . ($legacyOuter ? 'yes' : 'no') . "\n";
+	echo 'member_list: ' . ($payload['member_list_ok'] ? 'ok' : 'no') . ' (' . (string) $nMembers . ' paths';
+	if ($payload['member_list_code'] !== null) {
+		echo ', code=' . $payload['member_list_code'];
+	}
+	echo ")\n";
+	foreach ($payload['members_preview'] as $rel) {
+		echo '  ' . $rel . "\n";
 	}
 	exit(0);
 }

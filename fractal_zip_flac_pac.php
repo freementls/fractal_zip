@@ -1410,7 +1410,7 @@ function fractal_zip_fzcd_encode_merged_pcm_chunk_raw(string $pcmChunk, int $seg
 			$sub = new fractal_zip($segmentLen, $multipass, false, null, false);
 			$sub->improvement_factor_threshold = $improvement;
 			if ($topK !== null) {
-				$sub->tuning_substring_top_k = max(1, min(12, $topK));
+				$sub->tuning_substring_top_k = max(1, min(48, $topK));
 			}
 			if ($gateMult !== null) {
 				$sub->tuning_multipass_gate_mult = max(1.0, min(4.0, $gateMult));

@@ -36,6 +36,7 @@ declare(strict_types=1);
  * - {@code FRACTAL_ZIP_ZPAQ_OUTER_WORK_SYS_TMP} — unset (default): **on** under CLI: zpaq outer {@code fzzpaq_*} dirs use {@see sys_get_temp_dir} (via {@see fractal_zip::zpaq_outer_work_dir_root}). {@code 0} keeps scratch under {@code program_path}.
  * - {@code FRACTAL_ZIP_PARALLEL_OUTER_PREDICTION} — unset (default): **on** when {@see parallel_fork_allowed}: {@code fractal_zip_outer_predict_mapped_winner} layered probes run in a **child** overlapping zstd/brotli/xz ({@see speculative_outer_prediction_begin}); parent joins before ratchet/predict lanes. {@code 0} restores synchronous probes immediately after gzip.
  * - {@code FRACTAL_ZIP_OUTER_PREDICT_LAYER3_HIGH} — unset ⇒ skip the expensive layer‑3 high‑tier subprocess on the L2 probe winner ({@see fractal_zip::outer_prediction_layer3_high_enabled}); mapped outer family string is already fixed at L2 — skipping reduces {@code after_outer_prediction_finalize_remainder} wall time. {@code 1}/{@code on} restores full three‑tier probes (benchmarks/predict_outer_benchmarks.php forces {@code 1} unless overridden).
+ * - {@code FRACTAL_ZIP_OUTER_PREDICT_MAX_INNER_BYTES} — unset ⇒ skip layered prediction above 8 MiB in normal mode; {@code FRACTAL_ZIP_ULTRA=1} uncaps unless this env is set.
  * - {@code FRACTAL_ZIP_OUTER_PREDICT_TIMEOUT_SEC} — unset ⇒ default layered‑prediction subprocess timeout 30 s; with {@code FRACTAL_ZIP_SPEED=1} default is 12 s unless overridden (see {@see fractal_zip::outer_prediction_timeout_sec}).
  * - {@code FRACTAL_ZIP_OUTER_PREDICT_PROBE_MAX_BYTES} — unset ⇒ default max layered‑probe prefix 8 MiB (bytes‑first); with {@code FRACTAL_ZIP_SPEED=1} default is 2 MiB unless overridden (see {@see fractal_zip::outer_prediction_probe_max_bytes}).
  * - {@code FRACTAL_ZIP_PARALLEL_OUTER_PREDICT_LAYER1_FAST_PIPE} — unset (default): **on** under CLI: layered prediction layer‑1 runs brotli/xz/zstd fast stdin probes concurrently inside the prediction worker ({@code benchmarks/predict_outer_heuristic.php}); same compressed lengths as sequential. {@code 0} restores sequential stdin probes per codec.
@@ -46,7 +47,8 @@ declare(strict_types=1);
  * - {@code FRACTAL_ZIP_PIPELINE_OUTER_STEP_VERBOSE=1} — with STEP_LOG: {@code skipped_outer_*} zero-time lines when xz / 7z / arc / zpaq branches do not run.
  * - {@code FRACTAL_ZIP_PIPELINE_REORDER=1} — call {@see reorder_raw_members_for_locality} inside literal bundle encode (default off; default is path-ksort only).
  * - {@code FRACTAL_ZIP_PIPELINE_REORDER_EXT=1} — with REORDER, group members by file extension, order groups by extension string, LPT (largest first) within each group (changes FZB4 member order vs plain ksort).
- * - {@code FRACTAL_ZIP_PIPELINE_INNER_LPT=1} — try literal-bundle outer candidates largest-inner-first (scheduling hint for expensive variants; tie-breakers unchanged unless compressed sizes tie). Under CLI, unset defaults to **on** ({@see bootstrap_cli_parallel_defaults_if_cli}); explicit {@code 0} disables.
+ * - {@code FRACTAL_ZIP_INNER_PREDICT_SCHEDULER} — default **on**: schedule verified fractal-inner candidates before literal candidates, then by smaller inner bytes and lower cost hint. Real wire-size tournaments still choose by bytes; set {@code 0}/{@code off} for exhaustive old-order comparisons.
+ * - {@code FRACTAL_ZIP_PIPELINE_INNER_LPT=1} — when the prediction scheduler is disabled, try literal-bundle outer candidates largest-inner-first (scheduling hint for expensive variants; tie-breakers unchanged unless compressed sizes tie). Under CLI, unset defaults to **on** ({@see bootstrap_cli_parallel_defaults_if_cli}); explicit {@code 0} disables.
  * - With fork pool enabled and ≥2 literal inners, {@see parallel_literal_variant_outer_trials} may fork one process per candidate (full or fast outer), then merge like sequential (raw wins wire-length ties vs literals).
  * - {@code FRACTAL_ZIP_PIPELINE_TIMING=1} — wall-clock segments between {@see html_trace_checkpoint} calls; stderr summary after each {@see pipeline_wall_timer_zip_folder_end}. Subprocess wait time (outer zpaq, etc.) is included in the segment opened by the previous checkpoint. With timing on, {@see pipeline_outer_step_rollup_zip_folder_end} prints outerStep + zip_folder rollup sums and compares them to phase 4 wall (gap = phase 4 wall minus rollup **after subtracting** zip_folder labels whose wall time landed in phase 3 checkpoints — e.g. legacy markers prep — so the gap matches outer codec work; remaining gap is unlabeled phase 4 time such as PHP between {@code adaptive_compress} calls). Phase 4 tier lines 4.1–4.3 bucket rollup labels for readability; tier 4.3 is a catch‑all for slow codec tournament steps (including zpaq sweep), zip_folder disk segments, etc., not “only brotli”.
  * - {@code FRACTAL_ZIP_PIPELINE_OUTER_STEP_ROLLUP} — unset defaults rollup **on** when {@code FRACTAL_ZIP_PIPELINE_TIMING=1}; explicit {@code 1}/{@code true} enables rollup without phase timing; {@code 0}/{@code off} disables rollup even with timing. Aggregates {@see adaptive_compress} step deltas across literal variants into stderr ({@see pipeline_outer_step_rollup_zip_folder_end}). Legacy {@see fractal_zip::zip_folder} also records {@see pipeline_outer_step_rollup_zip_folder_segment} labels for non‑{@code adaptive_compress} work (parallel fast‑lens forks, disk write, …); use {@see pipeline_outer_step_rollup_zip_folder_sync_clock} after parent {@code adaptive_compress} so step deltas are not double‑counted.
@@ -3209,7 +3211,27 @@ final class fractal_zip_encode_pipeline {
 			return null;
 		}
 		$st = 0;
-		pcntl_waitpid($pid, $st);
+		$deadline = microtime(true) + fractal_zip::outer_prediction_timeout_sec();
+		do {
+			$wait = pcntl_waitpid($pid, $st, defined('WNOHANG') ? WNOHANG : 1);
+			if ($wait === $pid) {
+				break;
+			}
+			if ($wait === -1) {
+				break;
+			}
+			if (microtime(true) >= $deadline) {
+				if (function_exists('posix_kill')) {
+					@posix_kill($pid, defined('SIGKILL') ? SIGKILL : 9);
+				}
+				pcntl_waitpid($pid, $st);
+				self::unlink_temp_dir_contents($td);
+				@rmdir($td);
+
+				return null;
+			}
+			usleep(100000);
+		} while (true);
 		$jp = $td . DIRECTORY_SEPARATOR . 'meta.json';
 		if (!pcntl_wifexited($st) || pcntl_wexitstatus($st) !== 0) {
 			self::unlink_temp_dir_contents($td);
@@ -3571,6 +3593,16 @@ final class fractal_zip_encode_pipeline {
 		return getenv('FRACTAL_ZIP_PIPELINE_INNER_LPT') === '1';
 	}
 
+	/** Prediction-guided candidate order; default on, env 0/off disables for exhaustive order comparisons. */
+	public static function inner_prediction_scheduler_enabled(): bool {
+		$e = getenv('FRACTAL_ZIP_INNER_PREDICT_SCHEDULER');
+		if ($e === false || trim((string)$e) === '') {
+			return true;
+		}
+		$v = strtolower(trim((string)$e));
+		return !($v === '0' || $v === 'false' || $v === 'off' || $v === 'no');
+	}
+
 	/**
 	 * Reorder literal inner candidates so heavier payloads are scored first (shortens critical path when trials overlap later).
 	 *
@@ -3578,6 +3610,39 @@ final class fractal_zip_encode_pipeline {
 	 * @return list<array<string, mixed>>
 	 */
 	public static function schedule_inner_variants_for_literal_outer(array $innerVariants): array {
+		if (self::inner_prediction_scheduler_enabled() && count($innerVariants) > 1) {
+			$ix = range(0, count($innerVariants) - 1);
+			usort(
+				$ix,
+				static function (int $a, int $b) use ($innerVariants): int {
+					$va = $innerVariants[$a];
+					$vb = $innerVariants[$b];
+					$la = (is_array($va) && isset($va['inner'])) ? strlen((string)$va['inner']) : PHP_INT_MAX;
+					$lb = (is_array($vb) && isset($vb['inner'])) ? strlen((string)$vb['inner']) : PHP_INT_MAX;
+					$laneA = is_array($va) && isset($va['lane']) ? (string)$va['lane'] : 'literal';
+					$laneB = is_array($vb) && isset($vb['lane']) ? (string)$vb['lane'] : 'literal';
+					$pa = $laneA === 'fractal_inner' ? 0 : ($laneA === 'literal' ? 1 : 2);
+					$pb = $laneB === 'fractal_inner' ? 0 : ($laneB === 'literal' ? 1 : 2);
+					if ($pa !== $pb) {
+						return $pa <=> $pb;
+					}
+					if ($la !== $lb) {
+						return $la <=> $lb;
+					}
+					$ca = (is_array($va) && isset($va['cost_hint'])) ? (int)$va['cost_hint'] : 0;
+					$cb = (is_array($vb) && isset($vb['cost_hint'])) ? (int)$vb['cost_hint'] : 0;
+					if ($ca !== $cb) {
+						return $ca <=> $cb;
+					}
+					return $a <=> $b;
+				}
+			);
+			$out = array();
+			foreach ($ix as $i) {
+				$out[] = $innerVariants[$i];
+			}
+			return $out;
+		}
 		if (!self::inner_variants_lpt_enabled()) {
 			return $innerVariants;
 		}
@@ -3756,25 +3821,35 @@ final class fractal_zip_encode_pipeline {
 	}
 
 	/**
-	 * Winner rule matching sequential loop: minimal compressed length; ties prefer smaller schedule tie index among literals;
-	 * ties vs raw wire length keep raw.
+	 * Winner rule matching sequential loop: minimal compressed length; exact-size ties prefer the faster/easier outer
+	 * codec, then smaller schedule tie index among literals.
 	 *
 	 * @param list<array{len: int, tie: int}|null> $rows (null entries skipped — failed parallel worker)
 	 * @return array{0: int, 1: array<string, mixed>|null}
 	 */
-	public static function pick_smallest_literal_outer_vs_raw(int $rawWireLen, array $rows): array {
+	public static function pick_smallest_literal_outer_vs_raw(int $rawWireLen, array $rows, ?string $rawCodec = null): array {
 		$bestLen = $rawWireLen;
 		$bestRow = null;
+		$bestCodec = $rawCodec;
 		foreach ($rows as $row) {
 			if ($row === null || !is_array($row)) {
 				continue;
 			}
-			if (($row['len'] ?? PHP_INT_MAX) < $bestLen) {
+			$rowLen = (int) ($row['len'] ?? PHP_INT_MAX);
+			$rowCodec = isset($row['codec']) && is_string($row['codec']) ? $row['codec'] : null;
+			$beats = ($rowLen < $bestLen);
+			if(!$beats && $rowLen === $bestLen && $rowCodec !== null && $bestCodec !== null) {
+				$beats = fractal_zip::outer_candidate_beats_current($rowCodec, $rowLen, $bestCodec, $bestLen);
+			}
+			if(!$beats && $rowLen === $bestLen && $bestRow !== null
+				&& ($rowCodec === null || $bestCodec === null || $rowCodec === $bestCodec)
+				&& (int) ($row['tie'] ?? 0) < (int) ($bestRow['tie'] ?? 0)) {
+				$beats = true;
+			}
+			if ($beats) {
 				$bestLen = (int) $row['len'];
 				$bestRow = $row;
-			} elseif (($row['len'] ?? PHP_INT_MAX) === $bestLen && $bestRow !== null
-				&& (int) ($row['tie'] ?? 0) < (int) ($bestRow['tie'] ?? 0)) {
-				$bestRow = $row;
+				$bestCodec = $rowCodec;
 			}
 		}
 
@@ -3793,9 +3868,24 @@ final class fractal_zip_encode_pipeline {
 			if ($row === null || !is_array($row)) {
 				continue;
 			}
-			if ($pick === null || ($row['len'] ?? PHP_INT_MAX) < ($pick['len'] ?? PHP_INT_MAX)
-				|| (($row['len'] ?? PHP_INT_MAX) === ($pick['len'] ?? PHP_INT_MAX)
-					&& (int) ($row['tie'] ?? 0) < (int) ($pick['tie'] ?? 0))) {
+			if ($pick === null) {
+				$pick = $row;
+				continue;
+			}
+			$rowLen = (int) ($row['len'] ?? PHP_INT_MAX);
+			$pickLen = (int) ($pick['len'] ?? PHP_INT_MAX);
+			$rowCodec = isset($row['codec']) && is_string($row['codec']) ? $row['codec'] : null;
+			$pickCodec = isset($pick['codec']) && is_string($pick['codec']) ? $pick['codec'] : null;
+			$beats = ($rowLen < $pickLen);
+			if(!$beats && $rowLen === $pickLen && $rowCodec !== null && $pickCodec !== null) {
+				$beats = fractal_zip::outer_candidate_beats_current($rowCodec, $rowLen, $pickCodec, $pickLen);
+			}
+			if(!$beats && $rowLen === $pickLen
+				&& ($rowCodec === null || $pickCodec === null || $rowCodec === $pickCodec)
+				&& (int) ($row['tie'] ?? 0) < (int) ($pick['tie'] ?? 0)) {
+				$beats = true;
+			}
+			if($beats) {
 				$pick = $row;
 			}
 		}
