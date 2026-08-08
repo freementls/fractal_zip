@@ -1,0 +1,59 @@
+# Fast checks for web-fs selective decode + HTTP helper utilities (no compressor apt install).
+name: web-fs-smokes
+
+permissions:
+  contents: read
+
+concurrency:
+  group: web-fs-smokes-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/web-fs-smokes.yml'
+      - 'fractal_zip.php'
+      - 'fractal_zip-undeep-unwrap.php'
+      - 'benchmarks/check_undeep_fzb_brotli_sync.php'
+      - 'fractal_zip_cli.php'
+      - 'examples/fractal_zip_web_fs_bridge.php'
+      - 'examples/fzc_web_shared.php'
+      - 'benchmarks/smoke_hostile_container_inputs.php'
+      - 'benchmarks/smoke_inspect_container_web_fs.php'
+      - 'benchmarks/fz_fzlb_decode_roundtrip_smoke.php'
+      - 'benchmarks/fz_fz7_compact_folder_roundtrip_smoke.php'
+      - 'benchmarks/fz_fz7_undeep_folder_roundtrip_smoke.php'
+      - 'benchmarks/smoke_fzc_web_download_range.php'
+      - 'scripts/fractal_zip_web_smoke.sh'
+  pull_request:
+    paths:
+      - '.github/workflows/web-fs-smokes.yml'
+      - 'fractal_zip.php'
+      - 'fractal_zip-undeep-unwrap.php'
+      - 'benchmarks/check_undeep_fzb_brotli_sync.php'
+      - 'fractal_zip_cli.php'
+      - 'examples/fractal_zip_web_fs_bridge.php'
+      - 'examples/fzc_web_shared.php'
+      - 'benchmarks/smoke_hostile_container_inputs.php'
+      - 'benchmarks/smoke_inspect_container_web_fs.php'
+      - 'benchmarks/fz_fzlb_decode_roundtrip_smoke.php'
+      - 'benchmarks/fz_fz7_compact_folder_roundtrip_smoke.php'
+      - 'benchmarks/fz_fz7_undeep_folder_roundtrip_smoke.php'
+      - 'benchmarks/smoke_fzc_web_download_range.php'
+      - 'scripts/fractal_zip_web_smoke.sh'
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pcntl, sqlite3, mbstring
+
+      - name: Web FS smoke bundle (undeep sync + PHP smokes)
+        run: bash scripts/fractal_zip_web_smoke.sh

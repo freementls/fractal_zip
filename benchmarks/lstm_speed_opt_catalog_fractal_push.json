@@ -1,0 +1,212 @@
+{
+  "description": "Post-4× fractal push. Banked: c4_aggr_novel2 ~664 s (4.39×), c4_ao16_novel2 ~707 s (4.12×, −154 KiB vs kitchen), c4_ao16_slim bytes tip. Tracks: speed past novel2, bytes inside 4×, fractal (novel_soft / l96 / match3m).",
+  "base_defs": [
+    "-DSEED=923",
+    "-DUPDATE_LIMIT=3000",
+    "-DFXCM_ENTITY_FOLD",
+    "-DFXCM_MATCH_MAX=3000000ull",
+    "-DFXCM_SPEED_INLINE_GET",
+    "-DNDEBUG",
+    "-DFXCM_RECIPE_RUNTIME",
+    "-DFXCM_FRACTAL_PRED",
+    "-DFXCM_LSTM_HIDDEN=64",
+    "-DFXCM_PPMD_MB=2048",
+    "-DFXCM_MATCH_MAX=1000000ull",
+    "-DFXCM_SPEED_MATCH_FASTPATH",
+    "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+    "-DFXCM_SPEED_MATCH_SKIP_MIN=1u",
+    "-DFXCM_SPEED_CM_MATCH_SKIP",
+    "-DFXCM_SPEED_CM_MATCH_MIN=4",
+    "-DFXCM_SPEED_ADVANCE_ONLY",
+    "-DFXCM_SPEED_OUTER_AO_MIN=4u",
+    "-DFXCM_CM_SCALE=2"
+  ],
+  "tracks": {
+    "speed": {
+      "outdir": "fair_push_speed",
+      "core": 1,
+      "refs": ["c4_aggr_novel2"],
+      "candidates": [
+        {
+          "name": "fp_n3",
+          "extra_defs": [
+            "-DFXCM_SPEED_LIGHT_MIX",
+            "-DFXCM_SPEED_LIGHT_MIX_AGGRESSIVE",
+            "-DFXCM_SPEED_LSTM_NOVEL_STRIDE=3u"
+          ],
+          "note": "novel stride 3 on aggr"
+        },
+        {
+          "name": "fp_n4",
+          "extra_defs": [
+            "-DFXCM_SPEED_LIGHT_MIX",
+            "-DFXCM_SPEED_LIGHT_MIX_AGGRESSIVE",
+            "-DFXCM_SPEED_LSTM_NOVEL_STRIDE=4u"
+          ],
+          "note": "novel stride 4 on aggr"
+        },
+        {
+          "name": "fp_n2_hard2",
+          "extra_defs": [
+            "-DFXCM_SPEED_LIGHT_MIX",
+            "-DFXCM_SPEED_LIGHT_MIX_AGGRESSIVE",
+            "-DFXCM_SPEED_LSTM_NOVEL_STRIDE=2u",
+            "-DFXCM_SPEED_LSTM_STRIDE=2u",
+            "-DFXCM_SPEED_LSTM_STRIDE_HARD"
+          ],
+          "note": "novel2 + hard LSTM stride 2"
+        },
+        {
+          "name": "fp_n2_ppmd",
+          "extra_defs": [
+            "-DFXCM_SPEED_LIGHT_MIX",
+            "-DFXCM_SPEED_LIGHT_MIX_AGGRESSIVE",
+            "-DFXCM_SPEED_LSTM_NOVEL_STRIDE=2u",
+            "-DFXCM_SPEED_PPMD_FAST_SKIP"
+          ],
+          "note": "novel2 + PPMD fastpath freeze"
+        },
+        {
+          "name": "fp_n2_fxr8",
+          "extra_defs": [
+            "-DFXCM_SPEED_LIGHT_MIX",
+            "-DFXCM_SPEED_LIGHT_MIX_AGGRESSIVE",
+            "-DFXCM_SPEED_LSTM_NOVEL_STRIDE=2u",
+            "-DFXCM_SPEED_FXCM_FAST_SKIP",
+            "-DFXCM_SPEED_FXCM_REFRESH=8u"
+          ],
+          "note": "novel2 + FXCM refresh 8"
+        }
+      ]
+    },
+    "bytes": {
+      "outdir": "fair_push_bytes",
+      "core": 2,
+      "refs": ["c4_ao16_novel2", "c4_ao16_slim"],
+      "candidates": [
+        {
+          "name": "fp_ao16_n3",
+          "extra_defs": [
+            "-DFXCM_SPEED_LIGHT_MIX",
+            "-DFXCM_SPEED_LIGHT_MIX_EXTREME",
+            "-DFXCM_SPEED_OUTER_AO_MIN=16u",
+            "-DFXCM_SPEED_LSTM_NOVEL_STRIDE=3u"
+          ],
+          "note": "ao16+extreme+novel3"
+        },
+        {
+          "name": "fp_ao16_n2_slim",
+          "extra_defs": [
+            "-DFXCM_SPEED_LIGHT_MIX",
+            "-DFXCM_SPEED_LIGHT_MIX_EXTREME",
+            "-DFXCM_SPEED_OUTER_AO_MIN=16u",
+            "-DFXCM_SPEED_LSTM_NOVEL_STRIDE=2u",
+            "-DFXCM_SPEED_AO_SLIM"
+          ],
+          "note": "pareto_4x + AO_SLIM"
+        },
+        {
+          "name": "fp_ao16_n2_aggr",
+          "extra_defs": [
+            "-DFXCM_SPEED_LIGHT_MIX",
+            "-DFXCM_SPEED_LIGHT_MIX_AGGRESSIVE",
+            "-DFXCM_SPEED_OUTER_AO_MIN=16u",
+            "-DFXCM_SPEED_LSTM_NOVEL_STRIDE=2u"
+          ],
+          "note": "ao16+aggr+novel2 (not extreme)"
+        },
+        {
+          "name": "fp_ao8_n2",
+          "extra_defs": [
+            "-DFXCM_SPEED_LIGHT_MIX",
+            "-DFXCM_SPEED_LIGHT_MIX_EXTREME",
+            "-DFXCM_SPEED_OUTER_AO_MIN=8u",
+            "-DFXCM_SPEED_LSTM_NOVEL_STRIDE=2u"
+          ],
+          "note": "milder AO + novel2"
+        },
+        {
+          "name": "fp_slim_n2",
+          "extra_defs": [
+            "-DFXCM_SPEED_LIGHT_MIX",
+            "-DFXCM_SPEED_LIGHT_MIX_EXTREME",
+            "-DFXCM_SPEED_OUTER_AO_MIN=16u",
+            "-DFXCM_SPEED_AO_SLIM",
+            "-DFXCM_SPEED_LSTM_NOVEL_STRIDE=2u",
+            "-DFXCM_SPEED_MATCH_MID_SKIP"
+          ],
+          "note": "bytes tip + novel2 + mid"
+        }
+      ]
+    },
+    "fractal": {
+      "outdir": "fair_push_fractal",
+      "core": 3,
+      "refs": ["c4_ao16_novel2"],
+      "candidates": [
+        {
+          "name": "fp_n2_soft",
+          "extra_defs": [
+            "-DFXCM_SPEED_LIGHT_MIX",
+            "-DFXCM_SPEED_LIGHT_MIX_AGGRESSIVE",
+            "-DFXCM_SPEED_LSTM_NOVEL_STRIDE=2u",
+            "-DFXCM_SPEED_LSTM_NOVEL_SOFT"
+          ],
+          "note": "NEW: novel2 soft ForwardOnly misses — buy bytes back on speed tip"
+        },
+        {
+          "name": "fp_ao16_n2_soft",
+          "extra_defs": [
+            "-DFXCM_SPEED_LIGHT_MIX",
+            "-DFXCM_SPEED_LIGHT_MIX_EXTREME",
+            "-DFXCM_SPEED_OUTER_AO_MIN=16u",
+            "-DFXCM_SPEED_LSTM_NOVEL_STRIDE=2u",
+            "-DFXCM_SPEED_LSTM_NOVEL_SOFT"
+          ],
+          "note": "NEW: soft novel on pareto_4x base"
+        },
+        {
+          "name": "fp_n3_soft",
+          "extra_defs": [
+            "-DFXCM_SPEED_LIGHT_MIX",
+            "-DFXCM_SPEED_LIGHT_MIX_AGGRESSIVE",
+            "-DFXCM_SPEED_LSTM_NOVEL_STRIDE=3u",
+            "-DFXCM_SPEED_LSTM_NOVEL_SOFT"
+          ],
+          "note": "soft novel3 — deeper skip with state keep"
+        },
+        {
+          "name": "fp_l96_n2",
+          "extra_defs": [
+            "-DFXCM_SPEED_LIGHT_MIX",
+            "-DFXCM_SPEED_LIGHT_MIX_AGGRESSIVE",
+            "-DFXCM_SPEED_LSTM_NOVEL_STRIDE=2u",
+            "-DFXCM_LSTM_HIDDEN=96"
+          ],
+          "note": "fatter LSTM + hard novel2 — buy bytes on speed tip"
+        },
+        {
+          "name": "fp_l96_ao16_n2",
+          "extra_defs": [
+            "-DFXCM_SPEED_LIGHT_MIX",
+            "-DFXCM_SPEED_LIGHT_MIX_EXTREME",
+            "-DFXCM_SPEED_OUTER_AO_MIN=16u",
+            "-DFXCM_SPEED_LSTM_NOVEL_STRIDE=2u",
+            "-DFXCM_LSTM_HIDDEN=96"
+          ],
+          "note": "l96 on pareto_4x"
+        },
+        {
+          "name": "fp_match3m_n2",
+          "extra_defs": [
+            "-DFXCM_SPEED_LIGHT_MIX",
+            "-DFXCM_SPEED_LIGHT_MIX_AGGRESSIVE",
+            "-DFXCM_SPEED_LSTM_NOVEL_STRIDE=2u",
+            "-DFXCM_MATCH_MAX=3000000ull"
+          ],
+          "note": "restore MATCH 3M + novel2"
+        }
+      ]
+    }
+  }
+}

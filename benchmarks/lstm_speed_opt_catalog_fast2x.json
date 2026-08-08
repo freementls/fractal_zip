@@ -1,0 +1,107 @@
+{
+  "description": "Push past fp2_l128_ppmd2k (57.4s=1.62×@256k) toward ≤46s (2×).",
+  "base_defs": [
+    "-DSEED=923",
+    "-DUPDATE_LIMIT=3000",
+    "-DFXCM_ENTITY_FOLD",
+    "-DFXCM_SPEED_INLINE_GET",
+    "-DNDEBUG",
+    "-DFXCM_RECIPE_RUNTIME",
+    "-DFXCM_FRACTAL_PRED"
+  ],
+  "candidates": [
+    {
+      "name": "fp2_l128_p2k",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=128",
+        "-DFXCM_PPMD_MB=2048",
+        "-DFXCM_MATCH_MAX=3000000ull",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=2u"
+      ],
+      "note": "confirm prior best 1.62×"
+    },
+    {
+      "name": "fp1_l128_p2k",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=128",
+        "-DFXCM_PPMD_MB=2048",
+        "-DFXCM_MATCH_MAX=3000000ull",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=1u"
+      ],
+      "note": "fastpath MIN=1"
+    },
+    {
+      "name": "fp2_l128_p2k_m1m",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=128",
+        "-DFXCM_PPMD_MB=2048",
+        "-DFXCM_MATCH_MAX=1000000ull",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=2u"
+      ],
+      "note": "MATCH_MAX=1M"
+    },
+    {
+      "name": "fp2_l96_p2k",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=96",
+        "-DFXCM_PPMD_MB=2048",
+        "-DFXCM_MATCH_MAX=3000000ull",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=2u"
+      ],
+      "note": "LSTM96"
+    },
+    {
+      "name": "fp2_l64_p2k",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=64",
+        "-DFXCM_PPMD_MB=2048",
+        "-DFXCM_MATCH_MAX=3000000ull",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=2u"
+      ],
+      "note": "LSTM64"
+    },
+    {
+      "name": "fp2_l128_p2k_cm_ao",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=128",
+        "-DFXCM_PPMD_MB=2048",
+        "-DFXCM_MATCH_MAX=3000000ull",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=2u",
+        "-DFXCM_SPEED_CM_MATCH_SKIP",
+        "-DFXCM_SPEED_CM_MATCH_MIN=4",
+        "-DFXCM_SPEED_ADVANCE_ONLY",
+        "-DFXCM_SPEED_OUTER_AO_MIN=4u"
+      ],
+      "note": "CM+AO on best"
+    },
+    {
+      "name": "fp2_l64_p2k_cm_ao",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=64",
+        "-DFXCM_PPMD_MB=2048",
+        "-DFXCM_MATCH_MAX=1000000ull",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=1u",
+        "-DFXCM_SPEED_CM_MATCH_SKIP",
+        "-DFXCM_SPEED_CM_MATCH_MIN=4",
+        "-DFXCM_SPEED_ADVANCE_ONLY",
+        "-DFXCM_SPEED_OUTER_AO_MIN=4u",
+        "-DFXCM_CM_SCALE=2"
+      ],
+      "note": "max shrink toward 2×"
+    }
+  ]
+}

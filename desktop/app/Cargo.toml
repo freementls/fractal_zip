@@ -1,0 +1,15 @@
+[package]
+name = "fz_desktop"
+version = "0.1.0"
+edition = "2021"
+description = "fractal_zip desktop — native window around the local compress/extract UI"
+license = "AGPL-3.0-or-later"
+publish = false
+
+[[bin]]
+name = "fz-desktop"
+path = "src/main.rs"
+
+[dependencies]
+tao = "0.32"
+wry = "0.50"

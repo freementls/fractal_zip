@@ -1,0 +1,2297 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "@w{QPKF54RE}">
+<html xmlns="@w{SZTDMW9J}" xml:lang="en" lang="en">
+<head profile="@w{B8XXCD23}">
+ <title>PHP: include - Manual</title>
+ <style type="text/css" media="all">
+  @import url("@w{2XX58MCD}");
+  @import url("@w{884KPP5P}");
+  
+ </style>
+ <!--[if IE]><![if gte IE 6]><![endif]-->
+  <style type="text/css" media="print">
+   @import url("@w{M98RFPWS}");
+  </style>
+ <!--[if IE]><![endif]><![endif]-->
+ <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+ <link rel="shortcut icon" href="@w{NGWYKJ8F}" />
+ <link rel="contents" href="index.php" />
+ <link rel="index" href="language.control-structures.php" />
+ <link rel="prev" href="function.require.php" />
+ <link rel="next" href="function.require-once.php" />
+ <link rel="schema.dc" href="@w{RNCDA8N4}" />
+ <link rel="schema.rdfs" href="@w{XGTVB7JY}" />
+ <link rev="canonical" rel="self alternate shorter shorturl shortlink" href="http://php.net/include" />
+ <link rel="license" href="@w{G88D3FDX}" about="#content" />
+ <link rel="canonical" href="http://php.net/manual/en/function.include.php" />
+ <script type="text/javascript" src="@w{4SAB2YT3}"></script>
+ <base href="http://www.php.net/manual/en/function.include.php" />
+ <meta http-equiv="Content-language" content="en" />
+            <script type="text/javascript" src="@w{ME5H2G8Y}"></script>
+            <script type="text/javascript" src="@w{BYSKBGP9}"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+    var toggleImage = function(elem) {
+        if ($(elem).hasClass("shown")) {
+            $(elem).removeClass("shown").addClass("hidden");
+            $("img", elem).attr("src", "/images/notes-add.gif");
+        }
+        else {
+            $(elem).removeClass("hidden").addClass("shown");
+            $("img", elem).attr("src", "/images/notes-reject.gif");
+        }
+    };
+
+    $(".soft-deprecation-notice h1.title").each(function() {
+        $(this).prepend("<a class='toggler shown' href='#'><img src='/images/notes-reject.gif' alt='minimize' /></a> ");
+    });
+    $(".refsect1 h3.title").each(function() {
+        url = "@w{BD87E369}" + $(this).parent().parent().attr("id") + "%23" + $(this).parent().attr("id");
+        $(this).parent().prepend("<div class='reportbug'><a href='" + url + "'>Report a bug</a></div>");
+        $(this).prepend("<a class='toggler shown' href='#'><img src='/images/notes-reject.gif' alt='reject note' /></a> ");
+    });
+    $("#usernotes .head").each(function() {
+        $(this).prepend("<a class='toggler shown' href='#'><img src='/images/notes-reject.gif' alt='reject note' /></a> ");
+    });
+    $(".soft-deprecation-notice h1.title .toggler").click(function() {
+        $(this).parent().siblings().slideToggle("slow");
+        toggleImage(this);
+        return false;
+    });
+    $(".refsect1 h3.title .toggler").click(function() {
+        $(this).parent().siblings().slideToggle("slow");
+        toggleImage(this);
+        return false;
+    });
+    $("#usernotes .head .toggler").click(function() {
+        $(this).parent().next().slideToggle("slow");
+        toggleImage(this);
+        return false;
+    });
+});
+</script>
+
+</head>
+<body>
+
+<div id="headnav">
+ <a href="/" rel="home"><img src="@w{BJ2SG82M}"
+ alt="PHP" width="120" height="67" id="phplogo" /></a>
+ <div id="headmenu">
+  <a href="/downloads.php">downloads</a> |
+  <a href="/docs.php">documentation</a> |
+  <a href="/FAQ.php">faq</a> |
+  <a href="/support.php">getting help</a> |
+  <a href="/mailing-lists.php">mailing lists</a> |
+  <a href="/license">licenses</a> |
+  <a href="@w{WEGCK3BV}">wiki</a> |
+  <a href="@w{JBVFFY7T}">reporting bugs</a> |
+  <a href="/sites.php">php.net sites</a> |
+  <a href="/conferences/">conferences</a> |
+  <a href="/my.php">my php.net</a>
+ </div>
+</div>
+
+<div id="headsearch">
+ <form method="post" action="/search.php" id="topsearch">
+  <p>
+   <span title="Keyboard shortcut: Alt+S (Win), Ctrl+S (Apple)">
+    <span class="shortkey">s</span>earch for
+   </span>
+   <input type="text" name="pattern" value="" size="30" accesskey="s" />
+   <span>in the</span>
+   <select name="show">
+    <option value="all"      >all php.net sites</option>
+    <option value="local"    >this mirror only</option>
+    <option value="quickref" selected="selected">function list</option>
+    <option value="manual"   >online documentation</option>
+    <option value="bugdb"    >bug database</option>
+    <option value="news_archive">Site News Archive</option>
+    <option value="changelogs">All Changelogs</option>
+    <option value="pear"     >just pear.php.net</option>
+    <option value="pecl"     >just pecl.php.net</option>
+    <option value="talks"    >just talks.php.net</option>
+    <option value="maillist" >general mailing list</option>
+    <option value="devlist"  >developer mailing list</option>
+    <option value="phpdoc"   >documentation mailing list</option>
+   </select>
+   <input type="image"
+          src="@w{XXWWP636}"
+          class="submit" alt="search" />
+   <input type="hidden" name="lang" value="en" />
+  </p>
+ </form>
+</div>
+
+<div id="layout_2">
+ <div id="leftbar">
+<!--UdmComment-->
+<ul class="toc">
+ <li class="header home"><a href="index.php">PHP Manual</a></li>
+ <li class="header up"><a href="langref.php">Language Reference</a></li>
+ <li class="header up"><a href="language.control-structures.php">Control Structures</a></li>
+ <li><a href="control-structures.intro.php">Introduction</a></li>
+ <li><a href="control-structures.if.php">if</a></li>
+ <li><a href="control-structures.else.php">else</a></li>
+ <li><a href="control-structures.elseif.php">elseif/else if</a></li>
+ <li><a href="control-structures.alternative-syntax.php">Alternative syntax for control structures</a></li>
+ <li><a href="control-structures.while.php">while</a></li>
+ <li><a href="control-structures.do.while.php">do-while</a></li>
+ <li><a href="control-structures.for.php">for</a></li>
+ <li><a href="control-structures.foreach.php">foreach</a></li>
+ <li><a href="control-structures.break.php">break</a></li>
+ <li><a href="control-structures.continue.php">continue</a></li>
+ <li><a href="control-structures.switch.php">switch</a></li>
+ <li><a href="control-structures.declare.php">declare</a></li>
+ <li><a href="function.return.php">return</a></li>
+ <li><a href="function.require.php">require</a></li>
+ <li class="active"><a href="function.include.php">include</a></li>
+ <li><a href="function.require-once.php">require_<span class="w"> </span>once</a></li>
+ <li><a href="function.include-once.php">include_<span class="w"> </span>once</a></li>
+ <li><a href="control-structures.goto.php">goto</a></li>
+</ul><!--/UdmComment-->
+
+ </div>
+ <div id="content" class="manual/en">
+<!--UdmComment-->
+<div class="manualnavbar manualnavbar_top">
+ <span class="next">
+  <a href="function.require-once.php">require_once<img src="@w{GVN7ETSY}" alt="&gt;" width="11" height="7" /></a>
+ </span>
+ <span class="prev">
+  <a href="function.require.php"><img src="@w{KX8YRRP2}" alt="&lt;" width="11" height="7" />require</a>
+ </span>
+ <hr />
+ <span class="lastupdated">[<a href="https://edit.php.net/?project=PHP&amp;perm=en/function.include.php">edit</a>] Last updated: Fri, 27 Jul 2012</span>
+ <div class="langchooser">
+  <form action="/manual/change.php" method="get">
+   <p>view this page in </p><fieldset><select name="page">
+    <option value="pt_BR/function.include.php">Brazilian Portuguese</option>
+    <option value="zh/function.include.php">Chinese (Simplified)</option>
+    <option value="fr/function.include.php">French</option>
+    <option value="de/function.include.php">German</option>
+    <option value="ja/function.include.php">Japanese</option>
+    <option value="pl/function.include.php">Polish</option>
+    <option value="ro/function.include.php">Romanian</option>
+    <option value="ru/function.include.php">Russian</option>
+    <option value="fa/function.include.php">Persian</option>
+    <option value="es/function.include.php">Spanish</option>
+    <option value="tr/function.include.php">Turkish</option>
+    <option value="help-translate.php">Other</option>
+   </select>
+   <input type="image" src="@w{XWTW8VF8}" id="changeLangImage" alt="Change language" />
+  </fieldset></form>
+ </div>
+</div>
+<!--/UdmComment-->
+
+<div id="function.include" class="sect1">
+ <h2 class="title">include</h2>
+ <p class="verinfo">(PHP 4, PHP 5)</p>
+ <p class="simpara">
+  The <em>include</em> statement includes and evaluates
+  the specified file.
+ </p>
+ <p class="simpara">
+  The documentation below also applies to  <span class="function"><a href="function.require.php" class="function">require</a></span>.
+ </p>
+ <p class="simpara">
+  Files are included based on the file path given or, if none is given, the
+  <a href="ini.core.php#ini.include-path" class="link">include_path</a> specified. If the file
+  isn&#039;t found in the <a href="ini.core.php#ini.include-path" class="link">include_path</a>,
+  <em>include</em> will finally check in the calling script&#039;s own
+  directory and the current working directory before failing. The
+  <em>include</em> construct will emit a
+  <a href="" class="link">warning</a> if
+  it cannot find a file; this is different behavior from
+   <span class="function"><a href="function.require.php" class="function">require</a></span>, which will emit a
+  <a href="" class="link">fatal error</a>.
+ </p>
+ <p class="simpara">
+  If a path is defined — whether absolute (starting with a drive letter
+  or <em>\</em> on Windows, or <em>/</em> on Unix/Linux
+  systems) or relative to the current directory (starting with
+  <em>.</em> or <em>..</em>) — the
+  <a href="ini.core.php#ini.include-path" class="link">include_path</a> will be ignored
+  altogether.  For example, if a filename begins with <em>../</em>,
+  the parser will look in the parent directory to find the requested file.
+ </p>
+ <p class="simpara">
+  For more information on how PHP handles including files and the include path,
+  see the documentation for <a href="ini.core.php#ini.include-path" class="link">include_path</a>.
+ </p>
+ <p class="simpara">
+  When a file is included, the code it contains inherits the
+  <a href="language.variables.scope.php" class="link">variable scope</a> of the
+  line on which the include occurs.  Any variables available at that line
+  in the calling file will be available within the called file, from that
+  point forward.
+  However, all functions and classes defined in the included file have the
+  global scope.
+ </p>
+ <p class="para">
+  <div class="example" id="example-135">
+   <p><strong>Example #1 Basic <em>include</em> example</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+vars.php<br /><span style="color: #0000BB">&lt;?php<br /><br />$color&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'green'</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$fruit&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'apple'</span><span style="color: #007700">;<br /><br /></span><span style="color: #0000BB">?&gt;<br /></span><br />test.php<br /><span style="color: #0000BB">&lt;?php<br /><br /></span><span style="color: #007700">echo&nbsp;</span><span style="color: #DD0000">"A&nbsp;</span><span style="color: #0000BB">$color</span><span style="color: #DD0000">&nbsp;</span><span style="color: #0000BB">$fruit</span><span style="color: #DD0000">"</span><span style="color: #007700">;&nbsp;</span><span style="color: #FF8000">//&nbsp;A<br /><br /></span><span style="color: #007700">include&nbsp;</span><span style="color: #DD0000">'vars.php'</span><span style="color: #007700">;<br /><br />echo&nbsp;</span><span style="color: #DD0000">"A&nbsp;</span><span style="color: #0000BB">$color</span><span style="color: #DD0000">&nbsp;</span><span style="color: #0000BB">$fruit</span><span style="color: #DD0000">"</span><span style="color: #007700">;&nbsp;</span><span style="color: #FF8000">//&nbsp;A&nbsp;green&nbsp;apple<br /><br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+ </p>
+ <p class="simpara">
+  If the include occurs inside a function within the calling file,
+  then all of the code contained in the called file will behave as
+  though it had been defined inside that function.  So, it will follow
+  the variable scope of that function.
+  An exception to this rule are <a href="language.constants.predefined.php" class="link">magic constants</a> which are
+  evaluated by the parser before the include occurs.
+ </p>
+ <p class="para">
+  <div class="example" id="example-136">
+   <p><strong>Example #2 Including within functions</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /><br /></span><span style="color: #007700">function&nbsp;</span><span style="color: #0000BB">foo</span><span style="color: #007700">()<br />{<br />&nbsp;&nbsp;&nbsp;&nbsp;global&nbsp;</span><span style="color: #0000BB">$color</span><span style="color: #007700">;<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;include&nbsp;</span><span style="color: #DD0000">'vars.php'</span><span style="color: #007700">;<br /><br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">"A&nbsp;</span><span style="color: #0000BB">$color</span><span style="color: #DD0000">&nbsp;</span><span style="color: #0000BB">$fruit</span><span style="color: #DD0000">"</span><span style="color: #007700">;<br />}<br /><br /></span><span style="color: #FF8000">/*&nbsp;vars.php&nbsp;is&nbsp;in&nbsp;the&nbsp;scope&nbsp;of&nbsp;foo()&nbsp;so&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*<br />*&nbsp;$fruit&nbsp;is&nbsp;NOT&nbsp;available&nbsp;outside&nbsp;of&nbsp;this&nbsp;&nbsp;*<br />*&nbsp;scope.&nbsp;&nbsp;$color&nbsp;is&nbsp;because&nbsp;we&nbsp;declared&nbsp;it&nbsp;*<br />*&nbsp;as&nbsp;global.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;*/<br /><br /></span><span style="color: #0000BB">foo</span><span style="color: #007700">();&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;A&nbsp;green&nbsp;apple<br /></span><span style="color: #007700">echo&nbsp;</span><span style="color: #DD0000">"A&nbsp;</span><span style="color: #0000BB">$color</span><span style="color: #DD0000">&nbsp;</span><span style="color: #0000BB">$fruit</span><span style="color: #DD0000">"</span><span style="color: #007700">;&nbsp;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;A&nbsp;green<br /><br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+ </p>
+ <p class="simpara">
+  When a file is included, parsing drops out of PHP mode and
+  into HTML mode at the beginning of the target file, and resumes
+  again at the end.  For this reason, any code inside the target
+  file which should be executed as PHP code must be enclosed within
+  <a href="language.basic-syntax.phpmode.php" class="link">valid PHP start
+  and end tags</a>.
+ </p>
+ <p class="simpara">
+  If &quot;<a href="filesystem.configuration.php#ini.allow-url-fopen" class="link">URL fopen wrappers</a>&quot;
+  are enabled in PHP (which they are in the default configuration),
+  you can specify the file to be included using a URL (via HTTP or
+  other supported wrapper - see <a href="wrappers.php" class="xref">Supported Protocols and Wrappers</a> for a list
+  of protocols) instead of a local pathname.  If the target server interprets
+  the target file as PHP code, variables may be passed to the included
+  file using a URL request string as used with HTTP GET.  This is
+  not strictly speaking the same thing as including the file and having
+  it inherit the parent file&#039;s variable scope; the script is actually
+  being run on the remote server and the result is then being
+  included into the local script.
+ </p>
+ <div class="warning"><strong class="warning">Warning</strong><p class="para">Windows versions of PHP
+prior to PHP 4.3.0 do not support access of remote files via this function,
+even if <a href="filesystem.configuration.php#ini.allow-url-fopen" class="link">allow_url_fopen</a> is enabled.
+</p></div>
+ <p class="para">
+  <div class="example" id="example-137">
+   <p><strong>Example #3 <em>include</em> through HTTP</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /><br /></span><span style="color: #FF8000">/*&nbsp;This&nbsp;example&nbsp;assumes&nbsp;that&nbsp;www.example.com&nbsp;is&nbsp;configured&nbsp;to&nbsp;parse&nbsp;.php<br />*&nbsp;files&nbsp;and&nbsp;not&nbsp;.txt&nbsp;files.&nbsp;Also,&nbsp;'Works'&nbsp;here&nbsp;means&nbsp;that&nbsp;the&nbsp;variables<br />*&nbsp;$foo&nbsp;and&nbsp;$bar&nbsp;are&nbsp;available&nbsp;within&nbsp;the&nbsp;included&nbsp;file.&nbsp;*/<br /><br />//&nbsp;Won't&nbsp;work;&nbsp;file.txt&nbsp;wasn't&nbsp;handled&nbsp;by&nbsp;www.example.com&nbsp;as&nbsp;PHP<br /></span><span style="color: #007700">include&nbsp;</span><span style="color: #DD0000">'http://www.example.com/file.txt?foo=1&amp;bar=2'</span><span style="color: #007700">;<br /><br /></span><span style="color: #FF8000">//&nbsp;Won't&nbsp;work;&nbsp;looks&nbsp;for&nbsp;a&nbsp;file&nbsp;named&nbsp;'file.php?foo=1&amp;bar=2'&nbsp;on&nbsp;the<br />//&nbsp;local&nbsp;filesystem.<br /></span><span style="color: #007700">include&nbsp;</span><span style="color: #DD0000">'file.php?foo=1&amp;bar=2'</span><span style="color: #007700">;<br /><br /></span><span style="color: #FF8000">//&nbsp;Works.<br /></span><span style="color: #007700">include&nbsp;</span><span style="color: #DD0000">'http://www.example.com/file.php?foo=1&amp;bar=2'</span><span style="color: #007700">;<br /><br /></span><span style="color: #0000BB">$foo&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">1</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">$bar&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">2</span><span style="color: #007700">;<br />include&nbsp;</span><span style="color: #DD0000">'file.txt'</span><span style="color: #007700">;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;Works.<br /></span><span style="color: #007700">include&nbsp;</span><span style="color: #DD0000">'file.php'</span><span style="color: #007700">;&nbsp;&nbsp;</span><span style="color: #FF8000">//&nbsp;Works.<br /><br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+ </p>
+ <div class="warning"><strong class="warning">Warning</strong>
+  <h1 class="title">Security warning</h1>
+  <p class="para">
+   Remote file may be processed at the remote server (depending on the file
+   extension and the fact if the remote server runs PHP or not) but it still
+   has to produce a valid PHP script because it will be processed at the
+   local server. If the file from the remote server should be processed
+   there and outputted only,  <span class="function"><a href="function.readfile.php" class="function">readfile()</a></span> is much better
+   function to use. Otherwise, special care should be taken to secure the
+   remote script to produce a valid and desired code.
+  </p>
+ </div>
+ <p class="para">
+  See also <a href="features.remote-files.php" class="link">Remote files</a>,
+   <span class="function"><a href="function.fopen.php" class="function">fopen()</a></span> and  <span class="function"><a href="function.file.php" class="function">file()</a></span> for related
+  information.
+ </p>
+ <p class="simpara">
+  Handling Returns: It is possible to execute a  <span class="function"><a href="function.return.php" class="function">return</a></span>
+  statement inside an included file in order to terminate processing in that
+  file and return to the script which called it.  Also, it&#039;s possible to return
+  values from included files.  You can take the value of the include call as
+  you would for a normal function.  This is not, however, possible when including
+  remote files unless the output of the remote file has
+  <a href="language.basic-syntax.phpmode.php" class="link">valid PHP start
+  and end tags</a> (as with any local file).  You can declare the needed
+  variables within those tags and they will be introduced at whichever point
+  the file was included.
+ </p>
+ <p class="para">
+  Because <em>include</em> is a special language construct,
+  parentheses are not needed around its argument. Take care when comparing
+  return value.
+  <div class="example" id="example-138">
+   <p><strong>Example #4 Comparing return value of include</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #FF8000">//&nbsp;won't&nbsp;work,&nbsp;evaluated&nbsp;as&nbsp;include(('vars.php')&nbsp;==&nbsp;'OK'),&nbsp;i.e.&nbsp;include('')<br /></span><span style="color: #007700">if&nbsp;(include(</span><span style="color: #DD0000">'vars.php'</span><span style="color: #007700">)&nbsp;==&nbsp;</span><span style="color: #DD0000">'OK'</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'OK'</span><span style="color: #007700">;<br />}<br /><br /></span><span style="color: #FF8000">//&nbsp;works<br /></span><span style="color: #007700">if&nbsp;((include&nbsp;</span><span style="color: #DD0000">'vars.php'</span><span style="color: #007700">)&nbsp;==&nbsp;</span><span style="color: #DD0000">'OK'</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;echo&nbsp;</span><span style="color: #DD0000">'OK'</span><span style="color: #007700">;<br />}<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+ </p>
+ <p class="para">
+  <div class="example" id="example-139">
+   <p><strong>Example #5 <em>include</em> and the  <span class="function"><a href="function.return.php" class="function">return</a></span> statement</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+return.php<br /><span style="color: #0000BB">&lt;?php<br /><br />$var&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'PHP'</span><span style="color: #007700">;<br /><br />return&nbsp;</span><span style="color: #0000BB">$var</span><span style="color: #007700">;<br /><br /></span><span style="color: #0000BB">?&gt;<br /></span><br />noreturn.php<br /><span style="color: #0000BB">&lt;?php<br /><br />$var&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #DD0000">'PHP'</span><span style="color: #007700">;<br /><br /></span><span style="color: #0000BB">?&gt;<br /></span><br />testreturns.php<br /><span style="color: #0000BB">&lt;?php<br /><br />$foo&nbsp;</span><span style="color: #007700">=&nbsp;include&nbsp;</span><span style="color: #DD0000">'return.php'</span><span style="color: #007700">;<br /><br />echo&nbsp;</span><span style="color: #0000BB">$foo</span><span style="color: #007700">;&nbsp;</span><span style="color: #FF8000">//&nbsp;prints&nbsp;'PHP'<br /><br /></span><span style="color: #0000BB">$bar&nbsp;</span><span style="color: #007700">=&nbsp;include&nbsp;</span><span style="color: #DD0000">'noreturn.php'</span><span style="color: #007700">;<br /><br />echo&nbsp;</span><span style="color: #0000BB">$bar</span><span style="color: #007700">;&nbsp;</span><span style="color: #FF8000">//&nbsp;prints&nbsp;1<br /><br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+ </p>
+ <p class="simpara">
+  <em>$bar</em> is the value <em>1</em> because the include
+  was successful.  Notice the difference between the above examples.  The first uses
+   <span class="function"><a href="function.return.php" class="function">return</a></span> within the included file while the other does not.
+  If the file can&#039;t be included, <strong><code>FALSE</code></strong> is returned and
+  <strong><code>E_WARNING</code></strong> is issued.
+ </p>
+ <p class="para">
+  If there are functions defined in the included file, they can be used in the
+  main file independent if they are before  <span class="function"><a href="function.return.php" class="function">return</a></span> or after.
+  If the file is included twice, PHP 5 issues fatal error because functions
+  were already declared, while PHP 4 doesn&#039;t complain about functions
+  defined after  <span class="function"><a href="function.return.php" class="function">return</a></span>.
+  It is recommended to use  <span class="function"><a href="function.include-once.php" class="function">include_once</a></span> instead of
+  checking if the file was already included and conditionally return inside
+  the included file.
+ </p>
+ <p class="simpara">
+  Another way to &quot;include&quot; a PHP file into a variable is to capture the
+  output by using the <a href="ref.outcontrol.php" class="link">Output Control
+  Functions</a> with <em>include</em>. For example:
+ </p>
+ <p class="para">
+  <div class="example" id="example-140">
+   <p><strong>Example #6 Using output buffering to include a PHP file into a string</strong></p>
+   <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br />$string&nbsp;</span><span style="color: #007700">=&nbsp;</span><span style="color: #0000BB">get_include_contents</span><span style="color: #007700">(</span><span style="color: #DD0000">'somefile.php'</span><span style="color: #007700">);<br /><br />function&nbsp;</span><span style="color: #0000BB">get_include_contents</span><span style="color: #007700">(</span><span style="color: #0000BB">$filename</span><span style="color: #007700">)&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;(</span><span style="color: #0000BB">is_file</span><span style="color: #007700">(</span><span style="color: #0000BB">$filename</span><span style="color: #007700">))&nbsp;{<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span style="color: #0000BB">ob_start</span><span style="color: #007700">();<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;include&nbsp;</span><span style="color: #0000BB">$filename</span><span style="color: #007700">;<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;</span><span style="color: #0000BB">ob_get_clean</span><span style="color: #007700">();<br />&nbsp;&nbsp;&nbsp;&nbsp;}<br />&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;</span><span style="color: #0000BB">false</span><span style="color: #007700">;<br />}<br /><br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+   </div>
+
+  </div>
+ </p>
+ <p class="para">
+  In order to automatically include files within scripts, see also the
+  <a href="ini.core.php#ini.auto-prepend-file" class="link">auto_prepend_file</a> and
+  <a href="ini.core.php#ini.auto-append-file" class="link">auto_append_file</a>
+  configuration options in <var class="filename">php.ini</var>.
+ </p>
+
+ <blockquote class="note"><p><strong class="note">Note</strong>: <span class="simpara">Because this is a
+language construct and not a function, it cannot be called using
+<a href="functions.variable-functions.php" class="link">variable functions</a>.</span>
+</p></blockquote>
+
+ <p class="simpara">
+  See also  <span class="function"><a href="function.require.php" class="function">require</a></span>,  <span class="function"><a href="function.require-once.php" class="function">require_once</a></span>,
+   <span class="function"><a href="function.include-once.php" class="function">include_once</a></span>,  <span class="function"><a href="function.get-included-files.php" class="function">get_included_files()</a></span>,
+   <span class="function"><a href="function.readfile.php" class="function">readfile()</a></span>,  <span class="function"><a href="function.virtual.php" class="function">virtual()</a></span>, and
+  <a href="ini.core.php#ini.include-path" class="link">include_path</a>.
+ </p>
+</div><br /><br /><!--UdmComment-->
+<div class="manualnavbar manualnavbar_bottom">
+ <span class="next">
+  <a href="function.require-once.php">require_once<img src="@w{GVN7ETSY}" alt="&gt;" width="11" height="7" /></a>
+ </span>
+ <span class="prev">
+  <a href="function.require.php"><img src="@w{KX8YRRP2}" alt="&lt;" width="11" height="7" />require</a>
+ </span>
+ <hr />
+ <span class="lastupdated">[<a href="https://edit.php.net/?project=PHP&amp;perm=en/function.include.php">edit</a>] Last updated: Fri, 27 Jul 2012</span>
+ <div class="langchooser">
+  &nbsp;
+ </div>
+</div>
+<!--/UdmComment-->
+
+
+<div id="usernotes">
+ <div class="head">
+  <span class="action"><a href="/manual/add-note.php?sect=function.include&amp;redirect=http://www.php.net/manual/en/function.include.php"><img src="@w{WPBKWWJ7}" alt="add a note" width="13" height="13" class="middle" /></a> <small><a href="/manual/add-note.php?sect=function.include&amp;redirect=http://www.php.net/manual/en/function.include.php">add a note</a></small></span>
+  <small>User Contributed Notes</small>
+  <strong>include</strong>
+ </div><div id="allnotes">
+ <a name="109445"></a>
+ <div class="note">
+  <strong class='user'>serpent at paradise dot net dot nz</strong>
+  <a href="#109445" class="date">18-Jul-2012 12:26</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+1. Don't use include to include any kind of config.php file if you can avoid it, it's inadvisable from a security standpoint.&nbsp; You should use a config.ini file outside of your www tree.&nbsp; See <a href="http://php.net/manual/en/function.parse-ini-file.php" rel="nofollow" target="_blank">http://php.net/manual/en/function.parse-ini-file.php</a><br />
+<br />
+2. Depending on whether your server supports it, you can set a "root" directory variable for your scripts in your .htaccess file e.g. if your scripts are under /var/www/application you can set a variable in /var/www/application/.htaccess like:<br />
+<br />
+SetEnv APPROOT '/var/www/application'<br />
+<br />
+This variable will appear in the $_SERVER superglobal.&nbsp; You can then use it in the head of a php file.&nbsp; For example, if a particular file is in /var/www/application/classes, you might put this:<br />
+<span class="default">&lt;?php<br />
+chdir</span><span class="keyword">(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'APPROOT'</span><span class="keyword">]);<br />
+</span><span class="default">?&gt;<br />
+</span>Then you can include files relative to the application root directory without worrying about which directory it's in, or which directory the file that's including it in turn is in e.g.&nbsp; <br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">include(</span><span class="string">'functions/strings.php'</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span>Would include /var/www/application/functions/strings.php, not /var/www/application/classes/functions/strings.php<br />
+<br />
+If you have to move your application, you can easily edit the "APPROOT" in one place.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="109394"></a>
+ <div class="note">
+  <strong class='user'>Mike H ontheroadagain4 at excite dot com</strong>
+  <a href="#109394" class="date">13-Jul-2012 03:47</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+Beware trying to include a file without a specific include path set or included (file name only), of which there are duplicate copy(ies) with identical file name on the site, but in different locations; just spent a few merry hours (not) trying to find out why a module I'm editing refuses to show any different web page behaviour!<br />
+<br />
+Because I didn't know another, earlier, copy of it was in the root level of the site, instead of the sub-folder where it's supposed to be (as just one instance of the file), so PHP kept fetching the one from the top root level. Doh!<br />
+<br />
+NB: the module doing the include() is also in the same sub-folder, but it's interesting that PHP still defaulted to searching the root level first, and used the one found there.<br />
+<br />
+HTH</span>
+</code></div>
+  </div>
+ </div>
+ <a name="108026"></a>
+ <div class="note">
+  <strong class='user'>kkreiven at gmail dot com</strong>
+  <a href="#108026" class="date">23-Mar-2012 08:59</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+ob_start();<br />
+include 'passwords.php';<br />
+ob_end_clean();<br />
+<br />
+This is a GOLDEN RULE!!</span>
+</code></div>
+  </div>
+ </div>
+ <a name="107685"></a>
+ <div class="note">
+  <strong class='user'>Anon</strong>
+  <a href="#107685" class="date">26-Feb-2012 06:31</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+I cannot emphasize enough knowing the active working directory. Find it by: echo getcwd();<br />
+Remember that if file A includes file B, and B includes file C; the include path in B should take into account that A, not B, is the active working directory.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="104432"></a>
+ <div class="note">
+  <strong class='user'>bimal at sanjaal dot com</strong>
+  <a href="#104432" class="date">15-Jun-2011 01:22</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+When two different files located in separate directories try to INCLUDE/REQUIRE the relative file names, this may help you correctly FIND the included files.<br />
+<br />
+The code is a snapshot only. Your environment might change.<br />
+<br />
+<span class="default">&lt;?php<br />
+$now_at_dir </span><span class="keyword">= </span><span class="default">getcwd</span><span class="keyword">();<br />
+</span><span class="default">chdir</span><span class="keyword">(</span><span class="default">realpath</span><span class="keyword">(</span><span class="default">dirname</span><span class="keyword">(</span><span class="default">__FILE__</span><span class="keyword">).</span><span class="string">'/../../../somewhere/'</span><span class="keyword">));<br />
+<br />
+</span><span class="comment"># Out of the general area<br />
+</span><span class="keyword">require_once(</span><span class="string">'a_differnet_path/browse_wine.php'</span><span class="keyword">);<br />
+<br />
+</span><span class="default">chdir</span><span class="keyword">(</span><span class="default">$now_at_dir</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+The basic trick is in saving the current directory, changing to the required directory, including the file, and then return back to the original directory.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="103182"></a>
+ <div class="note">
+  <strong class='user'>contact at muluweb dot net</strong>
+  <a href="#103182" class="date">30-Mar-2011 09:20</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+I haven't found that information anywhere else, but here is what I've found on many servers and it has always been the case so far.<br />
+==&gt; include uses HTTP/1.0, not HTTP/1.1<br />
+<br />
+It could be one criterion on a whole to help you recognizing where the request comes from.<br />
+<br />
+Have fun</span>
+</code></div>
+  </div>
+ </div>
+ <a name="103011"></a>
+ <div class="note">
+  <strong class='user'>Bob Jones</strong>
+  <a href="#103011" class="date">19-Mar-2011 04:22</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+include() when used to load configuration information has a scary security flaw, if someone corrupts the PHP header in the included file it will happily print the config file to every page which includes it as plain text.<br />
+<br />
+Luckily there is a quick and easy workout for this behaviour (which is alluded to in this article):&nbsp; <br />
+<span class="default">&lt;?php <br />
+ob_start</span><span class="keyword">();</span><span class="comment">//Hook output buffer <br />
+</span><span class="keyword">include(</span><span class="string">"config.php"</span><span class="keyword">);<br />
+</span><span class="default">ob_end_clean</span><span class="keyword">();</span><span class="comment">//Clear output buffer<br />
+</span><span class="default">?&gt;</span> <br />
+<br />
+This will stop the included file from being printed as plain text but also stops you using echo or other print commands from within the included file. It is only appropriate when loading configuration information. <br />
+<br />
+I'd recommend doing this whenever you pick up database usernames and passwords from a *.php. It only takes a single wrong character to show everyone in the world that information.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="102731"></a>
+ <div class="note">
+  <strong class='user'>sPlayer</strong>
+  <a href="#102731" class="date">02-Mar-2011 09:09</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+Sometimes it will be usefull to include a string as a filename<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="comment">//get content<br />
+</span><span class="default">$cFile </span><span class="keyword">= </span><span class="default">file_get_contents</span><span class="keyword">(</span><span class="string">'crypted.file'</span><span class="keyword">);<br />
+</span><span class="comment">//decrypt the content<br />
+</span><span class="default">$content </span><span class="keyword">= </span><span class="default">decrypte</span><span class="keyword">(</span><span class="default">$cFile</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">//include this<br />
+</span><span class="keyword">include(</span><span class="string">"data://text/plain;base64,"</span><span class="keyword">.</span><span class="default">base64_encode</span><span class="keyword">(</span><span class="default">$content</span><span class="keyword">));<br />
+</span><span class="comment">//or<br />
+</span><span class="keyword">include(</span><span class="string">"data://text/plain,"</span><span class="keyword">.</span><span class="default">urlencode</span><span class="keyword">(</span><span class="default">$content</span><span class="keyword">));<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code></div>
+  </div>
+ </div>
+ <a name="100643"></a>
+ <div class="note">
+  <strong class='user'>phatum at mail dot ru</strong>
+  <a href="#100643" class="date">27-Oct-2010 03:23</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+I found a good solution how to include a text that is defined as a string and contains php-code that must be executed.<br />
+All defined local vars are exported out to the global scope after execution.<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp; </span><span class="keyword">function </span><span class="default">include_text</span><span class="keyword">(</span><span class="default">$text</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; </span><span class="comment">// executing script<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">eval (</span><span class="string">"?&gt;$text"</span><span class="keyword">); <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// exporting global vars<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$GLOBALS </span><span class="keyword">+= </span><span class="default">get_defined_vars</span><span class="keyword">();<br />
+&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp; </span><span class="default">include_text </span><span class="keyword">(</span><span class="string">'&lt;? $a = 2;&nbsp; $b = $a + 2; ?&gt;'</span><span class="keyword">);<br />
+&nbsp;&nbsp; echo </span><span class="string">"a = $a&lt;br&gt;"</span><span class="keyword">;<br />
+&nbsp;&nbsp; echo </span><span class="string">"b = $b"</span><span class="keyword">;<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Output:<br />
+a = 2<br />
+b = 4</span>
+</code></div>
+  </div>
+ </div>
+ <a name="100553"></a>
+ <div class="note">
+  <strong class='user'>joe dot naylor at gmail dot com</strong>
+  <a href="#100553" class="date">22-Oct-2010 02:11</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+Be very careful with including files based on user inputed data.&nbsp; For instance, consider this code sample:<br />
+<br />
+index.php:<br />
+<span class="default">&lt;?php<br />
+$page </span><span class="keyword">= </span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">'page'</span><span class="keyword">];<br />
+if (</span><span class="default">file_exists</span><span class="keyword">(</span><span class="string">'pages/'</span><span class="keyword">.</span><span class="default">$page</span><span class="keyword">.</span><span class="string">'.php'</span><span class="keyword">))<br />
+{<br />
+&nbsp;&nbsp; include(</span><span class="string">'pages/'</span><span class="keyword">.</span><span class="default">$page</span><span class="keyword">.</span><span class="string">'.php'</span><span class="keyword">);<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Then go to URL:<br />
+index.php?page=/../../../../../../etc/passwd%00.html<br />
+<br />
+file_exists() will return true, your passwd file will be included and since it's not php code it will be output directly to the browser.<br />
+<br />
+Of course the same vulnerability exists if you are reading a file to display, as in a templating engine.<br />
+<br />
+You absolutely have to sanitize any input string that will be used to access the filesystem, you can't count on an absolute path or appended file extension to secure it.&nbsp; Better yet, know exactly what options you can accept and accept only those options.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="98835"></a>
+ <div class="note">
+  <strong class='user'>emanueledelgrande ad email dot it</strong>
+  <a href="#98835" class="date">09-Jul-2010 02:23</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+About the problem to include a script in the global scope, after many tests with different solutions, I reached my point. I post it in the hope it may be useful.<br />
+<br />
+At first I built my "globalScopeSimulator" class, but an include called inside a class is not the best solution: if it contains some user code, the user will access to the $this reserved variable and even to all the private members... Critical issue!<br />
+<br />
+That's why I turned back into a function solution.<br />
+<br />
+Another advantage is that I didn't have to make use of the deprecable "global" keyword, since I *imported* the global scope inside the function, with the extract() function.<br />
+Using the EXTR_REFS flag this trick does not waste memory, since the extracted variables are not a copy, but a reference to the global ones.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">global_include</span><span class="keyword">(</span><span class="default">$script_path</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// check if the file to include exists:<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">if (isset(</span><span class="default">$script_path</span><span class="keyword">) &amp;&amp; </span><span class="default">is_file</span><span class="keyword">(</span><span class="default">$script_path</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// extract variables from the global scope:<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">extract</span><span class="keyword">(</span><span class="default">$GLOBALS</span><span class="keyword">, </span><span class="default">EXTR_REFS</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">ob_start</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; include(</span><span class="default">$script_path</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">ob_get_clean</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">ob_clean</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">trigger_error</span><span class="keyword">(</span><span class="string">'The script to parse in the global scope was not found'</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Hope it helps... :)<br />
+Cheers and happy coding!</span>
+</code></div>
+  </div>
+ </div>
+ <a name="98064"></a>
+ <div class="note">
+  <strong class='user'>creator at mindcreations dot com</strong>
+  <a href="#98064" class="date">24-May-2010 02:28</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+If you can't change your include path or you have to leave some php libraries where they are, you can just do a chdir($localdir) before the include or require statement to make sure that the local dir now is $localdir.<br />
+<br />
+This is the typical case if you have to include some other app classes and you do not want to move the app files around.<br />
+<br />
+This is just a workaround for those who can't benefit from all other solutions proposed.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="97331"></a>
+ <div class="note">
+  <strong class='user'>tim at atwoodglass dot com</strong>
+  <a href="#97331" class="date">14-Apr-2010 07:18</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+It appears to be a common problem for an include file to know the directory level distance from the logical root of a site to the script including the file (what I will call the "includer"). This is required if the include file needs to refer to other files such as images or nested includes and is included from within files at different directory levels.&nbsp; The relative file depth (../ or ../../ etc.) needs to be known.<br />
+<br />
+The solutions offered above break with anything which makes the true server root different from the logical root for the site. This includes use of Apache alias directories, directory links or simply the common practice of using a sub-folder under the www directory for testing but not production.<br />
+<br />
+The only solution I have found so far is to create an include file at a known directory level which gets included at the beginning of every page in the site. This is common with headers such as a header.inc.php file. At the start of this include file have the following code:<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; session_start</span><span class="keyword">(); </span><span class="comment">/* if not already done */<br />
+&nbsp;&nbsp;&nbsp; /* replace value below with appropriate header to root distance of this include file */<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$header_to_root_distance </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$header_dir </span><span class="keyword">= </span><span class="default">dirname</span><span class="keyword">(</span><span class="default">__FILE__</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$root_distance </span><span class="keyword">= </span><span class="default">substr_count</span><span class="keyword">(</span><span class="default">$header_dir</span><span class="keyword">, </span><span class="default">DIRECTORY_SEPARATOR</span><span class="keyword">) - </span><span class="default">$header_to_root_distance</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$includer_distance </span><span class="keyword">= </span><span class="default">substr_count</span><span class="keyword">(</span><span class="default">dirname</span><span class="keyword">(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'SCRIPT_FILENAME'</span><span class="keyword">]), </span><span class="string">"/"</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$relative_path </span><span class="keyword">= </span><span class="default">str_repeat</span><span class="keyword">(</span><span class="string">'../'</span><span class="keyword">, </span><span class="default">$includer_distance </span><span class="keyword">- </span><span class="default">$root_distance</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'relative_path'</span><span class="keyword">] = </span><span class="default">$relative_path</span><span class="keyword">;<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+The session variable "relative_path" will now always contain the correct relative path back the site logical root and may be concatenated with file references so they will work no matter which directory level the main includer file resides at within the site.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="95276"></a>
+ <div class="note">
+  <strong class='user'>this dot person at joaocunha dot eti dot br</strong>
+  <a href="#95276" class="date">23-Dec-2009 05:20</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+AVOID ZERO BYTE ORDER MARK!<br />
+<br />
+I was having problems with include/require (once or not). I created an include-opening.php which had the initial structure of the page, and then included this page in all other pages. The result was looking "crashed", so I did compare including or just pasting the html code into the page. The hardcoded version displayed ok, even with the source code being exactly the same.<br />
+<br />
+So I opened the include file with notepad++ and set the encoding to UTF-8 (no BOM) and voila, everything is working great now.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="95107"></a>
+ <div class="note">
+  <strong class='user'>randallgirard at hotmail dot com</strong>
+  <a href="#95107" class="date">14-Dec-2009 12:23</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+Heres a nifty little include function I whipped up utilizing extract and compact to post variables to and return from an include file (great for configurations, ex: DB connection info, or whatever else you can imagine). I'm using namespaces and keeping my function/class names simple, so you can rename the function to whatever you'd like.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment"># include function allowing variables to be posted to and returned from the target script<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">function </span><span class="default">inc</span><span class="keyword">( </span><span class="default">$__path</span><span class="keyword">, </span><span class="default">$__return</span><span class="keyword">=</span><span class="string">'.'</span><span class="keyword">, array </span><span class="default">$__post</span><span class="keyword">=array() ) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment"># post var's to the local scope<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if ( </span><span class="default">count</span><span class="keyword">( </span><span class="default">$__post </span><span class="keyword">) )<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">extract</span><span class="keyword">(</span><span class="default">$__post</span><span class="keyword">, </span><span class="default">EXTR_SKIP</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment"># include the file and store the result<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if ( </span><span class="default">$__result </span><span class="keyword">= include </span><span class="default">$__path </span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment"># return requested variables from the included file<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if ( </span><span class="default">is_array</span><span class="keyword">(</span><span class="default">$__return</span><span class="keyword">) )<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">= </span><span class="default">compact</span><span class="keyword">(</span><span class="default">$__return</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment"># Return ALL variables defined from within the included file<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; # NOTE: $__post keys are NOT included!<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">else if ( </span><span class="default">$__return </span><span class="keyword">== </span><span class="string">'.' </span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">= </span><span class="default">compact</span><span class="keyword">( </span><span class="default">array_diff</span><span class="keyword">( </span><span class="default">array_keys</span><span class="keyword">(</span><span class="default">get_defined_vars</span><span class="keyword">()),<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; array(</span><span class="string">'GLOBALS'</span><span class="keyword">, </span><span class="string">'__path'</span><span class="keyword">, </span><span class="string">'__return'</span><span class="keyword">, </span><span class="string">'__post'</span><span class="keyword">, </span><span class="string">'__result'</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; + </span><span class="default">array_keys</span><span class="keyword">(</span><span class="default">$__post</span><span class="keyword">) ) );<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment"># Is $__return a variable from the file?<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">else if ( </span><span class="default">$__return </span><span class="keyword">&amp;&amp; isset($</span><span class="default">$__return</span><span class="keyword">) )<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">= array( </span><span class="default">$__return </span><span class="keyword">=&gt; $</span><span class="default">$__return </span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; else<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$result </span><span class="keyword">= array();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment"># unshift the include result into $result<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">array_unshift</span><span class="keyword">(</span><span class="default">$result</span><span class="keyword">, </span><span class="default">$__result</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">$result</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return array(</span><span class="default">$__result</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code></div>
+  </div>
+ </div>
+ <a name="94736"></a>
+ <div class="note">
+  <strong class='user'>daevid at daevid dot com</strong>
+  <a href="#94736" class="date">20-Nov-2009 04:54</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+Well now, I am confused because these pages all show them as functions:<br />
+Include(), require(), require_once(), include_once()<br />
+<br />
+Yet ALL of the examples show the PEAR way:<br />
+<a href="http://pear.php.net/manual/en/standards.including.php" rel="nofollow" target="_blank">http://pear.php.net/manual/en/standards.including.php</a><br />
+<br />
+"Note: include_once and require_once are statements, not functions. Parentheses should not surround the subject filename." <br />
+<br />
+&nbsp;&nbsp;&nbsp; include_once "a.php";<br />
+<br />
+To change all require_once('foo.php'); to require_once 'foo.php' execute this:<br />
+<br />
+cd /var/www/<br />
+<br />
+find . -name '*.php' -print | xargs egrep -l \<br />
+'require_once\s*(\(.*\));'\ | xargs sed -i.sedorig -e \<br />
+'s/require_once\s*(\(.*\));/require_once \1;/'<br />
+<br />
+(thanks to Robert Hajime Lanning for that)<br />
+<br />
+Then to remove all the ".php.sedorig" backup files execute this:<br />
+<br />
+find . -name "*.php.sedorig" -type f -exec rm -rf {} \;</span>
+</code></div>
+  </div>
+ </div>
+ <a name="94586"></a>
+ <div class="note">
+  <strong class='user'>Chris Bell</strong>
+  <a href="#94586" class="date">12-Nov-2009 05:12</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+A word of warning about lazy HTTP includes - they can break your server.<br />
+<br />
+If you are including a file from your own site, do not use a URL however easy or tempting that may be. If all of your PHP processes are tied up with the pages making the request, there are no processes available to serve the include. The original requests will sit there tying up all your resources and eventually time out.<br />
+<br />
+Use file references wherever possible. This caused us a considerable amount of grief (Zend/IIS) before I tracked the problem down.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="94557"></a>
+ <div class="note">
+  <strong class='user'>Anonymous</strong>
+  <a href="#94557" class="date">11-Nov-2009 11:35</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+I was having problems when HTTP headers were being sent before I was ready.&nbsp; I discovered that this happened only when I was including a file at the top of my script.&nbsp; Since my included file only contained PHP with no whitespace outside the tags, this behavior seemed incorrect.<br />
+<br />
+The editor I was using was saving the files in UTF8 format, sometimes including the redundant Byte Order Mark at the beginning of the file.&nbsp; Any Unicode-aware editor would implicitly hide the presence of the BOM from the user, making it hard to notice the problem.&nbsp; However, by using a hex editor I was able to see and remove the three bytes, restoring normal behavior.<br />
+<br />
+Moral:&nbsp; Prevent your editor from adding an invisible Unicode Byte Order Mark to the beginning of your source code!</span>
+</code></div>
+  </div>
+ </div>
+ <a name="94392"></a>
+ <div class="note">
+  <strong class='user'>hyponiq at gmail dot com</strong>
+  <a href="#94392" class="date">02-Nov-2009 02:12</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+I would like to point out the difference in behavior in IIS/Windows and Apache/Unix (not sure about any others, but I would think that any server under Windows will be have the same as IIS/Windows and any server under Unix will behave the same as Apache/Unix) when it comes to path specified for included files.<br />
+<br />
+Consider the following:<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">include </span><span class="string">'/Path/To/File.php'</span><span class="keyword">;<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+In IIS/Windows, the file is looked for at the root of the virtual host (we'll say C:\Server\Sites\MySite) since the path began with a forward slash.&nbsp; This behavior works in HTML under all platforms because browsers interpret the / as the root of the server.<br />
+<br />
+However, Unix file/folder structuring is a little different.&nbsp; The / represents the root of the hard drive or current hard drive partition.&nbsp; In other words, it would basically be looking for root:/Path/To/File.php instead of serverRoot:/Path/To/File.php (which we'll say is /usr/var/www/htdocs).&nbsp; Thusly, an error/warning would be thrown because the path doesn't exist in the root path.<br />
+<br />
+I just thought I'd mention that.&nbsp; It will definitely save some trouble for those users who work under Windows and transport their applications to an Unix-based server.<br />
+<br />
+A work around would be something like:<br />
+<span class="default">&lt;?php<br />
+$documentRoot </span><span class="keyword">= </span><span class="default">null</span><span class="keyword">;<br />
+<br />
+if (isset(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'DOCUMENT_ROOT'</span><span class="keyword">])) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$documentRoot </span><span class="keyword">= </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'DOCUMENT_ROOT'</span><span class="keyword">];<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">strstr</span><span class="keyword">(</span><span class="default">$documentRoot</span><span class="keyword">, </span><span class="string">'/'</span><span class="keyword">) || </span><span class="default">strstr</span><span class="keyword">(</span><span class="default">$documentRoot</span><span class="keyword">, </span><span class="string">'\\'</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">strstr</span><span class="keyword">(</span><span class="default">$documentRoot</span><span class="keyword">, </span><span class="string">'/'</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$documentRoot </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">'/'</span><span class="keyword">, </span><span class="default">DIRECTORY_SEPARATOR</span><span class="keyword">, </span><span class="default">$documentRoot</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; elseif (</span><span class="default">strstr</span><span class="keyword">(</span><span class="default">$documentRoot</span><span class="keyword">, </span><span class="string">'\\'</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$documentRoot </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">'\\'</span><span class="keyword">, </span><span class="default">DIRECTORY_SEPARATOR</span><span class="keyword">, </span><span class="default">$documentRoot</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">preg_match</span><span class="keyword">(</span><span class="string">'/[^\\/]{1}\\[^\\/]{1}/'</span><span class="keyword">, </span><span class="default">$documentRoot</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$documentRoot </span><span class="keyword">= </span><span class="default">preg_replace</span><span class="keyword">(</span><span class="string">'/([^\\/]{1})\\([^\\/]{1})/'</span><span class="keyword">, </span><span class="string">'\\1DIR_SEP\\2'</span><span class="keyword">, </span><span class="default">$documentRoot</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$documentRoot </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(</span><span class="string">'DIR_SEP'</span><span class="keyword">, </span><span class="string">'\\\\'</span><span class="keyword">, </span><span class="default">$documentRoot</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+else {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">/**<br />
+&nbsp;&nbsp; &nbsp; * I usually store this file in the Includes folder at the root of my<br />
+&nbsp;&nbsp; &nbsp; * virtual host. This can be changed to wherever you store this file.<br />
+&nbsp;&nbsp; &nbsp; * <br />
+&nbsp;&nbsp; &nbsp; * Example:<br />
+&nbsp;&nbsp; &nbsp; * If you store this file in the Application/Settings/DocRoot folder at the<br />
+&nbsp;&nbsp; &nbsp; * base of your site, you would change this array to include each of those<br />
+&nbsp;&nbsp; &nbsp; * folders.<br />
+&nbsp;&nbsp; &nbsp; * <br />
+&nbsp;&nbsp; &nbsp; * &lt;code&gt;<br />
+&nbsp;&nbsp; &nbsp; * $directories = array(<br />
+&nbsp;&nbsp; &nbsp; *&nbsp; &nbsp;&nbsp; 'Application',<br />
+&nbsp;&nbsp; &nbsp; *&nbsp; &nbsp;&nbsp; 'Settings',<br />
+&nbsp;&nbsp; &nbsp; *&nbsp; &nbsp;&nbsp; 'DocRoot'<br />
+&nbsp;&nbsp; &nbsp; * );<br />
+&nbsp;&nbsp; &nbsp; * &lt;/code&gt;<br />
+&nbsp;&nbsp; &nbsp; */<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$directories </span><span class="keyword">= array(<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="string">'Includes'<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; if (</span><span class="default">defined</span><span class="keyword">(</span><span class="string">'__DIR__'</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$currentDirectory </span><span class="keyword">= </span><span class="default">__DIR__</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$currentDirectory </span><span class="keyword">= </span><span class="default">dirname</span><span class="keyword">(</span><span class="default">__FILE__</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$currentDirectory </span><span class="keyword">= </span><span class="default">rtrim</span><span class="keyword">(</span><span class="default">$currentDirectory</span><span class="keyword">, </span><span class="default">DIRECTORY_SEPARATOR</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$currentDirectory </span><span class="keyword">= </span><span class="default">$currentDirectory </span><span class="keyword">. </span><span class="default">DIRECTORY_SEPARATOR</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; foreach (</span><span class="default">$directories </span><span class="keyword">as </span><span class="default">$directory</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$currentDirectory </span><span class="keyword">= </span><span class="default">str_replace</span><span class="keyword">(<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">DIRECTORY_SEPARATOR </span><span class="keyword">. </span><span class="default">$directory </span><span class="keyword">. </span><span class="default">DIRECTORY_SEPARATOR</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">DIRECTORY_SEPARATOR</span><span class="keyword">,<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$currentDirectory<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$currentDirectory </span><span class="keyword">= </span><span class="default">rtrim</span><span class="keyword">(</span><span class="default">$currentDirectory</span><span class="keyword">, </span><span class="default">DIRECTORY_SEPARATOR</span><span class="keyword">);<br />
+}<br />
+<br />
+</span><span class="default">define</span><span class="keyword">(</span><span class="string">'SERVER_DOC_ROOT'</span><span class="keyword">, </span><span class="default">$documentRoot</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Using this file, you can include files using the defined SERVER_DOC_ROOT constant and each file included that way will be included from the correct location and no errors/warnings will be thrown.<br />
+<br />
+Example:<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">include </span><span class="default">SERVER_DOC_ROOT </span><span class="keyword">. </span><span class="string">'/Path/To/File.php'</span><span class="keyword">;<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code></div>
+  </div>
+ </div>
+ <a name="93901"></a>
+ <div class="note">
+  <strong class='user'>fkaufusi at gmail dot com</strong>
+  <a href="#93901" class="date">05-Oct-2009 06:43</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+here's another way to include your files.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">includeFile</span><span class="keyword">(</span><span class="default">$file_name</span><span class="keyword">){<br />
+<br />
+&nbsp;&nbsp; </span><span class="default">$dir </span><span class="keyword">= array(</span><span class="string">'./'</span><span class="keyword">, </span><span class="string">'lib/'</span><span class="keyword">, </span><span class="string">'db/'</span><span class="keyword">, </span><span class="string">'student/'</span><span class="keyword">);&nbsp; &nbsp; </span><span class="comment">//&lt;-- put here your website directory you want to include<br />
+&nbsp;&nbsp; </span><span class="default">$level </span><span class="keyword">= array(</span><span class="string">''</span><span class="keyword">, </span><span class="string">'/'</span><span class="keyword">, </span><span class="string">'../'</span><span class="keyword">, </span><span class="string">'../../'</span><span class="keyword">);&nbsp; &nbsp; </span><span class="comment">//&lt;-- you can add more deep level in this array<br />
+&nbsp;&nbsp; </span><span class="default">$ini_path </span><span class="keyword">= array();<br />
+&nbsp;&nbsp; <br />
+&nbsp;&nbsp; foreach(</span><span class="default">$dir </span><span class="keyword">as </span><span class="default">$p</span><span class="keyword">){<br />
+&nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp;&nbsp; foreach(</span><span class="default">$level </span><span class="keyword">as </span><span class="default">$l</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="default">$file </span><span class="keyword">= </span><span class="default">$l</span><span class="keyword">.</span><span class="default">$p</span><span class="keyword">.</span><span class="default">$file_name</span><span class="keyword">;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; if(</span><span class="default">file_exists</span><span class="keyword">(</span><span class="default">$file</span><span class="keyword">)){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; include_once(</span><span class="default">$file</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; }&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp;&nbsp; }&nbsp;&nbsp; <br />
+&nbsp;&nbsp; }<br />
+} </span><span class="comment">//end function includeFile<br />
+&nbsp;&nbsp; <br />
+</span><span class="default">includeFile</span><span class="keyword">(</span><span class="string">'html.php'</span><span class="keyword">);<br />
+</span><span class="default">includeFile</span><span class="keyword">(</span><span class="string">'libpage.php'</span><span class="keyword">);<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code></div>
+  </div>
+ </div>
+ <a name="93347"></a>
+ <div class="note">
+  <strong class='user'>rjw201 at cam dot ac dot uk</strong>
+  <a href="#93347" class="date">04-Sep-2009 09:59</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+A even better security solution is to do the following:<br />
+<br />
+$path = basename($page, 'php') . '.php';<br />
+<br />
+if(file_exists($path)) include $path;<br />
+<br />
+This will mean it will only load files with the ".php" extension in the current directory.<br />
+<br />
+Eg $page = 'myfile.php' =&gt; 'myfile.php'<br />
+$page = '/etc/passwd' =&gt; 'passwd.php' =&gt; not found<br />
+$page = 'myfile.jpg' =&gt; 'myfile.jpg.php' =&gt; not found<br />
+<br />
+Simple.<br />
+<br />
+Richard</span>
+</code></div>
+  </div>
+ </div>
+ <a name="90527"></a>
+ <div class="note">
+  <strong class='user'>Anonymous</strong>
+  <a href="#90527" class="date">26-Apr-2009 02:59</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+Alot of people here in this section in the user contributed notes suggest using <br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">@include(</span><span class="string">'file.php'</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+to suppress warnings. This is not a good idea as it will also turn off error reporting in the included file. If you want to turn off warnings should the include fail use one of the following.<br />
+<br />
+<span class="default">&lt;?php<br />
+$theme</span><span class="keyword">= </span><span class="string">"themefoldername"</span><span class="keyword">;<br />
+</span><span class="comment">//turn off warnings<br />
+</span><span class="default">error_reporting</span><span class="keyword">(</span><span class="default">E_ALL </span><span class="keyword">&amp; ~</span><span class="default">E_WARNING</span><span class="keyword">);<br />
+if(!include(</span><span class="string">'themes/'</span><span class="keyword">.</span><span class="default">$theme</span><span class="keyword">.</span><span class="string">'/index.php'</span><span class="keyword">))<br />
+{<br />
+&nbsp; </span><span class="comment">// file was missing so include default theme <br />
+&nbsp; </span><span class="keyword">require(</span><span class="string">'themes/default_theme/index.php'</span><span class="keyword">);<br />
+}<br />
+</span><span class="comment">// Turn on warnings<br />
+</span><span class="default">error_reporting</span><span class="keyword">(</span><span class="default">E_ALL</span><span class="keyword">); <br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Or maybe this works better<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">if(</span><span class="default">file_exsists</span><span class="keyword">(</span><span class="string">'themes/'</span><span class="keyword">.</span><span class="default">$theme</span><span class="keyword">.</span><span class="string">'/index.php'</span><span class="keyword">))<br />
+&nbsp;&nbsp; include(</span><span class="string">'themes/'</span><span class="keyword">.</span><span class="default">$theme</span><span class="keyword">.</span><span class="string">'/index.php'</span><span class="keyword">);<br />
+else<br />
+&nbsp;&nbsp; require(</span><span class="string">'themes/default_theme/index.php'</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+You decide.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="87556"></a>
+ <div class="note">
+  <strong class='user'>johan</strong>
+  <a href="#87556" class="date">10-Dec-2008 05:47</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+If you wish to abstract away include calls inside functions, or programmatically juggle files to include using functions, just remember:<br />
+<br />
+1. Declare any variables as global if you want those variables "included" in the global scope (ie. if they are used outside the file).<br />
+<br />
+2. Functions are naturally global, so files that only contain functions (libs, sets of api's what have you) can be included anywhere. <br />
+<br />
+eg.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">nav</span><span class="keyword">(</span><span class="default">$i</span><span class="keyword">){<br />
+&nbsp; include </span><span class="string">"nav$i.php"</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="default">nav</span><span class="keyword">(</span><span class="default">1</span><span class="keyword">); <br />
+<br />
+</span><span class="comment">// same as...<br />
+</span><span class="keyword">include </span><span class="string">"nav1.php"</span><span class="keyword">;<br />
+</span><span class="comment">// ...as long as variables are global<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+So don't feel you can only include/require at the beginning of files, or outside/before functions. You can totally program any sophisticated include behavior.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="86842"></a>
+ <div class="note">
+  <strong class='user'>snowyurik at gmail dot com</strong>
+  <a href="#86842" class="date">05-Nov-2008 10:49</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+This might be useful:<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">include </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'DOCUMENT_ROOT'</span><span class="keyword">].</span><span class="string">"/lib/sample.lib.php"</span><span class="keyword">;<br />
+</span><span class="default">?&gt;<br />
+</span>So you can move script anywhere in web-project tree without changes.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="86527"></a>
+ <div class="note">
+  <strong class='user'>Wade.</strong>
+  <a href="#86527" class="date">22-Oct-2008 08:20</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+If you're doing a lot of dynamic/computed includes (&gt;100, say), then you may well want to know this performance comparison: if the target file doesn't exist, then an @include() is *ten* *times* *slower* than prefixing it with a file_exists() check. (This will be important if the file will only occasionally exist - e.g. a dev environment has it, but a prod one doesn't.)<br />
+<br />
+Wade.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="85977"></a>
+ <div class="note">
+  <strong class='user'>AntonioCS at gmail dot com</strong>
+  <a href="#85977" class="date">26-Sep-2008 10:39</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+Include and Require will call the __autoload function if the file that is being called extends some other class<br />
+<br />
+Example Code:<br />
+File teste.php<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">class </span><span class="default">teste </span><span class="keyword">extends </span><span class="default">motherclass </span><span class="keyword">{<br />
+&nbsp;&nbsp;&nbsp; public function </span><span class="default">__construct</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">parent</span><span class="keyword">::</span><span class="default">__construct</span><span class="keyword">();&nbsp; &nbsp; <br />
+&nbsp;&nbsp;&nbsp; }&nbsp; &nbsp; &nbsp;&nbsp; <br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+File example.php<br />
+<br />
+<span class="default">&lt;?php <br />
+</span><span class="keyword">require(</span><span class="string">"teste.php"</span><span class="keyword">);<br />
+<br />
+if (</span><span class="default">class_exists</span><span class="keyword">(</span><span class="string">"motherclass"</span><span class="keyword">))<br />
+echo </span><span class="string">"It exists"</span><span class="keyword">;<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+You will be given the output:<br />
+<br />
+It exists<br />
+<br />
+I think the __autoload function should be called when I instantiate the teste class not when I include/require the file.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="85862"></a>
+ <div class="note">
+  <strong class='user'>example at user dot com</strong>
+  <a href="#85862" class="date">21-Sep-2008 09:33</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+Just about any file type can be 'included' or 'required'.&nbsp; By sending appropriate headers, like in the below example, the client would normally see the output in their browser as an image or other intended mime type.<br />
+<br />
+You can also embed text in the output, like in the example below.&nbsp; But an image is still an image to the client's machine.&nbsp; The client must open the downloaded file as plain/text to see what you embedded.<br />
+<br />
+<span class="default">&lt;?php <br />
+<br />
+header</span><span class="keyword">(</span><span class="string">'Content-type: image/jpeg'</span><span class="keyword">);<br />
+</span><span class="default">header</span><span class="keyword">(</span><span class="string">'Content-Disposition: inline;'</span><span class="keyword">);<br />
+<br />
+include </span><span class="string">'/some_image.jpg'</span><span class="keyword">;<br />
+echo </span><span class="string">'This file was provided by example@user.com.'</span><span class="keyword">;<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Which brings us to a major security issue.&nbsp; Scripts can be hidden within images or files using this method.&nbsp; For example, instead echoing "<span class="default">&lt;?php phpinfo</span><span class="keyword">(); </span><span class="default">?&gt;</span>", a foreach/unlink loop through the entire filesystem, or some other method of disabling security on your machine.<br />
+<br />
+'Including' any file made this way will execute those scripts.&nbsp; NEVER 'include' anything that you found on the web or that users upload or can alter in any way.&nbsp; Instead, use something a little safer to display the found file, like "echo file_get_contents('/some_image.jpg');"</span>
+</code></div>
+  </div>
+ </div>
+ <a name="85855"></a>
+ <div class="note">
+  <strong class='user'>thedanevans at gmail dot com</strong>
+  <a href="#85855" class="date">20-Sep-2008 11:02</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+Linking to CSS/JavaScript resources through an included file has bugged me for a long time because if I have a directory structure like:<br />
+/www<br />
+&nbsp;&nbsp;&nbsp; index.php<br />
+&nbsp;&nbsp;&nbsp; /sub_dir<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; index.php<br />
+&nbsp;&nbsp;&nbsp; /includes<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; header.php<br />
+&nbsp;&nbsp;&nbsp; /style<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; main.css<br />
+<br />
+where both index.php files include header.php and the header.php file includes something like:<br />
+<br />
+&lt;link rel="stylesheet" type="text/css" href="style/main.css"&gt;<br />
+<br />
+This will be included for /index.php but not for /sub_dir/index.php. I read through a few different ways to use relative includes but those are generally meant for the php include function not the HTML &lt;link&gt;. I didn't really love the idea of a new function that I would pass both the filename and a '../' string into which it could use in the href. I also didn't want to just use /style/main.css because in development it is not hosted in my root directory. Although I could change my configuration or my include_path I really just wanted to find a way for PHP to figure out the relative path for me. I finally found a solution that met my needs and here it is:<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; $include_dist </span><span class="keyword">= </span><span class="default">substr_count</span><span class="keyword">(</span><span class="default">dirname</span><span class="keyword">(</span><span class="default">__FILE__</span><span class="keyword">), </span><span class="default">DIRECTORY_SEPARATOR</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$calling_dist </span><span class="keyword">= </span><span class="default">substr_count</span><span class="keyword">(</span><span class="default">dirname</span><span class="keyword">(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'SCRIPT_FILENAME'</span><span class="keyword">]), </span><span class="default">DIRECTORY_SEPARATOR</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span>&lt;link rel="stylesheet" type="text/css" href="&lt;?=str_repeat('../', $calling_dist - $include_dist + 1)?&gt;style/main.css"&gt;<br />
+<br />
+In this case I added one to the difference to account for the fact that the include is one directory away from the base. This also means that str_repeat won't be passed a negative value, which would cause an error. dirname(__FILE__) gets the directory of the file being included while dirname($_SERVER['SCRIPT_FILENAME']) gets the directory of the file including it. The script simply finds the difference in how far off the base directory the two are and prints the appropriate number of '../' before the URL.<br />
+<br />
+NOTE: dirname(__FILE__) can be replaced by __DIR__ in PHP greater than or equal to 5.3.0</span>
+</code></div>
+  </div>
+ </div>
+ <a name="84535"></a>
+ <div class="note">
+  <strong class='user'>rich dot lovely at klikzltd dot co dot uk</strong>
+  <a href="#84535" class="date">17-Jul-2008 01:20</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+I needed a way of include()ing a php page from a MySQL database.&nbsp; It took some work, but <br />
+eventually I came up with this:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">include_text</span><span class="keyword">(</span><span class="default">$text</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; while(</span><span class="default">substr_count</span><span class="keyword">(</span><span class="default">$text</span><span class="keyword">, </span><span class="string">'&lt;?php'</span><span class="keyword">) &gt; </span><span class="default">0</span><span class="keyword">){&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">//loop while there's code in $text<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">list(</span><span class="default">$html</span><span class="keyword">, </span><span class="default">$text</span><span class="keyword">) = </span><span class="default">explode</span><span class="keyword">(</span><span class="string">'&lt;?php'</span><span class="keyword">, </span><span class="default">$text</span><span class="keyword">, </span><span class="default">2</span><span class="keyword">); </span><span class="comment">//split at first open php tag <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">echo </span><span class="default">$html</span><span class="keyword">;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="comment">//echo text before tag<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">list(</span><span class="default">$code</span><span class="keyword">, </span><span class="default">$text</span><span class="keyword">) = </span><span class="default">explode</span><span class="keyword">(</span><span class="string">'?&gt;'</span><span class="keyword">, </span><span class="default">$text</span><span class="keyword">, </span><span class="default">2</span><span class="keyword">);&nbsp; &nbsp; </span><span class="comment">//split at closing tag<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">eval(</span><span class="default">$code</span><span class="keyword">);&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">//exec code (between tags)<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">}<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="default">$text</span><span class="keyword">;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="comment">//echo whatever is left<br />
+</span><span class="keyword">}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+It doesn't work exactly the same as include(), as newlines after the '?&gt;' tag are echoed, rather <br />
+than being discarded, but that's an exercise left to the reader to fix if they so desire, and<br />
+also globals defined within the included text are not available outside the function. <br />
+<br />
+Not sure whether it would work with something like:<br />
+<br />
+<span class="default">&lt;?php </span><span class="keyword">if(</span><span class="default">$x</span><span class="keyword">){ </span><span class="default">?&gt;<br />
+</span>&lt;p&gt;Some HTML Output&lt;/p&gt;<br />
+...<br />
+...<br />
+<span class="default">&lt;?php </span><span class="keyword">}<br />
+else{ </span><span class="default">?&gt;<br />
+</span>&lt;p&gt;Other HTML Output&lt;/p&gt;<br />
+...<br />
+...<br />
+<span class="default">&lt;?php </span><span class="keyword">} </span><span class="default">?&gt;<br />
+</span><br />
+I rarely use that, but it's easy to re-write code to avoid it using HereDoc syntax, so the example above becomes:<br />
+<br />
+<span class="default">&lt;?php </span><span class="keyword">if(</span><span class="default">$x</span><span class="keyword">){ echo &lt;&lt;&lt;EOT<br />
+</span><span class="default">&lt;p&gt;Some HTML Output&lt;/p&gt;<br />
+...<br />
+...<br />
+</span><span class="keyword">EOT;<br />
+}<br />
+else{ echo &lt;&lt;&lt;</span><span class="default">EOT <br />
+</span><span class="keyword">&lt;</span><span class="default">p</span><span class="keyword">&gt;</span><span class="default">Other HTML Output</span><span class="keyword">&lt;/</span><span class="default">p</span><span class="keyword">&gt;<br />
+...<br />
+...<br />
+</span><span class="default">EOT</span><span class="keyword">;<br />
+} </span><span class="default">?&gt;<br />
+</span><br />
+Which would work with include_text()<br />
+<br />
+It also won't work as-is with either asp-style or short tags.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="84052"></a>
+ <div class="note">
+  <strong class='user'>huuanito</strong>
+  <a href="#84052" class="date">25-Jun-2008 10:34</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+When using includes with allow_url_include on in your ini beware that, when accessing sessions from included files, if from a script you include one file using an absolute file reference and then include a second file from on your local server using a url file reference that<br />
+<br />
+they have different variable scope<br />
+<br />
+and the same session will not be seen from both included files. The original session won't be seen from the url included file.<br />
+<br />
+So:<br />
+<br />
+main script:<br />
+<span class="default">&lt;?php<br />
+session_start</span><span class="keyword">();<br />
+</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'count'</span><span class="keyword">] = </span><span class="default">234</span><span class="keyword">;<br />
+<br />
+echo </span><span class="string">"sid from script1"</span><span class="keyword">.</span><span class="default">session_id</span><span class="keyword">();<br />
+include </span><span class="string">"/var/www/htdocs/file1"</span><span class="keyword">;<br />
+include </span><span class="string">"<a href="http://yoursite/file2" rel="nofollow" target="_blank">http://yoursite/file2</a>"</span><span class="keyword">;<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+file1<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">echo </span><span class="string">" **sid from file1: "</span><span class="keyword">.</span><span class="default">session_id</span><span class="keyword">();<br />
+echo </span><span class="string">" count from file1= "</span><span class="keyword">.</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'count'</span><span class="keyword">];<br />
+</span><span class="default">?&gt;<br />
+</span>echoes both a session id and the count<br />
+<br />
+but file2<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">echo </span><span class="string">" **sid from file2: "</span><span class="keyword">.</span><span class="default">session_id</span><span class="keyword">();<br />
+echo </span><span class="string">" count from file2= "</span><span class="keyword">.</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">'count'</span><span class="keyword">];<br />
+</span><span class="default">?&gt;<br />
+</span>echoes just the text, no session id and no count.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="84046"></a>
+ <div class="note">
+  <strong class='user'>g4wx3</strong>
+  <a href="#84046" class="date">25-Jun-2008 06:52</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+Don't forget about the DIRECTORY_SEPARATOR constant.<br />
+No tricks needed to identify the OS; <br />
+just use it:<br />
+<br />
+<span class="default">&lt;?php </span><span class="keyword">include(</span><span class="default">$folder</span><span class="keyword">.</span><span class="default">DIRECTORY_SEPARATOR</span><span class="keyword">.</span><span class="default">$file</span><span class="keyword">); </span><span class="default">?&gt;<br />
+</span>*hint make a function</span>
+</code></div>
+  </div>
+ </div>
+ <a name="83186"></a>
+ <div class="note">
+  <strong class='user'>ricardo dot ferro at gmail dot com</strong>
+  <a href="#83186" class="date">14-May-2008 11:14</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+Two functions to help:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">function </span><span class="default">add_include_path </span><span class="keyword">(</span><span class="default">$path</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; foreach (</span><span class="default">func_get_args</span><span class="keyword">() AS </span><span class="default">$path</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (!</span><span class="default">file_exists</span><span class="keyword">(</span><span class="default">$path</span><span class="keyword">) OR (</span><span class="default">file_exists</span><span class="keyword">(</span><span class="default">$path</span><span class="keyword">) &amp;&amp; </span><span class="default">filetype</span><span class="keyword">(</span><span class="default">$path</span><span class="keyword">) !== </span><span class="string">'dir'</span><span class="keyword">))<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">trigger_error</span><span class="keyword">(</span><span class="string">"Include path '{$path}' not exists"</span><span class="keyword">, </span><span class="default">E_USER_WARNING</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; continue;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$paths </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">(</span><span class="default">PATH_SEPARATOR</span><span class="keyword">, </span><span class="default">get_include_path</span><span class="keyword">());<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">array_search</span><span class="keyword">(</span><span class="default">$path</span><span class="keyword">, </span><span class="default">$paths</span><span class="keyword">) === </span><span class="default">false</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">array_push</span><span class="keyword">(</span><span class="default">$paths</span><span class="keyword">, </span><span class="default">$path</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">set_include_path</span><span class="keyword">(</span><span class="default">implode</span><span class="keyword">(</span><span class="default">PATH_SEPARATOR</span><span class="keyword">, </span><span class="default">$paths</span><span class="keyword">));<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+function </span><span class="default">remove_include_path </span><span class="keyword">(</span><span class="default">$path</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; foreach (</span><span class="default">func_get_args</span><span class="keyword">() AS </span><span class="default">$path</span><span class="keyword">)<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$paths </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">(</span><span class="default">PATH_SEPARATOR</span><span class="keyword">, </span><span class="default">get_include_path</span><span class="keyword">());<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if ((</span><span class="default">$k </span><span class="keyword">= </span><span class="default">array_search</span><span class="keyword">(</span><span class="default">$path</span><span class="keyword">, </span><span class="default">$paths</span><span class="keyword">)) !== </span><span class="default">false</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; unset(</span><span class="default">$paths</span><span class="keyword">[</span><span class="default">$k</span><span class="keyword">]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; else<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; continue;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (!</span><span class="default">count</span><span class="keyword">(</span><span class="default">$paths</span><span class="keyword">))<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">trigger_error</span><span class="keyword">(</span><span class="string">"Include path '{$path}' can not be removed because it is the only"</span><span class="keyword">, </span><span class="default">E_USER_NOTICE</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; continue;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">set_include_path</span><span class="keyword">(</span><span class="default">implode</span><span class="keyword">(</span><span class="default">PATH_SEPARATOR</span><span class="keyword">, </span><span class="default">$paths</span><span class="keyword">));<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code></div>
+  </div>
+ </div>
+ <a name="83139"></a>
+ <div class="note">
+  <strong class='user'>fernandoleal at drakecall dot com</strong>
+  <a href="#83139" class="date">12-May-2008 10:55</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+Like the manual says the includes gets all function and variable on global scope that <br />
+Includes errors so watch out if you disable display errors with @ because it also hides the included file errors, its kind of dumb :$ hehe but sometime you miss it when you want to prevent displaying errors. <br />
+This also applies to include_once, require and require_once. <br />
+Example<br />
+“index.php”<br />
+<span class="default">&lt;?php&nbsp; <br />
+</span><span class="comment">#Shows the error ‘Parse error: syntax error, unexpected T_VARIABLE in’<br />
+</span><span class="keyword">include(</span><span class="default">test</span><span class="keyword">.</span><span class="default">php</span><span class="keyword">);<br />
+</span><span class="comment">#Doesn’t show the error<br />
+</span><span class="keyword">@include(</span><span class="default">test</span><span class="keyword">.</span><span class="default">php</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span>“test.php”<br />
+<span class="default">&lt;?php<br />
+$parse_error<br />
+?&gt;</span>
+</span>
+</code></div>
+  </div>
+ </div>
+ <a name="83066"></a>
+ <div class="note">
+  <strong class='user'>Rick Garcia</strong>
+  <a href="#83066" class="date">08-May-2008 09:38</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+As a rule of thumb, never include files using relative paths. To do this efficiently, you can define constants as follows:<br />
+<br />
+----<br />
+<span class="default">&lt;?php </span><span class="comment">// prepend.php - autoprepended at the top of your tree<br />
+</span><span class="default">define</span><span class="keyword">(</span><span class="string">'MAINDIR'</span><span class="keyword">,</span><span class="default">dirname</span><span class="keyword">(</span><span class="default">__FILE__</span><span class="keyword">) . </span><span class="string">'/'</span><span class="keyword">);<br />
+</span><span class="default">define</span><span class="keyword">(</span><span class="string">'DL_DIR'</span><span class="keyword">,</span><span class="default">MAINDIR </span><span class="keyword">. </span><span class="string">'downloads/'</span><span class="keyword">);<br />
+</span><span class="default">define</span><span class="keyword">(</span><span class="string">'LIB_DIR'</span><span class="keyword">,</span><span class="default">MAINDIR </span><span class="keyword">. </span><span class="string">'lib/'</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span>----<br />
+<br />
+and so on. This way, the files in your framework will only have to issue statements such as this:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">require_once(</span><span class="default">LIB_DIR </span><span class="keyword">. </span><span class="string">'excel_functions.php'</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+This also frees you from having to check the include path each time you do an include.<br />
+<br />
+If you're running scripts from below your main web directory, put a prepend.php file in each subdirectory:<br />
+<br />
+--<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">include(</span><span class="default">dirname</span><span class="keyword">(</span><span class="default">dirname</span><span class="keyword">(</span><span class="default">__FILE__</span><span class="keyword">)) . </span><span class="string">'/prepend.php'</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span>--<br />
+<br />
+This way, the prepend.php at the top always gets executed and you'll have no path handling headaches. Just remember to set the auto_prepend_file directive on your .htaccess files for each subdirectory where you have web-accessible scripts.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="81367"></a>
+ <div class="note">
+  <strong class='user'>uramihsayibok, gmail, com</strong>
+  <a href="#81367" class="date">24-Feb-2008 05:28</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+I have a need to include a lot of files, all of which are contained in one directory. Support for things like <span class="default">&lt;?php </span><span class="keyword">include_once </span><span class="string">'dir/*.php'</span><span class="keyword">; </span><span class="default">?&gt;</span> would be nice, but it doesn't exist.<br />
+<br />
+Therefore I wrote this quick function (located in a file automatically included by auto_prepend_file):<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">function </span><span class="default">include_all_once </span><span class="keyword">(</span><span class="default">$pattern</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; foreach (</span><span class="default">glob</span><span class="keyword">(</span><span class="default">$pattern</span><span class="keyword">) as </span><span class="default">$file</span><span class="keyword">) { </span><span class="comment">// remember the { and } are necessary!<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">include </span><span class="default">$file</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+</span><span class="comment">// used like<br />
+</span><span class="default">include_all_once</span><span class="keyword">(</span><span class="string">'dir/*.php'</span><span class="keyword">);<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span>A fairly obvious solution. It doesn't deal with relative file paths though; you still have to do that yourself.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="78716"></a>
+ <div class="note">
+  <strong class='user'>slush puppie</strong>
+  <a href="#78716" class="date">24-Oct-2007 11:40</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+two little methods i wrote up that work on our IIS6 server. the first makes an alternate include call you can use to include things by calling them via their root location. the second method alters the include path so all include() calls are via the root location.<br />
+<br />
+these are a compilation of a few methods i found here, but i think i made them a bit more modular. anyhow...<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">## MAKES A NEW FUNCTION CALLED rinclude() THAT INCLUDES<br />
+&nbsp;&nbsp;&nbsp; ## A FILE RELATIVE TO THE ROOT DIRECTORY<br />
+&nbsp;&nbsp;&nbsp; ## LEAVE include() UNTOUCHED SO IT CAN STILL BE USED AS NORMAL<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">function </span><span class="default">rinclude</span><span class="keyword">(</span><span class="default">$path</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$levels </span><span class="keyword">= </span><span class="default">substr_count</span><span class="keyword">(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_SELF'</span><span class="keyword">],</span><span class="string">'/'</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$root </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; for(</span><span class="default">$i </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">; </span><span class="default">$i </span><span class="keyword">&lt; </span><span class="default">$levels</span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">++){</span><span class="default">$root </span><span class="keyword">.= </span><span class="string">'../'</span><span class="keyword">;}<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; include(</span><span class="default">$root </span><span class="keyword">. </span><span class="default">$path</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">rinclude</span><span class="keyword">(</span><span class="string">'file.inc.php'</span><span class="keyword">); </span><span class="comment">// in root<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">rinclude</span><span class="keyword">(</span><span class="string">'dir/file.inc.php'</span><span class="keyword">); </span><span class="comment">// in a subfolder<br />
+</span><span class="default">?&gt;<br />
+</span>&lt;hr /&gt;<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">## SET INCLUDE TO ROOT DIRECTORY SO ALL include()<br />
+&nbsp;&nbsp;&nbsp; ## CALLS WILL BE RELATIVE TO ROOT<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">function </span><span class="default">setinclude</span><span class="keyword">(){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$levels </span><span class="keyword">= </span><span class="default">substr_count</span><span class="keyword">(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_SELF'</span><span class="keyword">],</span><span class="string">'/'</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$root </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; for(</span><span class="default">$i </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">; </span><span class="default">$i </span><span class="keyword">&lt; </span><span class="default">$levels</span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">++){</span><span class="default">$root </span><span class="keyword">.= </span><span class="string">'../'</span><span class="keyword">;}&nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">set_include_path</span><span class="keyword">(</span><span class="default">$root</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; }&nbsp; &nbsp; <br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">setinclude</span><span class="keyword">();&nbsp; &nbsp; <br />
+&nbsp;&nbsp;&nbsp; include(</span><span class="string">'file.inc.php'</span><span class="keyword">); </span><span class="comment">// in root<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">include(</span><span class="string">'dir/file.inc.phpp'</span><span class="keyword">); </span><span class="comment">// in a subfolder<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code></div>
+  </div>
+ </div>
+ <a name="78344"></a>
+ <div class="note">
+  <strong class='user'>sbwoodside at yahoo dot com</strong>
+  <a href="#78344" class="date">07-Oct-2007 02:19</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+Here's a really simple solution to a common problem. Let's say you want to include files the way that apache does, relative to the document root (the root dir of your app). Independent of what server you are on, so that you don't have to specify an absolute path on your filesystem. At the top of your page put:<br />
+<br />
+<span class="default">&lt;?php set_include_path</span><span class="keyword">( </span><span class="default">get_include_path</span><span class="keyword">() . </span><span class="default">PATH_SEPARATOR </span><span class="keyword">. </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'DOCUMENT_ROOT'</span><span class="keyword">] ); </span><span class="default">?&gt;<br />
+</span><br />
+Now anywhere you do an include you can do something like:<br />
+<br />
+<span class="default">&lt;?php </span><span class="keyword">include ( </span><span class="string">"Templates/header.inc"</span><span class="keyword">) </span><span class="default">?&gt;<br />
+</span><br />
+So, if your server files are in /var/www/mysite, this will include /var/www/mysite/Templates/header.inc when it's on your server. And if on your dev machine it's in /user/myname/mysite, it will include /user/myname/mysite/Templates/header.inc when it's on your dev machine.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="77465"></a>
+ <div class="note">
+  <strong class='user'>twolfley at gmail dot com</strong>
+  <a href="#77465" class="date">30-Aug-2007 10:37</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+With a large system you might have lots of functions. I have noticed that this can produce large memory overhead, some of which can be alleviated by using includes in the following manner:<br />
+<br />
+e.g.<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">foo</span><span class="keyword">() {<br />
+&nbsp; </span><span class="comment">//some long block of code here producing $bar<br />
+&nbsp; </span><span class="keyword">return </span><span class="default">$bar</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+can be rewritten as:<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">foo</span><span class="keyword">() {<br />
+&nbsp; return include </span><span class="string">"foo.php"</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+where foo.php contains the following:<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">//long block of code producing $bar<br />
+</span><span class="keyword">return </span><span class="default">$bar</span><span class="keyword">;<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+The result is the function's body does not get loaded into memory until the function is actually called.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="76693"></a>
+ <div class="note">
+  <strong class='user'>alex carstea</strong>
+  <a href="#76693" class="date">26-Jul-2007 08:07</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+Since include() caused me many problems when i was trying to test my code, I wrote a small function. It receives as parameter the path to the file to include relative to the current file. The format similar to : <br />
+&nbsp;&nbsp; &nbsp; &nbsp; "../../path/FileName.php" <br />
+The function returns the absolute path to the file to be included. This path can be used as argument to include() and resolves the problem of nested inclusions.<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">getFilePath</span><span class="keyword">(</span><span class="default">$relativePath</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; </span><span class="default">$absPath</span><span class="keyword">=</span><span class="default">dirname</span><span class="keyword">(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'SCRIPT_FILENAME'</span><span class="keyword">]);<br />
+&nbsp;&nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; </span><span class="default">$relativeArray</span><span class="keyword">=</span><span class="default">explode</span><span class="keyword">(</span><span class="string">"/"</span><span class="keyword">,</span><span class="default">$relativePath</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; </span><span class="default">$absArray</span><span class="keyword">=</span><span class="default">explode</span><span class="keyword">(</span><span class="string">"/"</span><span class="keyword">,</span><span class="default">$absPath</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; </span><span class="default">$upTokens</span><span class="keyword">=</span><span class="default">0</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; </span><span class="comment">//count the number of ".." tokens that precede the path<br />
+&nbsp;&nbsp; &nbsp; </span><span class="keyword">while(( </span><span class="default">$upTokens</span><span class="keyword">&lt;</span><span class="default">count</span><span class="keyword">(</span><span class="default">$relativeArray</span><span class="keyword">)) and (</span><span class="default">$relativeArray</span><span class="keyword">[</span><span class="default">$upTokens</span><span class="keyword">]==</span><span class="string">".."</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="default">$upTokens</span><span class="keyword">++;<br />
+&nbsp;&nbsp; &nbsp; }<br />
+&nbsp;&nbsp; &nbsp; </span><span class="comment">// create the absolute path&nbsp; &nbsp;&nbsp; <br />
+&nbsp;&nbsp; &nbsp; </span><span class="default">$filePath</span><span class="keyword">=</span><span class="default">$absArray</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp; for (</span><span class="default">$i</span><span class="keyword">=</span><span class="default">1</span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">&lt; (</span><span class="default">count</span><span class="keyword">(</span><span class="default">$absArray</span><span class="keyword">)-</span><span class="default">$upTokens</span><span class="keyword">);</span><span class="default">$i</span><span class="keyword">++) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="default">$filePath</span><span class="keyword">.=</span><span class="string">"/"</span><span class="keyword">.</span><span class="default">$absArray</span><span class="keyword">[</span><span class="default">$i</span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp; }<br />
+&nbsp;&nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; for (</span><span class="default">$i</span><span class="keyword">=</span><span class="default">$upTokens</span><span class="keyword">; </span><span class="default">$i</span><span class="keyword">&lt; </span><span class="default">count</span><span class="keyword">(</span><span class="default">$relativeArray</span><span class="keyword">);</span><span class="default">$i</span><span class="keyword">++){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; </span><span class="default">$filePath</span><span class="keyword">.=</span><span class="string">"/"</span><span class="keyword">.</span><span class="default">$relativeArray</span><span class="keyword">[</span><span class="default">$i</span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp; }<br />
+&nbsp;&nbsp; &nbsp; return </span><span class="default">$filePath</span><span class="keyword">;<br />
+&nbsp;}<br />
+</span><span class="default">?&gt;<br />
+</span>&nbsp; Hope you will find it usefull....<br />
+<br />
+&nbsp; Alex</span>
+</code></div>
+  </div>
+ </div>
+ <a name="76675"></a>
+ <div class="note">
+  <strong class='user'>Cory Gagliardi</strong>
+  <a href="#76675" class="date">25-Jul-2007 11:22</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+Easy way to set $_GET values for local includes.<br />
+<br />
+This is an easy way to make up fake URLs for SEO purposes that are really just running other PHP pages with special $_GET values.<br />
+<br />
+This will NOT work:<br />
+<span class="default">&lt;?PHP<br />
+</span><span class="keyword">include(</span><span class="string">'communities.php?show=gated&amp;where=naples'</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+However, this will:<br />
+<span class="default">&lt;?PHP<br />
+$_GET </span><span class="keyword">= array();<br />
+</span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">'show'</span><span class="keyword">] = </span><span class="string">'gated'</span><span class="keyword">;<br />
+</span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">'where'</span><span class="keyword">] = </span><span class="string">'naples'</span><span class="keyword">;<br />
+include(</span><span class="string">'communities.php'</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Putting this on your page and nothing else will give the same result as going to<br />
+'communities.php?show=gated&amp;where=naples'<br />
+but the URL can be whatever you want it to be.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="76556"></a>
+ <div class="note">
+  <strong class='user'>php_notes (at) megaphone . ch</strong>
+  <a href="#76556" class="date">20-Jul-2007 04:28</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+If you use php &gt;5.2, don't forget to set up the allow_url_include parameter in php.ini file .. If not you can search a long long long long time after this like-a-bug problem ;)<br />
+<br />
+<a href="http://www.php.net/manual/en/ini.php" rel="nofollow" target="_blank">http://www.php.net/manual/en/ini.php</a></span>
+</code></div>
+  </div>
+ </div>
+ <a name="76092"></a>
+ <div class="note">
+  <strong class='user'>oasis1 at geocities dot com</strong>
+  <a href="#76092" class="date">29-Jun-2007 08:11</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+What a pain! I have struggled with including files from various subdirectories.&nbsp; My server doesn't support an easy way to get to the root HTML directory so this is what I came up with:<br />
+<br />
+<span class="default">&lt;?php <br />
+<br />
+$times </span><span class="keyword">= </span><span class="default">substr_count</span><span class="keyword">(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PHP_SELF'</span><span class="keyword">],</span><span class="string">"/"</span><span class="keyword">);<br />
+</span><span class="default">$rootaccess </span><span class="keyword">= </span><span class="string">""</span><span class="keyword">;<br />
+</span><span class="default">$i </span><span class="keyword">= </span><span class="default">1</span><span class="keyword">;<br />
+<br />
+while (</span><span class="default">$i </span><span class="keyword">&lt; </span><span class="default">$times</span><span class="keyword">) {<br />
+&nbsp;</span><span class="default">$rootaccess </span><span class="keyword">.= </span><span class="string">"../"</span><span class="keyword">;<br />
+&nbsp;</span><span class="default">$i</span><span class="keyword">++;<br />
+}<br />
+include (</span><span class="default">$rootaccess</span><span class="keyword">.</span><span class="string">"foo/bar.php"</span><span class="keyword">);<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+This will give you what it takes to get to the root directory, regardless of how many subdirectories you have traveled&nbsp; through.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="75528"></a>
+ <div class="note">
+  <strong class='user'>post-nospam at brucemiller dot co dot uk</strong>
+  <a href="#75528" class="date">04-Jun-2007 02:07</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+A very EASY way to get 'include' to find its way to another directory, other than setting the 'include path', and useful for fetching one or two files:<br />
+<br />
+<span class="default">&lt;?php </span><span class="keyword">include (</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'DOCUMENT_ROOT'</span><span class="keyword">].</span><span class="string">"/foo/bar.php"</span><span class="keyword">); </span><span class="default">?&gt;<br />
+</span><br />
+This creates an include that is relative to the root rather than the current directory. <br />
+<br />
+The dot is for concatenation, not current directory, as with 'include path' syntax.<br />
+<br />
+See Appendix M of Manual &gt; Reserved words &gt; Predefined Variables, for more info on $SERVER.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="73439"></a>
+ <div class="note">
+  <strong class='user'>-hh-</strong>
+  <a href="#73439" class="date">23-Feb-2007 03:47</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+coldflame,<br />
+&lt;?=$foo?&gt; equals &lt;? print $foo ?&gt;<br />
+If 1 is not needed at the end, just use &lt;? include($filename) ?&gt; without the equal sign.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="73148"></a>
+ <div class="note">
+  <strong class='user'>mbread at m-bread dot com</strong>
+  <a href="#73148" class="date">10-Feb-2007 09:23</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+If you have a problem with "Permission denied" errors (or other permissions problems) when including files, check:<br />
+<br />
+1) That the file you are trying to include has the appropriate "r" (read) permission set, and<br />
+2) That all the directories that are ancestors of the included file, but not of the script including the file, have the appropriate "x" (execute/search) permission set.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="72471"></a>
+ <div class="note">
+  <strong class='user'>Nathan Ostgard</strong>
+  <a href="#72471" class="date">19-Jan-2007 02:32</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+You can also use debug_backtrace to write a function that do the chdir automatically:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">include_relative</span><span class="keyword">(</span><span class="default">$file</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$bt </span><span class="keyword">= </span><span class="default">debug_backtrace</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$old </span><span class="keyword">= </span><span class="default">getcwd</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">chdir</span><span class="keyword">(</span><span class="default">dirname</span><span class="keyword">(</span><span class="default">$bt</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">][</span><span class="string">'file'</span><span class="keyword">]));<br />
+&nbsp;&nbsp;&nbsp; include(</span><span class="default">$file</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">chdir</span><span class="keyword">(</span><span class="default">$old</span><span class="keyword">);<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code></div>
+  </div>
+ </div>
+ <a name="72441"></a>
+ <div class="note">
+  <strong class='user'>anonymous</strong>
+  <a href="#72441" class="date">18-Jan-2007 01:49</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+When I'm dealing with a package that uses relative includes of its own, rather than modify all of their includes, I found it was easier to change PHP's working directory before and after the include, like so:<br />
+<br />
+<span class="default">&lt;?php<br />
+$wd_was </span><span class="keyword">= </span><span class="default">getcwd</span><span class="keyword">();<br />
+</span><span class="default">chdir</span><span class="keyword">(</span><span class="string">"/path/to/included/app"</span><span class="keyword">);<br />
+include(</span><span class="string">"mainfile.php"</span><span class="keyword">);<br />
+</span><span class="default">chdir</span><span class="keyword">(</span><span class="default">$wd_was</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+This way neither my includes nor theirs are affected; they all work as expected.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="72269"></a>
+ <div class="note">
+  <strong class='user'>vahe dot ayvazyan at googlemail dot com</strong>
+  <a href="#72269" class="date">10-Jan-2007 03:12</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+If you want the "include" function to work correctly with paths and GET parameters, try the following code:<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; $_GET</span><span class="keyword">[</span><span class="string">'param1'</span><span class="keyword">] = </span><span class="string">'param1value'</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">'param2'</span><span class="keyword">] = </span><span class="string">'param2value'</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; @include(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'DOCUMENT_ROOT'</span><span class="keyword">] . </span><span class="string">"/path1/path2/include.php"</span><span class="keyword">); <br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Then within your "include.php" use $_GET['param1'] and $_GET['param2'] to access values of parameters.<br />
+<br />
+I spent several hours to figure this out.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="71210"></a>
+ <div class="note">
+  <strong class='user'>Janci</strong>
+  <a href="#71210" class="date">16-Nov-2006 07:59</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+Please note that althought you can call a function that is DEFINED later in the code, you cannot call a function that is defined in a file which is INCLUDED later. Consider following two examples:<br />
+<br />
+Example 1:<br />
+<span class="default">&lt;?php<br />
+test</span><span class="keyword">();<br />
+<br />
+function </span><span class="default">test</span><span class="keyword">()<br />
+{<br />
+&nbsp; echo </span><span class="string">'In test.'</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Example 2:<br />
+file1.php:<br />
+<span class="default">&lt;?php<br />
+test</span><span class="keyword">();<br />
+<br />
+include </span><span class="string">'file2.php'</span><span class="keyword">;<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+file2.php:<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">test</span><span class="keyword">()<br />
+{<br />
+&nbsp; echo </span><span class="string">'In test.'</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Please be aware that while the first example will work as expected, the second one will generate a fatal error "Call to undefined function: test() ...". The same is true for the require.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="68714"></a>
+ <div class="note">
+  <strong class='user'>mlindal at pfc dot forestry dot ca</strong>
+  <a href="#68714" class="date">08-Aug-2006 08:33</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+If a person directly accesses an include file by mistake, you may want to forward them to a correct default page.<br />
+<br />
+Do this by:<br />
+<br />
+Say the file to be included is 'newpubs.php'<br />
+<br />
+and the main pages are either newpubs_e.php or newpubs_f.php<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">if(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="default">PHP_SELF</span><span class="keyword">]==</span><span class="string">"/newpubs.php"</span><span class="keyword">) <br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">header</span><span class="keyword">(</span><span class="string">"Location: newpubs_e.php"</span><span class="keyword">); <br />
+&nbsp;&nbsp;&nbsp; exit;<br />
+&nbsp;&nbsp;&nbsp; } <br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Will send them to newpubs_e.php if they try to access newpubs.php directly.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="66723"></a>
+ <div class="note">
+  <strong class='user'>medhefgo at googlemail dot com</strong>
+  <a href="#66723" class="date">27-May-2006 04:50</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+Because there is no quick way to check if a file is in include_path, I've made this function:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">function </span><span class="default">is_includeable</span><span class="keyword">(</span><span class="default">$filename</span><span class="keyword">, </span><span class="default">$returnpaths </span><span class="keyword">= </span><span class="default">false</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$include_paths </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">(</span><span class="default">PATH_SEPARATOR</span><span class="keyword">, </span><span class="default">ini_get</span><span class="keyword">(</span><span class="string">'include_path'</span><span class="keyword">));<br />
+<br />
+&nbsp;&nbsp;&nbsp; foreach (</span><span class="default">$include_paths </span><span class="keyword">as </span><span class="default">$path</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$include </span><span class="keyword">= </span><span class="default">$path</span><span class="keyword">.</span><span class="default">DIRECTORY_SEPARATOR</span><span class="keyword">.</span><span class="default">$filename</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">is_file</span><span class="keyword">(</span><span class="default">$include</span><span class="keyword">) &amp;&amp; </span><span class="default">is_readable</span><span class="keyword">(</span><span class="default">$include</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$returnpaths </span><span class="keyword">== </span><span class="default">true</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$includable_paths</span><span class="keyword">[] = </span><span class="default">$path</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">true</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; return (isset(</span><span class="default">$includeable_paths</span><span class="keyword">) &amp;&amp; </span><span class="default">$returnpaths </span><span class="keyword">== </span><span class="default">true</span><span class="keyword">) ? </span><span class="default">$includeable_paths </span><span class="keyword">: </span><span class="default">false</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code></div>
+  </div>
+ </div>
+ <a name="64895"></a>
+ <div class="note">
+  <strong class='user'>cavarlier [at] hotmail [dot] com</strong>
+  <a href="#64895" class="date">22-Apr-2006 12:59</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+please note when you include a (utf-8) encoded file, this will be sufficient to send headers even if it doesnt contain any line breaks</span>
+</code></div>
+  </div>
+ </div>
+ <a name="60531"></a>
+ <div class="note">
+  <strong class='user'>stalker at ruun dot de</strong>
+  <a href="#60531" class="date">10-Jan-2006 04:55</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+a simple function to recursively include e.g. the include-directory of your site and its subdirs:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">includeRecurse</span><span class="keyword">(</span><span class="default">$dirName</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; if(!</span><span class="default">is_dir</span><span class="keyword">(</span><span class="default">$dirName</span><span class="keyword">))<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$dirHandle </span><span class="keyword">= </span><span class="default">opendir</span><span class="keyword">(</span><span class="default">$dirName</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; while(</span><span class="default">false </span><span class="keyword">!== (</span><span class="default">$incFile </span><span class="keyword">= </span><span class="default">readdir</span><span class="keyword">(</span><span class="default">$dirHandle</span><span class="keyword">))) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">$incFile </span><span class="keyword">!= </span><span class="string">"."<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; </span><span class="keyword">&amp;&amp; </span><span class="default">$incFile </span><span class="keyword">!= </span><span class="string">".."</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">is_file</span><span class="keyword">(</span><span class="string">"$dirName/$incFile"</span><span class="keyword">))<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; include_once(</span><span class="string">"$dirName/$incFile"</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; elseif(</span><span class="default">is_dir</span><span class="keyword">(</span><span class="string">"$dirName/$incFile"</span><span class="keyword">))<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">includeRecurse</span><span class="keyword">(</span><span class="string">"$dirName/$incFile"</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">closedir</span><span class="keyword">(</span><span class="default">$dirHandle</span><span class="keyword">);<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code></div>
+  </div>
+ </div>
+ <a name="55819"></a>
+ <div class="note">
+  <strong class='user'>Jesper Juhl</strong>
+  <a href="#55819" class="date">14-Aug-2005 08:14</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+If you want to prevent direct access to some files and only allow them to be used as include files by other scripts, then an easy way to accomplish that is to check a define in the include file.<br />
+<br />
+Like this.<br />
+<br />
+includefile.php<br />
+---<br />
+<span class="default">&lt;?php<br />
+defined</span><span class="keyword">(</span><span class="string">'_VALID_INCLUDE'</span><span class="keyword">) or die(</span><span class="string">'Direct access not allowed.'</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">/* rest of file */<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+script.php<br />
+---<br />
+<span class="default">&lt;?php<br />
+define</span><span class="keyword">(</span><span class="string">'_VALID_INCLUDE'</span><span class="keyword">, </span><span class="default">TRUE</span><span class="keyword">);<br />
+include(</span><span class="string">'includefile.php'</span><span class="keyword">);<br />
+<br />
+</span><span class="comment">/* rest of file */<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code></div>
+  </div>
+ </div>
+ <a name="54926"></a>
+ <div class="note">
+  <strong class='user'>ignacio esviza</strong>
+  <a href="#54926" class="date">19-Jul-2005 02:10</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+Hi, there...<br />
+<br />
+I've use this in order to grab the output from an include() but without sending it to the buffer.<br />
+<br />
+Headers are not sent neither.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">include2</span><span class="keyword">(</span><span class="default">$file</span><span class="keyword">){<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$buffer </span><span class="keyword">= </span><span class="default">ob_get_contents</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; include </span><span class="default">$file</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$output </span><span class="keyword">= </span><span class="default">substr</span><span class="keyword">(</span><span class="default">ob_get_contents</span><span class="keyword">(),</span><span class="default">strlen</span><span class="keyword">(</span><span class="default">$buffer</span><span class="keyword">));<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">ob_end_clean</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">ob_start</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="default">$buffer</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$output</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; <br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code></div>
+  </div>
+ </div>
+ <a name="54877"></a>
+ <div class="note">
+  <strong class='user'>Ethilien</strong>
+  <a href="#54877" class="date">18-Jul-2005 12:04</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+Another way of getting the proper include path relative to the current file, rather than the working directory is:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">include </span><span class="default">realpath</span><span class="keyword">(</span><span class="default">dirname</span><span class="keyword">(</span><span class="default">__FILE__</span><span class="keyword">) . </span><span class="string">"/" </span><span class="keyword">. </span><span class="string">"relative_path"</span><span class="keyword">);<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code></div>
+  </div>
+ </div>
+ <a name="54430"></a>
+ <div class="note">
+  <strong class='user'>Berenguer Blasi</strong>
+  <a href="#54430" class="date">04-Jul-2005 06:07</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+When working with a well organized project you may come across multiple problems when including, if your files are properly stored in some nice folders structure such as:<br />
+<br />
+&nbsp;- src<br />
+&nbsp; - web<br />
+&nbsp; - bo<br />
+&nbsp;- lib<br />
+&nbsp;- test<br />
+&nbsp;- whatever<br />
+<br />
+as the include path's behaviour is somehow strange.<br />
+<br />
+The workaround I use is having a file (ex: SiteCfg.class.php) where you set all the include paths for your project such as:<br />
+<br />
+<span class="default">&lt;?php<br />
+$BASE_PATH </span><span class="keyword">= </span><span class="default">dirname</span><span class="keyword">(</span><span class="default">__FILE__</span><span class="keyword">);<br />
+</span><span class="default">$DEPENDS_PATH&nbsp; </span><span class="keyword">= </span><span class="string">".;"</span><span class="keyword">.</span><span class="default">$BASE_PATH</span><span class="keyword">;<br />
+</span><span class="default">$DEPENDS_PATH </span><span class="keyword">.= </span><span class="string">";"</span><span class="keyword">.</span><span class="default">$BASE_PATH</span><span class="keyword">.</span><span class="string">"/lib"</span><span class="keyword">;<br />
+</span><span class="default">$DEPENDS_PATH </span><span class="keyword">.= </span><span class="string">";"</span><span class="keyword">.</span><span class="default">$BASE_PATH</span><span class="keyword">.</span><span class="string">"/test"</span><span class="keyword">;<br />
+</span><span class="default">ini_set</span><span class="keyword">(</span><span class="string">"include_path"</span><span class="keyword">, </span><span class="default">ini_get</span><span class="keyword">(</span><span class="string">"include_path"</span><span class="keyword">).</span><span class="string">";"</span><span class="keyword">.</span><span class="default">$DEPENDS_PATH</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Make all paths in this file relative to IT'S path. Later on you can import any file within those folders from wherever with inlude/_once, require/_once without worrying about their path.<br />
+<br />
+Just cross fingers you have permissions to change the server's include path.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="52913"></a>
+ <div class="note">
+  <a href="#52913" class="date">17-May-2005 08:10</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+Thought you can figure it out by reading the doc, this hint might save you some time. If you override include_path, be sure to include the current directory ( . ) in the path list, otherwise include("includes/a.php") will not search in the current script directory. <br />
+<br />
+e.g :<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">if(</span><span class="default">file_exists</span><span class="keyword">(</span><span class="string">"includes/a.php"</span><span class="keyword">))<br />
+&nbsp;&nbsp; include(</span><span class="string">"includes/a.php"</span><span class="keyword">)<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+The first line will test to true, however include will not find the file, and you'll get a "failed to open stream" error</span>
+</code></div>
+  </div>
+ </div>
+ <a name="52342"></a>
+ <div class="note">
+  <strong class='user'>morris.php &lt;A T&gt; it-solutions.org</strong>
+  <a href="#52342" class="date">28-Apr-2005 05:31</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+Something not previously stated here - but found elsewhere - is that if a file is included using a URL and it has a '.php' extension - the file is parsed by php - not just included as it would be if it were linked to locally.<br />
+<br />
+This means the functions and (more importantly) classes included will NOT work.<br />
+<br />
+for example:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">include </span><span class="string">"<a href="http://example.com/MyInclude.php" rel="nofollow" target="_blank">http://example.com/MyInclude.php</a>"</span><span class="keyword">; <br />
+</span><span class="default">?&gt;<br />
+</span><br />
+would not give you access to any classes or functions within the MyInclude.php file.<br />
+<br />
+to get access to the functions or classes you need to include the file with a different extension - such as '.inc' This way the php interpreter will not 'get in the way' and the text will be included normally.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="51896"></a>
+ <div class="note">
+  <strong class='user'>gillis dot php at TAKETHISAWAY dot gillis dot fi</strong>
+  <a href="#51896" class="date">14-Apr-2005 02:47</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+This is not directly linked to the include function itself. But i had a problem with dynamically generated include-files that could generate parse errors and cause the whole script to parse-error.<br />
+<br />
+So as i could not find any ready solution for this problem i wrote the mini-function. It's not the most handsome solution, but it works for me.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">ChkInc</span><span class="keyword">(</span><span class="default">$file</span><span class="keyword">){<br />
+&nbsp;&nbsp; if(</span><span class="default">substr</span><span class="keyword">(</span><span class="default">exec</span><span class="keyword">(</span><span class="string">"php -l $file"</span><span class="keyword">), </span><span class="default">0</span><span class="keyword">, </span><span class="default">28</span><span class="keyword">) == </span><span class="string">"No syntax errors detected in"</span><span class="keyword">){<br />
+&nbsp;&nbsp; return </span><span class="default">true</span><span class="keyword">;<br />
+&nbsp;&nbsp; }else{<br />
+&nbsp;&nbsp; return </span><span class="default">false</span><span class="keyword">;<br />
+&nbsp;&nbsp; }<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+if someone else has a better solution, do post it...<br />
+<br />
+Note. remember that this function uses unchecked variables passed to exec, so don't use it for direct user input without improving it.<br />
+<br />
+//Gillis Danielsen</span>
+</code></div>
+  </div>
+ </div>
+ <a name="48053"></a>
+ <div class="note">
+  <strong class='user'>dragon at wastelands dot net</strong>
+  <a href="#48053" class="date">09-Dec-2004 04:30</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+The __FILE__ macro will give the full path and name of an included script when called from inside the script.&nbsp; E.g.<br />
+<br />
+<span class="default">&lt;?php </span><span class="keyword">include(</span><span class="string">"/different/root/script.php"</span><span class="keyword">); </span><span class="default">?&gt;<br />
+</span><br />
+And this file contains:<br />
+<span class="default">&lt;?php </span><span class="keyword">echo </span><span class="default">__FILE__</span><span class="keyword">; </span><span class="default">?&gt;<br />
+</span><br />
+The output is:<br />
+/different/root/script.php<br />
+<br />
+Surprisingly useful :&gt;&nbsp; Obviously something like dirname(__FILE__) works just fine.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="44614"></a>
+ <div class="note">
+  <strong class='user'>mattcimino at gardiners dot com</strong>
+  <a href="#44614" class="date">10-Aug-2004 05:47</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+To avoid painfully SLOW INCLUDES under IIS be sure to set "output_buffering = on" in php.ini. File includes dropped from about 2 seconds to 0 seconds when this was set.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="42906"></a>
+ <div class="note">
+  <strong class='user'>durkboek A_T hotmail D_O_T com</strong>
+  <a href="#42906" class="date">03-Jun-2004 04:09</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+I would like to emphasize the danger of remote includes. For example:<br />
+Suppose, we have a server A with Linux and PHP 4.3.0 or greater installed which has the file index.php with the following code:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">// File: index.php<br />
+</span><span class="keyword">include (</span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">'id'</span><span class="keyword">].</span><span class="string">".php"</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+This is, of course, not a very good way to program, but i actually found a program doing this.<br />
+<br />
+Then, we hava a server B, also Linux with PHP installed, that has the file list.php with the following code:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">// File: list.php<br />
+</span><span class="default">$output </span><span class="keyword">= </span><span class="string">""</span><span class="keyword">;<br />
+</span><span class="default">exec</span><span class="keyword">(</span><span class="string">"ls -al"</span><span class="keyword">,</span><span class="default">$output</span><span class="keyword">);<br />
+foreach(</span><span class="default">$output </span><span class="keyword">as </span><span class="default">$line</span><span class="keyword">) {<br />
+echo </span><span class="default">$line </span><span class="keyword">. </span><span class="string">"&lt;br&gt;\n"</span><span class="keyword">;<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+If index.php on Server A is called like this: <a href="http://server_a/index.php?id=http://server_b/list" rel="nofollow" target="_blank">http://server_a/index.php?id=http://server_b/list</a><br />
+then Server B will execute list.php and Server A will include the output of Server B, a list of files.<br />
+<br />
+But here's the trick: if Server B doesn't have PHP installed, it returns the file list.php to Server A, and Server A executes that file. Now we have a file listing of Server A! <br />
+I tried this on three different servers, and it allways worked.<br />
+This is only an example, but there have been hacks uploading files to servers etc.<br />
+<br />
+So, allways be extremely carefull with remote includes.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="39043"></a>
+ <div class="note">
+  <strong class='user'>moosh at php dot net</strong>
+  <a href="#39043" class="date">15-Jan-2004 07:03</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+<span class="default">&lt;?php<br />
+</span><span class="keyword">@include(</span><span class="string">'/foo'</span><span class="keyword">) OR die (</span><span class="string">"bar"</span><span class="keyword">); </span><span class="comment"># &lt;- Won't work<br />
+</span><span class="keyword">@(include(</span><span class="string">'/foo'</span><span class="keyword">)) OR die (</span><span class="string">"bar"</span><span class="keyword">); </span><span class="comment"># &lt;- Works<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+so "or" have prority on "include"</span>
+</code></div>
+  </div>
+ </div>
+ <a name="38128"></a>
+ <div class="note">
+  <strong class='user'>james at gogo dot co dot nz</strong>
+  <a href="#38128" class="date">09-Dec-2003 10:03</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+While you can return a value from an included file, and receive the value as you would expect, you do not seem to be able to return a reference in any way (except in array, references are always preserved in arrays).<br />
+<br />
+For example, we have two files, file 1.php contains...<br />
+<span class="default">&lt;?php<br />
+&nbsp; </span><span class="keyword">function &amp;</span><span class="default">x</span><span class="keyword">(&amp;</span><span class="default">$y</span><span class="keyword">)<br />
+&nbsp; {<br />
+&nbsp;&nbsp;&nbsp; return include(</span><span class="default">dirname</span><span class="keyword">(</span><span class="default">__FILE__</span><span class="keyword">) . </span><span class="string">'/2.php'</span><span class="keyword">);<br />
+&nbsp; }<br />
+<br />
+&nbsp; </span><span class="default">$z </span><span class="keyword">= </span><span class="string">"FOO\n"</span><span class="keyword">;<br />
+&nbsp; </span><span class="default">$z2 </span><span class="keyword">= &amp;</span><span class="default">x</span><span class="keyword">(</span><span class="default">$z</span><span class="keyword">);<br />
+<br />
+&nbsp; echo </span><span class="default">$z2</span><span class="keyword">;<br />
+&nbsp; </span><span class="default">$z&nbsp; </span><span class="keyword">= </span><span class="string">"NOO\n"</span><span class="keyword">;<br />
+&nbsp; <br />
+&nbsp; echo </span><span class="default">$z2</span><span class="keyword">;<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+and file 2.php contains...<br />
+<span class="default">&lt;?php&nbsp; </span><span class="keyword">return </span><span class="default">$y</span><span class="keyword">; </span><span class="default">?&gt;<br />
+</span><br />
+calling 1.php will produce<br />
+<br />
+FOO<br />
+FOO<br />
+<br />
+i.e the reference passed to x() is broken on it's way out of the include()<br />
+<br />
+Neither can you do something like <span class="default">&lt;?php $foo </span><span class="keyword">=&amp; include(....); </span><span class="default">?&gt;</span> as that's a parse error (include is not a real function, so can't take a reference in that case).&nbsp; And you also can't do <span class="default">&lt;?php </span><span class="keyword">return &amp;</span><span class="default">$foo ?&gt;</span> in the included file (parse error again, nothing to assign the reference too).<br />
+<br />
+The only solutions are to set a variable with the reference which the including code can then return itself, or return an array with the reference inside.<br />
+<br />
+---<br />
+James Sleeman<br />
+<a href="http://www.gogo.co.nz/" rel="nofollow" target="_blank">http://www.gogo.co.nz/</a></span>
+</code></div>
+  </div>
+ </div>
+ <a name="38000"></a>
+ <div class="note">
+  <strong class='user'>david dot gaia dot kano at dartmouth dot edu</strong>
+  <a href="#38000" class="date">04-Dec-2003 01:13</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+I just discovered a "gotcha" for the behavior of include when using the command line version of php. <br />
+<br />
+I copied all the included files needed for a new version of a program into a temporary directory, so I could run them "off to the side" before they were ready for release into the live area. One of the files with a new version (call it common.inc.php for this example) normally lives in one of the directories in the include path. But I did not want to put the new version there yet! So I copied common.inc.php into my temporary directory along with the others, figuring that the interpreter would find it there before it found it in the include directory, because my include path has a . at the beginning. When I tested it, everything was fine.<br />
+<br />
+But then I setup a cron job to run the script automatically every day. In the crontab I placed the full path of the script. But when it ran, it included the old version of my common.inc.php file out of the include directory. Interestingly, the other include files that only existed in the temporary directory were included fine. <br />
+<br />
+Evidently AFTER the include path is searched, the directory in which the main script lives is searched as well. So my temporary installation almost worked fine, except for the lack of the small change I had made in the common file introduced a bug.<br />
+<br />
+To make it work I use a shell script to start my php script. It contains a cd command into the temporary directory, then starts the php script.<br />
+<br />
+So "current directory" (the . in the include path) for a command line script is really the current directory you are in when executing the script. Whereas it means the directory in which the script lives when executing under apache.<br />
+<br />
+I hope this helps save someone else the hours it took me to figure out my problem!<br />
+<br />
+David</span>
+</code></div>
+  </div>
+ </div>
+ <a name="37544"></a>
+ <div class="note">
+  <strong class='user'>php at mijav dot dk</strong>
+  <a href="#37544" class="date">19-Nov-2003 06:07</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+The @ directive works with this construct as well. My experience is you can use an if-statement to verify if the script was included (I havn't tested this on remote includes, there might be non-standard-404 pages that makes it impossible to verify you got the right page)<br />
+Example:<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp; </span><span class="comment">// ignore the notice and evaluate the return value of the script, if any.<br />
+&nbsp;&nbsp; </span><span class="keyword">if(@include(</span><span class="default">dirname</span><span class="keyword">(</span><span class="default">__FILE__</span><span class="keyword">).</span><span class="string">"/foo.php"</span><span class="keyword">))<br />
+&nbsp;&nbsp; &nbsp;&nbsp; echo </span><span class="string">"foo.php included"</span><span class="keyword">;<br />
+&nbsp;&nbsp; else<br />
+&nbsp;&nbsp; &nbsp;&nbsp; echo </span><span class="string">"failed to include foo.php"</span><span class="keyword">;<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code></div>
+  </div>
+ </div>
+ <a name="29282"></a>
+ <div class="note">
+  <strong class='user'>redeye at cs-aktuell dot de</strong>
+  <a href="#29282" class="date">08-Feb-2003 05:29</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+As to the security risks of an include statement like:<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp; </span><span class="keyword">include(</span><span class="default">$page</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+This is a really bad way on writing an include statement because the user could include server- or password-files which PHP can read as well. You could check the $page variable first but a simple check like <br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp; </span><span class="keyword">if ( </span><span class="default">file_exists</span><span class="keyword">(</span><span class="default">$page</span><span class="keyword">) ) AND !</span><span class="default">preg_match</span><span class="keyword">(</span><span class="string">"#^\.\./#"</span><span class="keyword">,</span><span class="default">$page</span><span class="keyword">) )<br />
+&nbsp;&nbsp;&nbsp; include(</span><span class="default">$page</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+wont make it any safer. ( Think of $page = 'pages/../../../etc/passwd' )<br />
+<br />
+To be sure only pages are called you want the user to call use something like this:<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp; $path </span><span class="keyword">= </span><span class="string">'pages/'</span><span class="keyword">;<br />
+&nbsp; </span><span class="default">$extension </span><span class="keyword">= </span><span class="string">'.php'</span><span class="keyword">;<br />
+&nbsp; <br />
+&nbsp; if ( </span><span class="default">preg_match</span><span class="keyword">(</span><span class="string">"#^[a-z0-9_]+$#i"</span><span class="keyword">,</span><span class="default">$page</span><span class="keyword">) ){<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$filename </span><span class="keyword">= </span><span class="default">$path</span><span class="keyword">.</span><span class="default">$page</span><span class="keyword">.</span><span class="default">$extension</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; include(</span><span class="default">$filename</span><span class="keyword">);<br />
+&nbsp; }<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+This will only make sure only files from the directory $path are called if they have the fileextension $extension.</span>
+</code></div>
+  </div>
+ </div></div>
+
+ <div class="foot"><a href="/manual/add-note.php?sect=function.include&amp;redirect=http://www.php.net/manual/en/function.include.php"><img src="@w{WPBKWWJ7}" alt="add a note" width="13" height="13" class="middle" /></a> <small><a href="/manual/add-note.php?sect=function.include&amp;redirect=http://www.php.net/manual/en/function.include.php">add a note</a></small></div>
+</div><br />
+ </div>
+ <div class="cleaner">&nbsp;</div>
+</div>
+
+<div id="footnav">
+   <a href="/source.php?url=/manual/en/function.include.php">show source</a> |
+ <a href="/credits.php">credits</a> |
+ <a href="/stats/">stats</a> |
+ <a href="/sitemap.php">sitemap</a> |
+ <a href="/contact.php">contact</a> |
+ <a href="/contact.php#ads">advertising</a> |
+ <a href="/mirrors.php">mirror sites</a>
+</div>
+
+<div id="pagefooter">
+ <div id="copyright">
+  <a href="/copyright.php">Copyright &copy; 2001-2012 The PHP Group</a><br />
+  All rights reserved.
+ </div>
+
+ <div id="thismirror">
+  <a href="/mirror.php">This mirror</a> generously provided by:
+  <a href="@w{TDAY9QJ9}">Yahoo! Inc.</a><br />
+  Last updated: Tue Jul 31 20:41:05 2012 UTC
+ </div>
+</div>
+<!--[if IE 6]>
+<script type="text/javascript">
+    /*Load jQuery if not already loaded*/ if(typeof jQuery == 'undefined'){ document.write("<script type=\"text/javascript\"   src=\"@w{8JFFCNVW}"></"+"script>"); var __noconflict = true; }
+    var IE6UPDATE_OPTIONS = {
+        icons_path: "/ie6update/images/"
+    }
+</script>
+<script type="text/javascript" src="/ie6update/ie6update.js"></script>
+<![endif]-->
+</body>
+</html>

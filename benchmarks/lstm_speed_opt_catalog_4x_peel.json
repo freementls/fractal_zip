@@ -1,0 +1,168 @@
+{
+  "description": "Peel kitchen tax off v4_lm while holding \u22653.0\u00d7 @1\u202fMiB (\u2192\u22654\u00d7 @10\u202fMiB).",
+  "base_defs": [
+    "-DSEED=923",
+    "-DUPDATE_LIMIT=3000",
+    "-DFXCM_ENTITY_FOLD",
+    "-DFXCM_MATCH_MAX=3000000ull",
+    "-DFXCM_SPEED_INLINE_GET",
+    "-DNDEBUG",
+    "-DFXCM_RECIPE_RUNTIME",
+    "-DFXCM_FRACTAL_PRED"
+  ],
+  "candidates": [
+    {
+      "name": "peel_ppmd8k",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=64",
+        "-DFXCM_PPMD_MB=8192",
+        "-DFXCM_MATCH_MAX=1000000ull",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=2u",
+        "-DFXCM_SPEED_ADVANCE_ONLY",
+        "-DFXCM_SPEED_OUTER_AO_MIN=4u",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=2u",
+        "-DFXCM_SPEED_CM_MATCH_SKIP",
+        "-DFXCM_SPEED_CM_MATCH_MIN=4",
+        "-DFXCM_CM_SCALE=2",
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_EXTREME"
+      ],
+      "note": "PPMD 8\u202fMiB (was 2)"
+    },
+    {
+      "name": "peel_match3m",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=64",
+        "-DFXCM_PPMD_MB=2048",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=2u",
+        "-DFXCM_SPEED_ADVANCE_ONLY",
+        "-DFXCM_SPEED_OUTER_AO_MIN=4u",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=2u",
+        "-DFXCM_SPEED_CM_MATCH_SKIP",
+        "-DFXCM_SPEED_CM_MATCH_MIN=4",
+        "-DFXCM_CM_SCALE=2",
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_EXTREME"
+      ],
+      "note": "MATCH_MAX 3M (was 1M)"
+    },
+    {
+      "name": "peel_cmscale1",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=64",
+        "-DFXCM_PPMD_MB=2048",
+        "-DFXCM_MATCH_MAX=1000000ull",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=2u",
+        "-DFXCM_SPEED_ADVANCE_ONLY",
+        "-DFXCM_SPEED_OUTER_AO_MIN=4u",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=2u",
+        "-DFXCM_SPEED_CM_MATCH_SKIP",
+        "-DFXCM_SPEED_CM_MATCH_MIN=4",
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_EXTREME"
+      ],
+      "note": "no CM_SCALE"
+    },
+    {
+      "name": "peel_no_ao",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=64",
+        "-DFXCM_PPMD_MB=2048",
+        "-DFXCM_MATCH_MAX=1000000ull",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=2u",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=2u",
+        "-DFXCM_SPEED_CM_MATCH_SKIP",
+        "-DFXCM_SPEED_CM_MATCH_MIN=4",
+        "-DFXCM_CM_SCALE=2",
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_EXTREME"
+      ],
+      "note": "no ADVANCE_ONLY"
+    },
+    {
+      "name": "peel_fp4",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=64",
+        "-DFXCM_PPMD_MB=2048",
+        "-DFXCM_MATCH_MAX=1000000ull",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=4u",
+        "-DFXCM_SPEED_ADVANCE_ONLY",
+        "-DFXCM_SPEED_OUTER_AO_MIN=8u",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=2u",
+        "-DFXCM_SPEED_CM_MATCH_SKIP",
+        "-DFXCM_SPEED_CM_MATCH_MIN=4",
+        "-DFXCM_CM_SCALE=2",
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_EXTREME"
+      ],
+      "note": "FP_MIN=4 AO_MIN=8"
+    },
+    {
+      "name": "peel_lm_soft",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=64",
+        "-DFXCM_PPMD_MB=2048",
+        "-DFXCM_MATCH_MAX=1000000ull",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=2u",
+        "-DFXCM_SPEED_ADVANCE_ONLY",
+        "-DFXCM_SPEED_OUTER_AO_MIN=4u",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=2u",
+        "-DFXCM_SPEED_CM_MATCH_SKIP",
+        "-DFXCM_SPEED_CM_MATCH_MIN=4",
+        "-DFXCM_CM_SCALE=2",
+        "-DFXCM_SPEED_LIGHT_MIX"
+      ],
+      "note": "LIGHT_MIX not EXTREME"
+    },
+    {
+      "name": "peel_l96",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=96",
+        "-DFXCM_PPMD_MB=2048",
+        "-DFXCM_MATCH_MAX=1000000ull",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=2u",
+        "-DFXCM_SPEED_ADVANCE_ONLY",
+        "-DFXCM_SPEED_OUTER_AO_MIN=4u",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=2u",
+        "-DFXCM_SPEED_CM_MATCH_SKIP",
+        "-DFXCM_SPEED_CM_MATCH_MIN=4",
+        "-DFXCM_CM_SCALE=2",
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_EXTREME"
+      ],
+      "note": "LSTM96"
+    },
+    {
+      "name": "peel_all_mem",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=64",
+        "-DFXCM_PPMD_MB=8192",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=2u",
+        "-DFXCM_SPEED_ADVANCE_ONLY",
+        "-DFXCM_SPEED_OUTER_AO_MIN=4u",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=2u",
+        "-DFXCM_SPEED_CM_MATCH_SKIP",
+        "-DFXCM_SPEED_CM_MATCH_MIN=4",
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_EXTREME"
+      ],
+      "note": "PPMD8k + MATCH3M + no CMscale"
+    }
+  ]
+}

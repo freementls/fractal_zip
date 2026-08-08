@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+# Read one member from a .fzc (same as: fz member-read <file.fzc> <path> [out]).
+ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+exec php "$ROOT/fractal_zip_cli.php" member-read "$@"

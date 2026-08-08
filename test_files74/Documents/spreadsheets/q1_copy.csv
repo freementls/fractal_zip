@@ -1,0 +1,7 @@
+sku,qty,unit_cents,region
+A12-0,3,1999,US-W
+A12-1,1,1999,US-W
+B7-x,10,150,EU-N
+B7-x,4,150,APAC
+C-zip-9,1,0,US-E
+(more rows in real life — header repeated for import compatibility)

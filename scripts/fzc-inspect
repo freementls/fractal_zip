@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+# Quick container fingerprint + member-list probe (same as: fz inspect <file.fzc>).
+ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+exec php "$ROOT/fractal_zip_cli.php" inspect "$@"

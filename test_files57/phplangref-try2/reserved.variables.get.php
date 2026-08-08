@@ -1,0 +1,825 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "@w{QPKF54RE}">
+<html xmlns="@w{SZTDMW9J}" xml:lang="en" lang="en">
+<head profile="@w{B8XXCD23}">
+ <title>PHP: $_GET - Manual</title>
+ <style type="text/css" media="all">
+  @import url("@w{2XX58MCD}");
+  @import url("@w{884KPP5P}");
+  
+ </style>
+ <!--[if IE]><![if gte IE 6]><![endif]-->
+  <style type="text/css" media="print">
+   @import url("@w{M98RFPWS}");
+  </style>
+ <!--[if IE]><![endif]><![endif]-->
+ <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+ <link rel="shortcut icon" href="@w{NGWYKJ8F}" />
+ <link rel="contents" href="index.php" />
+ <link rel="index" href="reserved.variables.php" />
+ <link rel="prev" href="reserved.variables.server.php" />
+ <link rel="next" href="reserved.variables.post.php" />
+ <link rel="schema.dc" href="@w{RNCDA8N4}" />
+ <link rel="schema.rdfs" href="@w{XGTVB7JY}" />
+ <link rev="canonical" rel="self alternate shorter shorturl shortlink" href="http://php.net/reserved.variables.get" />
+ <link rel="license" href="@w{G88D3FDX}" about="#content" />
+ <link rel="canonical" href="http://php.net/manual/en/reserved.variables.get.php" />
+ <script type="text/javascript" src="@w{4SAB2YT3}"></script>
+ <base href="http://www.php.net/manual/en/reserved.variables.get.php" />
+ <meta http-equiv="Content-language" content="en" />
+            <script type="text/javascript" src="@w{ME5H2G8Y}"></script>
+            <script type="text/javascript" src="@w{BYSKBGP9}"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+    var toggleImage = function(elem) {
+        if ($(elem).hasClass("shown")) {
+            $(elem).removeClass("shown").addClass("hidden");
+            $("img", elem).attr("src", "/images/notes-add.gif");
+        }
+        else {
+            $(elem).removeClass("hidden").addClass("shown");
+            $("img", elem).attr("src", "/images/notes-reject.gif");
+        }
+    };
+
+    $(".soft-deprecation-notice h1.title").each(function() {
+        $(this).prepend("<a class='toggler shown' href='#'><img src='/images/notes-reject.gif' alt='minimize' /></a> ");
+    });
+    $(".refsect1 h3.title").each(function() {
+        url = "@w{BD87E369}" + $(this).parent().parent().attr("id") + "%23" + $(this).parent().attr("id");
+        $(this).parent().prepend("<div class='reportbug'><a href='" + url + "'>Report a bug</a></div>");
+        $(this).prepend("<a class='toggler shown' href='#'><img src='/images/notes-reject.gif' alt='reject note' /></a> ");
+    });
+    $("#usernotes .head").each(function() {
+        $(this).prepend("<a class='toggler shown' href='#'><img src='/images/notes-reject.gif' alt='reject note' /></a> ");
+    });
+    $(".soft-deprecation-notice h1.title .toggler").click(function() {
+        $(this).parent().siblings().slideToggle("slow");
+        toggleImage(this);
+        return false;
+    });
+    $(".refsect1 h3.title .toggler").click(function() {
+        $(this).parent().siblings().slideToggle("slow");
+        toggleImage(this);
+        return false;
+    });
+    $("#usernotes .head .toggler").click(function() {
+        $(this).parent().next().slideToggle("slow");
+        toggleImage(this);
+        return false;
+    });
+});
+</script>
+
+</head>
+<body>
+
+<div id="headnav">
+ <a href="/" rel="home"><img src="@w{BJ2SG82M}"
+ alt="PHP" width="120" height="67" id="phplogo" /></a>
+ <div id="headmenu">
+  <a href="/downloads.php">downloads</a> |
+  <a href="/docs.php">documentation</a> |
+  <a href="/FAQ.php">faq</a> |
+  <a href="/support.php">getting help</a> |
+  <a href="/mailing-lists.php">mailing lists</a> |
+  <a href="/license">licenses</a> |
+  <a href="@w{WEGCK3BV}">wiki</a> |
+  <a href="@w{JBVFFY7T}">reporting bugs</a> |
+  <a href="/sites.php">php.net sites</a> |
+  <a href="/conferences/">conferences</a> |
+  <a href="/my.php">my php.net</a>
+ </div>
+</div>
+
+<div id="headsearch">
+ <form method="post" action="/search.php" id="topsearch">
+  <p>
+   <span title="Keyboard shortcut: Alt+S (Win), Ctrl+S (Apple)">
+    <span class="shortkey">s</span>earch for
+   </span>
+   <input type="text" name="pattern" value="" size="30" accesskey="s" />
+   <span>in the</span>
+   <select name="show">
+    <option value="all"      >all php.net sites</option>
+    <option value="local"    >this mirror only</option>
+    <option value="quickref" selected="selected">function list</option>
+    <option value="manual"   >online documentation</option>
+    <option value="bugdb"    >bug database</option>
+    <option value="news_archive">Site News Archive</option>
+    <option value="changelogs">All Changelogs</option>
+    <option value="pear"     >just pear.php.net</option>
+    <option value="pecl"     >just pecl.php.net</option>
+    <option value="talks"    >just talks.php.net</option>
+    <option value="maillist" >general mailing list</option>
+    <option value="devlist"  >developer mailing list</option>
+    <option value="phpdoc"   >documentation mailing list</option>
+   </select>
+   <input type="image"
+          src="@w{XXWWP636}"
+          class="submit" alt="search" />
+   <input type="hidden" name="lang" value="en" />
+  </p>
+ </form>
+</div>
+
+<div id="layout_2">
+ <div id="leftbar">
+<!--UdmComment-->
+<ul class="toc">
+ <li class="header home"><a href="index.php">PHP Manual</a></li>
+ <li class="header up"><a href="langref.php">Language Reference</a></li>
+ <li class="header up"><a href="reserved.variables.php">Predefined Variables</a></li>
+ <li><a href="language.variables.superglobals.php">Superglobals</a></li>
+ <li><a href="reserved.variables.globals.php">$GLOBALS</a></li>
+ <li><a href="reserved.variables.server.php">$_SERVER</a></li>
+ <li class="active"><a href="reserved.variables.get.php">$_GET</a></li>
+ <li><a href="reserved.variables.post.php">$_POST</a></li>
+ <li><a href="reserved.variables.files.php">$_FILES</a></li>
+ <li><a href="reserved.variables.request.php">$_REQUEST</a></li>
+ <li><a href="reserved.variables.session.php">$_SESSION</a></li>
+ <li><a href="reserved.variables.environment.php">$_ENV</a></li>
+ <li><a href="reserved.variables.cookies.php">$_COOKIE</a></li>
+ <li><a href="reserved.variables.phperrormsg.php">$php_errormsg</a></li>
+ <li><a href="reserved.variables.httprawpostdata.php">$HTTP_RAW_POST_DATA</a></li>
+ <li><a href="reserved.variables.httpresponseheader.php">$http_response_header</a></li>
+ <li><a href="reserved.variables.argc.php">$argc</a></li>
+ <li><a href="reserved.variables.argv.php">$argv</a></li>
+</ul><!--/UdmComment-->
+
+ </div>
+ <div id="content" class="manual/en">
+<!--UdmComment-->
+<div class="manualnavbar manualnavbar_top">
+ <span class="next">
+  <a href="reserved.variables.post.php">$_POST<img src="@w{GVN7ETSY}" alt="&gt;" width="11" height="7" /></a>
+ </span>
+ <span class="prev">
+  <a href="reserved.variables.server.php"><img src="@w{KX8YRRP2}" alt="&lt;" width="11" height="7" />$_SERVER</a>
+ </span>
+ <hr />
+ <span class="lastupdated">[<a href="https://edit.php.net/?project=PHP&amp;perm=en/reserved.variables.get.php">edit</a>] Last updated: Fri, 27 Jul 2012</span>
+ <div class="langchooser">
+  <form action="/manual/change.php" method="get">
+   <p>view this page in </p><fieldset><select name="page">
+    <option value="pt_BR/reserved.variables.get.php">Brazilian Portuguese</option>
+    <option value="zh/reserved.variables.get.php">Chinese (Simplified)</option>
+    <option value="fr/reserved.variables.get.php">French</option>
+    <option value="de/reserved.variables.get.php">German</option>
+    <option value="ja/reserved.variables.get.php">Japanese</option>
+    <option value="pl/reserved.variables.get.php">Polish</option>
+    <option value="ro/reserved.variables.get.php">Romanian</option>
+    <option value="ru/reserved.variables.get.php">Russian</option>
+    <option value="fa/reserved.variables.get.php">Persian</option>
+    <option value="es/reserved.variables.get.php">Spanish</option>
+    <option value="tr/reserved.variables.get.php">Turkish</option>
+    <option value="help-translate.php">Other</option>
+   </select>
+   <input type="image" src="@w{XWTW8VF8}" id="changeLangImage" alt="Change language" />
+  </fieldset></form>
+ </div>
+</div>
+<!--/UdmComment-->
+
+<div id="reserved.variables.get" class="refentry">
+ <div class="refnamediv">
+  <h1 class="refname">$_GET</h1>
+  <h1 class="refname">$HTTP_GET_VARS [deprecated]</h1>
+  <p class="verinfo">(PHP 4 &gt;= 4.1.0, PHP 5)</p><p class="refpurpose"><span class="refname">$_GET</span> -- <span class="refname">$HTTP_GET_VARS [deprecated]</span> &mdash; <span class="dc-title">HTTP GET variables</span></p>
+
+ </div>
+ 
+ <div class="refsect1 description" id="refsect1-reserved.variables.get-description">
+  <h3 class="title">Description</h3>
+  <p class="para">
+   An associative array of variables passed to the current script
+   via the URL parameters.
+  </p>
+
+  <p class="simpara">
+   <var class="varname"><var class="varname">$HTTP_GET_VARS</var></var> contains the same initial
+   information, but is not a <a href="language.variables.superglobals.php" class="link">superglobal</a>.
+   (Note that <var class="varname"><var class="varname">$HTTP_GET_VARS</var></var> and <var class="varname"><var class="varname">$_GET</var></var>
+   are different variables and that PHP handles them as such)
+  </p>
+
+ </div>
+
+ 
+
+ <div class="refsect1 changelog" id="refsect1-reserved.variables.get-changelog">
+  <h3 class="title">Changelog</h3>
+  <p class="para">
+   <table class="doctable informaltable">
+    
+     <thead>
+      <tr>
+       <th>Version</th>
+       <th>Description</th>
+      </tr>
+
+     </thead>
+
+     <tbody class="tbody">
+      <tr>
+       <td>4.1.0</td>
+       <td>
+        Introduced <var class="varname"><var class="varname">$_GET</var></var> that deprecated
+        <var class="varname"><var class="varname">$HTTP_GET_VARS</var></var>.
+       </td>
+      </tr>
+
+     </tbody>
+    
+   </table>
+
+  </p>
+ </div>
+
+ 
+ <div class="refsect1 examples" id="refsect1-reserved.variables.get-examples">
+  <h3 class="title">Examples</h3>
+  <p class="para">
+   <div class="example" id="variable.get.basic">
+    <p><strong>Example #1 <var class="varname"><var class="varname">$_GET</var></var> example</strong></p>
+    <div class="example-contents">
+<div class="phpcode"><code><span style="color: #000000">
+<span style="color: #0000BB">&lt;?php<br /></span><span style="color: #007700">echo&nbsp;</span><span style="color: #DD0000">'Hello&nbsp;'&nbsp;</span><span style="color: #007700">.&nbsp;</span><span style="color: #0000BB">htmlspecialchars</span><span style="color: #007700">(</span><span style="color: #0000BB">$_GET</span><span style="color: #007700">[</span><span style="color: #DD0000">"name"</span><span style="color: #007700">])&nbsp;.&nbsp;</span><span style="color: #DD0000">'!'</span><span style="color: #007700">;<br /></span><span style="color: #0000BB">?&gt;</span>
+</span>
+</code></div>
+    </div>
+
+    <div class="example-contents"><p>
+     Assuming the user entered http://example.com/?name=Hannes
+    </p></div>
+    <div class="example-contents"><p>The above example will output
+something similar to:</p></div>
+    <div class="example-contents screen">
+<div class="cdata"><pre>
+Hello Hannes!
+</pre></div>
+    </div>
+   </div>
+  </p>
+ </div>
+
+ 
+ <div class="refsect1 notes" id="refsect1-reserved.variables.get-notes">
+  <h3 class="title">Notes</h3>
+  <blockquote class="note"><p><strong class="note">Note</strong>: <p class="para">This is a &#039;superglobal&#039;, or
+automatic global, variable. This simply means that it is available in
+all scopes throughout a script. There is no need to do
+<strong class="command">global $variable;</strong> to access it within functions or methods.
+</p></p></blockquote>
+  <blockquote class="note"><p><strong class="note">Note</strong>: 
+   <p class="para">
+    The GET variables are passed through  <span class="function"><a href="function.urldecode.php" class="function">urldecode()</a></span>.
+   </p>
+  </p></blockquote>
+ </div>
+
+
+ <div class="refsect1 seealso" id="refsect1-reserved.variables.get-seealso">
+  <h3 class="title">See Also</h3>
+  <p class="para">
+   <ul class="simplelist">
+    <li class="member"><a href="language.variables.external.php" class="link">Handling external variables</a></li>
+    <li class="member"><a href="book.filter.php" class="link">The filter extension</a></li>
+   </ul>
+  </p>
+ </div>
+
+
+</div><br /><br /><!--UdmComment-->
+<div class="manualnavbar manualnavbar_bottom">
+ <span class="next">
+  <a href="reserved.variables.post.php">$_POST<img src="@w{GVN7ETSY}" alt="&gt;" width="11" height="7" /></a>
+ </span>
+ <span class="prev">
+  <a href="reserved.variables.server.php"><img src="@w{KX8YRRP2}" alt="&lt;" width="11" height="7" />$_SERVER</a>
+ </span>
+ <hr />
+ <span class="lastupdated">[<a href="https://edit.php.net/?project=PHP&amp;perm=en/reserved.variables.get.php">edit</a>] Last updated: Fri, 27 Jul 2012</span>
+ <div class="langchooser">
+  &nbsp;
+ </div>
+</div>
+<!--/UdmComment-->
+
+
+<div id="usernotes">
+ <div class="head">
+  <span class="action"><a href="/manual/add-note.php?sect=reserved.variables.get&amp;redirect=http://www.php.net/manual/en/reserved.variables.get.php"><img src="@w{WPBKWWJ7}" alt="add a note" width="13" height="13" class="middle" /></a> <small><a href="/manual/add-note.php?sect=reserved.variables.get&amp;redirect=http://www.php.net/manual/en/reserved.variables.get.php">add a note</a></small></span>
+  <small>User Contributed Notes</small>
+  <strong>$_GET</strong>
+ </div><div id="allnotes">
+ <a name="105335"></a>
+ <div class="note">
+  <strong class='user'>zgold</strong>
+  <a href="#105335" class="date">10-Aug-2011 01:58</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+I don't directly use $_GET due to security concerns, instead I create a new array called $_CLEAN which contains cleaned superglobal variables.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">clean</span><span class="keyword">(</span><span class="default">$elem</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; if(!</span><span class="default">is_array</span><span class="keyword">(</span><span class="default">$elem</span><span class="keyword">))<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$elem </span><span class="keyword">= </span><span class="default">htmlentities</span><span class="keyword">(</span><span class="default">$elem</span><span class="keyword">,</span><span class="default">ENT_QUOTES</span><span class="keyword">,</span><span class="string">"UTF-8"</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; else<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach (</span><span class="default">$elem </span><span class="keyword">as </span><span class="default">$key </span><span class="keyword">=&gt; </span><span class="default">$value</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$elem</span><span class="keyword">[</span><span class="default">$key</span><span class="keyword">] = </span><span class="default">$this</span><span class="keyword">-&gt;</span><span class="default">clean</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; return </span><span class="default">$elem</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="default">$_CLEAN</span><span class="keyword">[</span><span class="string">'GET'</span><span class="keyword">] = </span><span class="default">clean</span><span class="keyword">(</span><span class="default">$_GET</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+I also do this for $_POST, as followed:<br />
+<span class="default">&lt;?php $_CLEAN</span><span class="keyword">[</span><span class="string">'POST'</span><span class="keyword">] = </span><span class="default">clean</span><span class="keyword">(</span><span class="default">$_POST</span><span class="keyword">); </span><span class="default">?&gt;</span>
+</span>
+</code></div>
+  </div>
+ </div>
+ <a name="105061"></a>
+ <div class="note">
+  <strong class='user'>Maarten Schroeven</strong>
+  <a href="#105061" class="date">25-Jul-2011 01:09</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+You can use this function to remove any $_GET variables out of your URL, it takes an array off strings(the names keys of the $_GET you wish to remove) and returns the url with the ones specified removed<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp; </span><span class="keyword">function </span><span class="default">getUrlWithout</span><span class="keyword">(</span><span class="default">$getNames</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$url </span><span class="keyword">= </span><span class="string">"http" </span><span class="keyword">. ((!empty(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'HTTPS'</span><span class="keyword">])) ? </span><span class="string">"s" </span><span class="keyword">: </span><span class="string">""</span><span class="keyword">) . </span><span class="string">"://"</span><span class="keyword">.</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'SERVER_NAME'</span><span class="keyword">].</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'REQUEST_URI'</span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$questionMarkExp </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">(</span><span class="string">"?"</span><span class="keyword">, </span><span class="default">$url</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$urlArray </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">(</span><span class="string">"&amp;"</span><span class="keyword">, </span><span class="default">$questionMarkExp</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">]);<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$retUrl</span><span class="keyword">=</span><span class="default">$questionMarkExp</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$retGet</span><span class="keyword">=</span><span class="string">""</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$found</span><span class="keyword">=array();<br />
+&nbsp;&nbsp; &nbsp;&nbsp; foreach(</span><span class="default">$getNames </span><span class="keyword">as </span><span class="default">$id </span><span class="keyword">=&gt; </span><span class="default">$name</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; foreach (</span><span class="default">$urlArray </span><span class="keyword">as </span><span class="default">$key</span><span class="keyword">=&gt;</span><span class="default">$value</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(isset(</span><span class="default">$_GET</span><span class="keyword">[</span><span class="default">$name</span><span class="keyword">]) &amp;&amp; </span><span class="default">$value</span><span class="keyword">==</span><span class="default">$name</span><span class="keyword">.</span><span class="string">"="</span><span class="keyword">.</span><span class="default">$_GET</span><span class="keyword">[</span><span class="default">$name</span><span class="keyword">])<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; unset(</span><span class="default">$urlArray</span><span class="keyword">[</span><span class="default">$key</span><span class="keyword">]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp;&nbsp; </span><span class="default">$urlArray </span><span class="keyword">= </span><span class="default">array_values</span><span class="keyword">(</span><span class="default">$urlArray</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp;&nbsp; foreach (</span><span class="default">$urlArray </span><span class="keyword">as </span><span class="default">$key </span><span class="keyword">=&gt; </span><span class="default">$value</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">$key</span><span class="keyword">&lt;</span><span class="default">sizeof</span><span class="keyword">(</span><span class="default">$urlArray</span><span class="keyword">) &amp;&amp; </span><span class="default">$retGet</span><span class="keyword">!==</span><span class="string">""</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$retGet</span><span class="keyword">.=</span><span class="string">"&amp;"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$retGet</span><span class="keyword">.=</span><span class="default">$value</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp;&nbsp; return </span><span class="default">$retUrl</span><span class="keyword">.</span><span class="string">"?"</span><span class="keyword">.</span><span class="default">$retGet</span><span class="keyword">;<br />
+&nbsp; }<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Example<br />
+current url is <a href="http://www.example.net/index.php?getVar1=Something&amp;getVar2=10&amp;getVar3=ok" rel="nofollow" target="_blank">http://www.example.net/index.php?getVar1=Something&amp;getVar2=10&amp;getVar3=ok</a><br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">echo </span><span class="default">getUrlWithout</span><span class="keyword">(array(</span><span class="string">"getVar1"</span><span class="keyword">,</span><span class="string">"getVar3"</span><span class="keyword">));<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">//result will be "<a href="http://www.example.net/index.php?getVar2=10" rel="nofollow" target="_blank">http://www.example.net/index.php?getVar2=10</a>"<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code></div>
+  </div>
+ </div>
+ <a name="101856"></a>
+ <div class="note">
+  <strong class='user'>Daniel M</strong>
+  <a href="#101856" class="date">14-Jan-2011 04:35</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+If you need to find out whether any GET variables have been specified, you can use the empty() function.<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">if(empty(</span><span class="default">$_GET</span><span class="keyword">))<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"No GET variables"</span><span class="keyword">;<br />
+else<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$_GET</span><span class="keyword">);<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+empty() - <a href="http://php.net/manual/en/function.empty.php" rel="nofollow" target="_blank">http://php.net/manual/en/function.empty.php</a><br />
+print_r() - <a href="http://php.net/manual/en/function.print-r.php" rel="nofollow" target="_blank">http://php.net/manual/en/function.print-r.php</a></span>
+</code></div>
+  </div>
+ </div>
+ <a name="101469"></a>
+ <div class="note">
+  <strong class='user'>chris at bjelleklang dot org</strong>
+  <a href="#101469" class="date">18-Dec-2010 02:40</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+Please note that PHP setups with the suhosin patch installed will have a default limit of 512 characters for get parameters. Although bad practice, most browsers (including IE) supports URLs up to around 2000 characters, while Apache has a default of 8000. <br />
+<br />
+To add support for long parameters with suhosin, add <br />
+suhosin.get.max_value_length = &lt;limit&gt; in php.ini</span>
+</code></div>
+  </div>
+ </div>
+ <a name="98419"></a>
+ <div class="note">
+  <strong class='user'>John Galt</strong>
+  <a href="#98419" class="date">14-Jun-2010 05:57</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+Just a note, because I didn't know for sure until I tested it.<br />
+<br />
+If you have a query string that contains a parameter but no value (not even an equals sign), like so:<br />
+<a href="http://path/to/script.php?a" rel="nofollow" target="_blank">http://path/to/script.php?a</a><br />
+<br />
+The following script is a good test to determine how a is valued:<br />
+&lt;pre&gt;<br />
+<span class="default">&lt;?php<br />
+&nbsp;print_r</span><span class="keyword">(</span><span class="default">$_GET</span><span class="keyword">);<br />
+&nbsp;if(</span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">"a"</span><span class="keyword">] === </span><span class="string">""</span><span class="keyword">) echo </span><span class="string">"a is an empty string\n"</span><span class="keyword">;<br />
+&nbsp;if(</span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">"a"</span><span class="keyword">] === </span><span class="default">false</span><span class="keyword">) echo </span><span class="string">"a is false\n"</span><span class="keyword">;<br />
+&nbsp;if(</span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">"a"</span><span class="keyword">] === </span><span class="default">null</span><span class="keyword">) echo </span><span class="string">"a is null\n"</span><span class="keyword">;<br />
+&nbsp;if(isset(</span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">"a"</span><span class="keyword">])) echo </span><span class="string">"a is set\n"</span><span class="keyword">;<br />
+&nbsp;if(!empty(</span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">"a"</span><span class="keyword">])) echo </span><span class="string">"a is not empty"</span><span class="keyword">;<br />
+</span><span class="default">?&gt;<br />
+</span>&lt;/pre&gt;<br />
+<br />
+I tested this with script.php?a, and it returned:<br />
+<br />
+a is an empty string<br />
+a is set<br />
+<br />
+So note that a parameter with no value associated with, even without an equals sign, is considered to be an empty string (""), isset() returns true for it, and it is considered empty, but not false or null. Seems obvious after the first test, but I just had to make sure.<br />
+<br />
+Of course, if I do not include it in my browser query, the script returns<br />
+Array<br />
+(<br />
+)<br />
+a is null</span>
+</code></div>
+  </div>
+ </div>
+ <a name="93877"></a>
+ <div class="note">
+  <strong class='user'>Alberto Lepe dev at alepe dot com</strong>
+  <a href="#93877" class="date">04-Oct-2009 09:23</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+This Function will help you to manage your GET parameters to facilitate coding and prevent duplication. This is a basic version but it can be easily extended.<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp; </span><span class="comment">// Author: Alberto Lepe (www.alepe.com)<br />
+&nbsp;&nbsp;&nbsp; /* Process $_GET to preserve user custom parameters<br />
+&nbsp;&nbsp; &nbsp; * the arguments is a list of URL parameters that should be removed/changed from URL<br />
+&nbsp;&nbsp; &nbsp; * for example:<br />
+&nbsp;&nbsp; &nbsp; *<br />
+&nbsp;&nbsp; &nbsp; * URL = "index.php?s=1&amp;fi=2&amp;m=4&amp;p=3<br />
+&nbsp;&nbsp; &nbsp; *<br />
+&nbsp;&nbsp; &nbsp; * if called: fixGet("s"); the result has to be: ?fi=2&amp;m=4&amp;p=3<br />
+&nbsp;&nbsp; &nbsp; * if called: fixGet("s&amp;m"); the result has to be: ?fi=2&amp;p=3<br />
+&nbsp;&nbsp; &nbsp; * if called: fixGet("s=4"); the result has to be: ?s=4&amp;fi=2&amp;m=4&amp;p=3<br />
+&nbsp;&nbsp; &nbsp; * if called: fixGet("s=2&amp;m"); the result has to be: ?s=2&amp;fi=2&amp;p=3<br />
+&nbsp;&nbsp; &nbsp; * if called: fixGet("s=&amp;m=3"); the result has to be: ?s=&amp;fi=2&amp;m=3&amp;p=3<br />
+&nbsp;&nbsp; &nbsp; * if called: fixGet("s=2&amp;m="); the result has to be: ?s=2&amp;fi=2&amp;m=&amp;p=3<br />
+&nbsp;&nbsp; &nbsp; * Special: when it ends with a =":" its to leave it open at the end<br />
+&nbsp;&nbsp; &nbsp; * (just first occurrence) to facilitate concatenation:<br />
+&nbsp;&nbsp; &nbsp; * if called: fixGet("s=2&amp;m:"); the result has to be: ?s=2&amp;fi=2&amp;p=3&amp;m<br />
+&nbsp;&nbsp; &nbsp; * if called: fixGet("s=2&amp;m:="); the result has to be: ?s=2&amp;fi=2&amp;p=3&amp;m=<br />
+&nbsp;&nbsp; &nbsp; * <br />
+&nbsp;&nbsp; &nbsp; * Usage with HTML (using the URL example above and $id = 99):<br />
+&nbsp;&nbsp; &nbsp; * <br />
+&nbsp;&nbsp; &nbsp; * &lt;a href="index.php&lt;?php echo fixGet('m=2&amp;s&amp;fi:=').$id ?&gt;" &gt;Link&lt;/a&gt;<br />
+&nbsp;&nbsp; &nbsp; * Explanation: change "m" to 2, delete "s" and "fi" gets the $id value. ("p" is kept as it is not specified)<br />
+&nbsp;&nbsp; &nbsp; * will output: &lt;a href='index.php?m=2&amp;p=3&amp;fi=99'&gt;Link&lt;/a&gt;<br />
+&nbsp;&nbsp; &nbsp; */<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">public function </span><span class="default">fixGet</span><span class="keyword">(</span><span class="default">$args</span><span class="keyword">) { <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">count</span><span class="keyword">(</span><span class="default">$_GET</span><span class="keyword">) &gt; </span><span class="default">0</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(!empty(</span><span class="default">$args</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$lastkey </span><span class="keyword">= </span><span class="string">""</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$pairs </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">(</span><span class="string">"&amp;"</span><span class="keyword">,</span><span class="default">$args</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; foreach(</span><span class="default">$pairs </span><span class="keyword">as </span><span class="default">$pair</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">strpos</span><span class="keyword">(</span><span class="default">$pair</span><span class="keyword">,</span><span class="string">":"</span><span class="keyword">) !== </span><span class="default">false</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; list(</span><span class="default">$key</span><span class="keyword">,</span><span class="default">$value</span><span class="keyword">) = </span><span class="default">explode</span><span class="keyword">(</span><span class="string">":"</span><span class="keyword">,</span><span class="default">$pair</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; unset(</span><span class="default">$_GET</span><span class="keyword">[</span><span class="default">$key</span><span class="keyword">]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$lastkey </span><span class="keyword">= </span><span class="string">"&amp;$key$value"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } elseif(</span><span class="default">strpos</span><span class="keyword">(</span><span class="default">$pair</span><span class="keyword">,</span><span class="string">"="</span><span class="keyword">) === </span><span class="default">false</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; unset(</span><span class="default">$_GET</span><span class="keyword">[</span><span class="default">$pair</span><span class="keyword">]);<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; list(</span><span class="default">$key</span><span class="keyword">, </span><span class="default">$value</span><span class="keyword">) = </span><span class="default">explode</span><span class="keyword">(</span><span class="string">"="</span><span class="keyword">,</span><span class="default">$pair</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$_GET</span><span class="keyword">[</span><span class="default">$key</span><span class="keyword">] = </span><span class="default">$value</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; return </span><span class="string">"?"</span><span class="keyword">.((</span><span class="default">count</span><span class="keyword">(</span><span class="default">$_GET</span><span class="keyword">) &gt; </span><span class="default">0</span><span class="keyword">)?</span><span class="default">http_build_query</span><span class="keyword">(</span><span class="default">$_GET</span><span class="keyword">).</span><span class="default">$lastkey</span><span class="keyword">:</span><span class="string">""</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+To test, copy+paste the following code into testFixGet.php<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">/*<br />
+&nbsp;* Unit Test for fixGet()<br />
+&nbsp;*/<br />
+</span><span class="default">$cases </span><span class="keyword">= array (<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">0 </span><span class="keyword">=&gt; array(</span><span class="string">"s" </span><span class="keyword">=&gt; </span><span class="default">1</span><span class="keyword">, </span><span class="string">"fi" </span><span class="keyword">=&gt; </span><span class="default">2</span><span class="keyword">, </span><span class="string">"m" </span><span class="keyword">=&gt; </span><span class="default">4</span><span class="keyword">, </span><span class="string">"p" </span><span class="keyword">=&gt; </span><span class="default">3</span><span class="keyword">),<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">1 </span><span class="keyword">=&gt; array(</span><span class="string">"s" </span><span class="keyword">=&gt; </span><span class="string">""</span><span class="keyword">, </span><span class="string">"fi" </span><span class="keyword">=&gt; </span><span class="string">""</span><span class="keyword">, </span><span class="string">"m" </span><span class="keyword">=&gt; </span><span class="default">4</span><span class="keyword">, </span><span class="string">"p" </span><span class="keyword">=&gt; </span><span class="default">3</span><span class="keyword">),<br />
+);<br />
+<br />
+</span><span class="default">$test</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">] = array(<br />
+&nbsp;&nbsp;&nbsp; </span><span class="string">"s" </span><span class="keyword">=&gt; </span><span class="string">"fi=2&amp;m=4&amp;p=3"</span><span class="keyword">,<br />
+&nbsp;&nbsp;&nbsp; </span><span class="string">"s&amp;m" </span><span class="keyword">=&gt; </span><span class="string">"fi=2&amp;p=3"</span><span class="keyword">,<br />
+&nbsp;&nbsp;&nbsp; </span><span class="string">"s=4" </span><span class="keyword">=&gt; </span><span class="string">"s=4&amp;fi=2&amp;m=4&amp;p=3"</span><span class="keyword">,<br />
+&nbsp;&nbsp;&nbsp; </span><span class="string">"s=2&amp;m" </span><span class="keyword">=&gt; </span><span class="string">"s=2&amp;fi=2&amp;p=3"</span><span class="keyword">,<br />
+&nbsp;&nbsp;&nbsp; </span><span class="string">"s=&amp;m=3" </span><span class="keyword">=&gt; </span><span class="string">"s=&amp;fi=2&amp;m=3&amp;p=3"</span><span class="keyword">,<br />
+&nbsp;&nbsp;&nbsp; </span><span class="string">"s=2&amp;m=" </span><span class="keyword">=&gt; </span><span class="string">"s=2&amp;fi=2&amp;m=&amp;p=3"</span><span class="keyword">,<br />
+&nbsp;&nbsp;&nbsp; </span><span class="string">"s=2&amp;m:=" </span><span class="keyword">=&gt; </span><span class="string">"s=2&amp;fi=2&amp;p=3&amp;m="</span><span class="keyword">,<br />
+&nbsp;&nbsp;&nbsp; </span><span class="string">"z=9" </span><span class="keyword">=&gt; </span><span class="string">"s=1&amp;fi=2&amp;m=4&amp;p=3&amp;z=9"</span><span class="keyword">,<br />
+&nbsp;&nbsp;&nbsp; </span><span class="string">"z:" </span><span class="keyword">=&gt; </span><span class="string">"s=1&amp;fi=2&amp;m=4&amp;p=3&amp;z"</span><span class="keyword">,<br />
+&nbsp;&nbsp;&nbsp; </span><span class="string">"s:&amp;m=3" </span><span class="keyword">=&gt; </span><span class="string">"fi=2&amp;m=3&amp;p=3&amp;s"</span><span class="keyword">,<br />
+&nbsp;&nbsp;&nbsp; </span><span class="string">"s&amp;m=3" </span><span class="keyword">=&gt; </span><span class="string">"fi=2&amp;m=3&amp;p=3"</span><span class="keyword">,<br />
+);<br />
+</span><span class="default">$test</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">] = array(<br />
+&nbsp;&nbsp;&nbsp; </span><span class="string">"s" </span><span class="keyword">=&gt; </span><span class="string">"fi=&amp;m=4&amp;p=3"</span><span class="keyword">,<br />
+&nbsp;&nbsp;&nbsp; </span><span class="string">"s&amp;m" </span><span class="keyword">=&gt; </span><span class="string">"fi=&amp;p=3"</span><span class="keyword">,<br />
+&nbsp;&nbsp;&nbsp; </span><span class="string">"s=4" </span><span class="keyword">=&gt; </span><span class="string">"s=4&amp;fi=&amp;m=4&amp;p=3"</span><span class="keyword">,<br />
+&nbsp;&nbsp;&nbsp; </span><span class="string">"s=2&amp;m" </span><span class="keyword">=&gt; </span><span class="string">"s=2&amp;fi=&amp;p=3"</span><span class="keyword">,<br />
+&nbsp;&nbsp;&nbsp; </span><span class="string">"s=&amp;m=3" </span><span class="keyword">=&gt; </span><span class="string">"s=&amp;fi=&amp;m=3&amp;p=3"</span><span class="keyword">,<br />
+&nbsp;&nbsp;&nbsp; </span><span class="string">"s=2&amp;m=" </span><span class="keyword">=&gt; </span><span class="string">"s=2&amp;fi=&amp;m=&amp;p=3"</span><span class="keyword">,<br />
+&nbsp;&nbsp;&nbsp; </span><span class="string">"s=2&amp;m:=" </span><span class="keyword">=&gt; </span><span class="string">"s=2&amp;fi=&amp;p=3&amp;m="</span><span class="keyword">,<br />
+&nbsp;&nbsp;&nbsp; </span><span class="string">"z=9" </span><span class="keyword">=&gt; </span><span class="string">"s=&amp;fi=&amp;m=4&amp;p=3&amp;z=9"</span><span class="keyword">,<br />
+&nbsp;&nbsp;&nbsp; </span><span class="string">"z:" </span><span class="keyword">=&gt; </span><span class="string">"s=&amp;fi=&amp;m=4&amp;p=3&amp;z"</span><span class="keyword">,<br />
+);<br />
+<br />
+foreach(</span><span class="default">$cases </span><span class="keyword">as </span><span class="default">$x </span><span class="keyword">=&gt; </span><span class="default">$value</span><span class="keyword">) {<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"&lt;hr&gt; CASE: $x &lt;hr&gt;\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; foreach(</span><span class="default">$test</span><span class="keyword">[</span><span class="default">$x</span><span class="keyword">] as </span><span class="default">$arg </span><span class="keyword">=&gt; </span><span class="default">$expected</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$_GET </span><span class="keyword">= </span><span class="default">$cases</span><span class="keyword">[</span><span class="default">$x</span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$res </span><span class="keyword">= </span><span class="default">myForm</span><span class="keyword">::</span><span class="default">fixGet</span><span class="keyword">(</span><span class="default">$arg</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; echo ((</span><span class="default">$res </span><span class="keyword">=== </span><span class="string">"?"</span><span class="keyword">.</span><span class="default">$expected</span><span class="keyword">)?</span><span class="string">"OK"</span><span class="keyword">:</span><span class="string">"NG ($res)"</span><span class="keyword">).</span><span class="string">" [$arg]&lt;br&gt;\n"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code></div>
+  </div>
+ </div>
+ <a name="92439"></a>
+ <div class="note">
+  <strong class='user'>robotreply at gmail dot com</strong>
+  <a href="#92439" class="date">24-Jul-2009 12:17</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+Parsing of GET/POST drops duplicate variables unless those variables have "[]" (PHP bugs #10502, #15498 and #16195). Adding "[]" makes a mess of your javascript code, so here is a small workaround to it. <br />
+<br />
+This function basically scans your raw POST and GET input and tries to fix the same. This function must be called near the top of your script. Optimizations are welcome.<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">function </span><span class="default">php_fix_raw_query</span><span class="keyword">() {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$post </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Try globals array<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if (!</span><span class="default">$post </span><span class="keyword">&amp;&amp; isset(</span><span class="default">$_GLOBALS</span><span class="keyword">) &amp;&amp; isset(</span><span class="default">$_GLOBALS</span><span class="keyword">[</span><span class="string">"HTTP_RAW_POST_DATA"</span><span class="keyword">]))<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$post </span><span class="keyword">= </span><span class="default">$_GLOBALS</span><span class="keyword">[</span><span class="string">"HTTP_RAW_POST_DATA"</span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Try globals variable<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if (!</span><span class="default">$post </span><span class="keyword">&amp;&amp; isset(</span><span class="default">$HTTP_RAW_POST_DATA</span><span class="keyword">))<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$post </span><span class="keyword">= </span><span class="default">$HTTP_RAW_POST_DATA</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">// Try stream<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if (!</span><span class="default">$post</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (!</span><span class="default">function_exists</span><span class="keyword">(</span><span class="string">'file_get_contents'</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$fp </span><span class="keyword">= </span><span class="default">fopen</span><span class="keyword">(</span><span class="string">"php://input"</span><span class="keyword">, </span><span class="string">"r"</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">$fp</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$post </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; while (!</span><span class="default">feof</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">))<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$post </span><span class="keyword">= </span><span class="default">fread</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">, </span><span class="default">1024</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">fclose</span><span class="keyword">(</span><span class="default">$fp</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$post </span><span class="keyword">= </span><span class="string">"" </span><span class="keyword">. </span><span class="default">file_get_contents</span><span class="keyword">(</span><span class="string">"php://input"</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$raw </span><span class="keyword">= !empty(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'QUERY_STRING'</span><span class="keyword">]) ? </span><span class="default">sprintf</span><span class="keyword">(</span><span class="string">'%s&amp;%s'</span><span class="keyword">, </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'QUERY_STRING'</span><span class="keyword">], </span><span class="default">$post</span><span class="keyword">) : </span><span class="default">$post</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$arr </span><span class="keyword">= array();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$pairs </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">(</span><span class="string">'&amp;'</span><span class="keyword">, </span><span class="default">$raw</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach (</span><span class="default">$pairs </span><span class="keyword">as </span><span class="default">$i</span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (!empty(</span><span class="default">$i</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; list(</span><span class="default">$name</span><span class="keyword">, </span><span class="default">$value</span><span class="keyword">) = </span><span class="default">explode</span><span class="keyword">(</span><span class="string">'='</span><span class="keyword">, </span><span class="default">$i</span><span class="keyword">, </span><span class="default">2</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (isset(</span><span class="default">$arr</span><span class="keyword">[</span><span class="default">$name</span><span class="keyword">]) ) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">is_array</span><span class="keyword">(</span><span class="default">$arr</span><span class="keyword">[</span><span class="default">$name</span><span class="keyword">]) ) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$arr</span><span class="keyword">[</span><span class="default">$name</span><span class="keyword">][] = </span><span class="default">$value</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$arr</span><span class="keyword">[</span><span class="default">$name</span><span class="keyword">] = array(</span><span class="default">$arr</span><span class="keyword">[</span><span class="default">$name</span><span class="keyword">], </span><span class="default">$value</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$arr</span><span class="keyword">[</span><span class="default">$name</span><span class="keyword">] = </span><span class="default">$value</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach ( </span><span class="default">$_POST </span><span class="keyword">as </span><span class="default">$key </span><span class="keyword">=&gt; </span><span class="default">$value </span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">is_array</span><span class="keyword">(</span><span class="default">$arr</span><span class="keyword">[</span><span class="default">$key</span><span class="keyword">]) ) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$_POST</span><span class="keyword">[</span><span class="default">$key</span><span class="keyword">] = </span><span class="default">$arr</span><span class="keyword">[</span><span class="default">$name</span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$_REQUEST</span><span class="keyword">[</span><span class="default">$key</span><span class="keyword">] = </span><span class="default">$arr</span><span class="keyword">[</span><span class="default">$name</span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach ( </span><span class="default">$_GET </span><span class="keyword">as </span><span class="default">$key </span><span class="keyword">=&gt; </span><span class="default">$value </span><span class="keyword">) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (</span><span class="default">is_array</span><span class="keyword">(</span><span class="default">$arr</span><span class="keyword">[</span><span class="default">$key</span><span class="keyword">]) ) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$_GET</span><span class="keyword">[</span><span class="default">$key</span><span class="keyword">] = </span><span class="default">$arr</span><span class="keyword">[</span><span class="default">$name</span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$_REQUEST</span><span class="keyword">[</span><span class="default">$key</span><span class="keyword">] = </span><span class="default">$arr</span><span class="keyword">[</span><span class="default">$name</span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment"># optionally return result array <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">return </span><span class="default">$arr</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code></div>
+  </div>
+ </div>
+ <a name="89692"></a>
+ <div class="note">
+  <strong class='user'>slavik0329</strong>
+  <a href="#89692" class="date">19-Mar-2009 07:01</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+the addget function below actually has more use when you dont use the recursive merge as such:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="keyword">function </span><span class="default">AddGet</span><span class="keyword">(</span><span class="default">$ArrayOrString</span><span class="keyword">){<br />
+if(</span><span class="default">is_array</span><span class="keyword">(</span><span class="default">$ArrayOrString</span><span class="keyword">))<br />
+return </span><span class="default">http_build_query</span><span class="keyword">(</span><span class="default">array_merge</span><span class="keyword">(</span><span class="default">$GLOBALS</span><span class="keyword">[</span><span class="string">'_GET'</span><span class="keyword">], </span><span class="default">$ArrayOrString</span><span class="keyword">));<br />
+</span><span class="default">parse_str</span><span class="keyword">(</span><span class="default">$ArrayOrString</span><span class="keyword">, </span><span class="default">$output</span><span class="keyword">);<br />
+return </span><span class="default">http_build_query</span><span class="keyword">(</span><span class="default">array_merge</span><span class="keyword">(</span><span class="default">$GLOBALS</span><span class="keyword">[</span><span class="string">'_GET'</span><span class="keyword">], </span><span class="default">$output</span><span class="keyword">));<br />
+}<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+In this case, if the key is added again with a different value it will be replaced with the new value.<br />
+<br />
+addget("change=true"); // ?change=true<br />
+addget("change=false"); // ?change=false</span>
+</code></div>
+  </div>
+ </div>
+ <a name="88564"></a>
+ <div class="note">
+  <strong class='user'>admin at bordeux dot net</strong>
+  <a href="#88564" class="date">29-Jan-2009 12:03</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">AddGet</span><span class="keyword">(</span><span class="default">$ArrayOrString</span><span class="keyword">){<br />
+if(</span><span class="default">is_array</span><span class="keyword">(</span><span class="default">$ArrayOrString</span><span class="keyword">))<br />
+return </span><span class="default">http_build_query</span><span class="keyword">(</span><span class="default">array_merge_recursive</span><span class="keyword">(</span><span class="default">$GLOBALS</span><span class="keyword">[</span><span class="string">'_GET'</span><span class="keyword">], </span><span class="default">$ArrayOrString</span><span class="keyword">));<br />
+</span><span class="default">parse_str</span><span class="keyword">(</span><span class="default">$ArrayOrString</span><span class="keyword">, </span><span class="default">$output</span><span class="keyword">);<br />
+return </span><span class="default">http_build_query</span><span class="keyword">(</span><span class="default">array_merge_recursive</span><span class="keyword">(</span><span class="default">$GLOBALS</span><span class="keyword">[</span><span class="string">'_GET'</span><span class="keyword">], </span><span class="default">$output</span><span class="keyword">));<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span>&lt;a href="index.php?<span class="default">&lt;?php </span><span class="keyword">echo </span><span class="default">AddGet</span><span class="keyword">(array(</span><span class="string">"change"</span><span class="keyword">=&gt;</span><span class="default">true</span><span class="keyword">,</span><span class="string">"jump"</span><span class="keyword">=&gt;</span><span class="string">"42m"</span><span class="keyword">));</span><span class="default">?&gt;</span>"&gt;URL&lt;/a&gt;<br />
+&lt;a href="index.php?<span class="default">&lt;?php </span><span class="keyword">echo </span><span class="default">AddGet</span><span class="keyword">(</span><span class="string">"change=true&amp;jump=42m"</span><span class="keyword">);</span><span class="default">?&gt;</span>"&gt;URL&lt;/a&gt;<br />
+<br />
+Assuming the user entered <a href="http://example.com/?name=Hannes" rel="nofollow" target="_blank">http://example.com/?name=Hannes</a> <br />
+The above example will output something similar to:<br />
+&lt;a href="index.php?name=Hannes&amp;change=1&amp;jump=42m"&gt;URL&lt;/a&gt;<br />
+&lt;a href="index.php?name=Hannes&amp;change=true&amp;jump=42m"&gt;URL&lt;/a&gt;</span>
+</code></div>
+  </div>
+ </div>
+ <a name="85816"></a>
+ <div class="note">
+  <strong class='user'>hmaloney at contactpoint dot com dot au</strong>
+  <a href="#85816" class="date">18-Sep-2008 04:38</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+This code is really useful for reproducing the values in the $_GET variable, and attaching that to a $_SERVER['PHP_SELF'] value when building the action value of a form tag, so that you don't lose any other values that could have been passed:<br />
+<br />
+foreach ($_GET as $key =&gt; $value) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if ($key != "C") {&nbsp; // ignore this particular $_GET value<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $querystring .= $key."=".$value;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+}</span>
+</code></div>
+  </div>
+ </div>
+ <a name="83899"></a>
+ <div class="note">
+  <strong class='user'>RJ Regalado</strong>
+  <a href="#83899" class="date">17-Jun-2008 07:57</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+Use this code if you want to retrieve your queries no matter what method is used. Hope it helps.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">// By: RJ Regalado<br />
+// <a href="http://rjfiles.uni.cc/~php_examples/?id=1" rel="nofollow" target="_blank">http://rjfiles.uni.cc/~php_examples/?id=1</a><br />
+<br />
+</span><span class="default">$name </span><span class="keyword">= </span><span class="default">trim </span><span class="keyword">((!empty(</span><span class="default">$_POST</span><span class="keyword">[</span><span class="string">'name'</span><span class="keyword">])) ? </span><span class="default">$_POST</span><span class="keyword">[</span><span class="string">'name'</span><span class="keyword">] : </span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">'name'</span><span class="keyword">] );<br />
+<br />
+if ( </span><span class="default">strlen </span><span class="keyword">(</span><span class="default">$name</span><span class="keyword">) &lt; </span><span class="default">1</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="string">"Please enter your name"</span><span class="keyword">;<br />
+} else {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">printf </span><span class="keyword">(</span><span class="string">"Hello &lt;b&gt;%s&lt;/b&gt;&lt;br&gt;"</span><span class="keyword">, </span><span class="default">$name</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">printf </span><span class="keyword">(</span><span class="string">"Bonjour &lt;b&gt;%s&lt;/b&gt;&lt;br&gt;"</span><span class="keyword">, </span><span class="default">$name</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">printf </span><span class="keyword">(</span><span class="string">"Hallo &lt;b&gt;%s&lt;/b&gt;&lt;br&gt;"</span><span class="keyword">, </span><span class="default">$name</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">printf </span><span class="keyword">(</span><span class="string">"Ciao &lt;b&gt;%s&lt;/b&gt;&lt;br&gt;"</span><span class="keyword">, </span><span class="default">$name</span><span class="keyword">);<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">printf </span><span class="keyword">(</span><span class="string">"Hola &lt;b&gt;%s&lt;/b&gt;&lt;br&gt;"</span><span class="keyword">, </span><span class="default">$name</span><span class="keyword">);<br />
+}<br />
+</span><span class="default">?&gt;</span>&lt;hr&gt;<br />
+&lt;form method="POST"&gt;<br />
+&nbsp;&nbsp;&nbsp; Name: &lt;input type="text" name="name"&gt;<br />
+&nbsp;&nbsp;&nbsp; &lt;input type="submit" value="POST"&gt;<br />
+&lt;/form&gt;&lt;hr&gt;<br />
+&lt;form method="GET"&gt;<br />
+&nbsp;&nbsp;&nbsp; Name: &lt;input type="text" name="name"&gt;<br />
+&nbsp;&nbsp;&nbsp; &lt;input type="submit" value="GET"&gt;<br />
+&lt;/form&gt;</span>
+</code></div>
+  </div>
+ </div>
+ <a name="83200"></a>
+ <div class="note">
+  <strong class='user'>timberspine _AT_ gmail _DOT_ com</strong>
+  <a href="#83200" class="date">14-May-2008 04:38</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+Note that named anchors are not part of the query string and are never submitted by the browser to the server.<br />
+<br />
+Eg.<br />
+<a href="http://www.xyz-abc.kz/index.php?title=apocalypse.php#doom" rel="nofollow" target="_blank">http://www.xyz-abc.kz/index.php?title=apocalypse.php#doom</a><br />
+<br />
+echo $_GET['title']; <br />
+<br />
+// returns "apocalypse.php" and NOT "apocalypse.php#doom"<br />
+<br />
+you would be better off treating the named anchor as another query string variable like so:<br />
+<a href="http://www.xyz-abc.kz/index.php?title=apocalypse.php&amp;na=doom" rel="nofollow" target="_blank">http://www.xyz-abc.kz/index.php?title=apocalypse.php&amp;na=doom</a><br />
+<br />
+...and then retrieve it using something like this:<br />
+$url = $_GET['title']."#".$_GET['na'];<br />
+<br />
+Hope this helps someone...</span>
+</code></div>
+  </div>
+ </div>
+ <a name="83179"></a>
+ <div class="note">
+  <strong class='user'>niwil at djes dot dk</strong>
+  <a href="#83179" class="date">14-May-2008 06:00</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+Note:<br />
+If nothing is set in the address bar, the value of $_GET['n'] will be NULL, not ""(empty string) or false.</span>
+</code></div>
+  </div>
+ </div></div>
+
+ <div class="foot"><a href="/manual/add-note.php?sect=reserved.variables.get&amp;redirect=http://www.php.net/manual/en/reserved.variables.get.php"><img src="@w{WPBKWWJ7}" alt="add a note" width="13" height="13" class="middle" /></a> <small><a href="/manual/add-note.php?sect=reserved.variables.get&amp;redirect=http://www.php.net/manual/en/reserved.variables.get.php">add a note</a></small></div>
+</div><br />
+ </div>
+ <div class="cleaner">&nbsp;</div>
+</div>
+
+<div id="footnav">
+   <a href="/source.php?url=/manual/en/reserved.variables.get.php">show source</a> |
+ <a href="/credits.php">credits</a> |
+ <a href="/stats/">stats</a> |
+ <a href="/sitemap.php">sitemap</a> |
+ <a href="/contact.php">contact</a> |
+ <a href="/contact.php#ads">advertising</a> |
+ <a href="/mirrors.php">mirror sites</a>
+</div>
+
+<div id="pagefooter">
+ <div id="copyright">
+  <a href="/copyright.php">Copyright &copy; 2001-2012 The PHP Group</a><br />
+  All rights reserved.
+ </div>
+
+ <div id="thismirror">
+  <a href="/mirror.php">This mirror</a> generously provided by:
+  <a href="@w{TDAY9QJ9}">Yahoo! Inc.</a><br />
+  Last updated: Tue Jul 31 20:41:05 2012 UTC
+ </div>
+</div>
+<!--[if IE 6]>
+<script type="text/javascript">
+    /*Load jQuery if not already loaded*/ if(typeof jQuery == 'undefined'){ document.write("<script type=\"text/javascript\"   src=\"@w{8JFFCNVW}"></"+"script>"); var __noconflict = true; }
+    var IE6UPDATE_OPTIONS = {
+        icons_path: "/ie6update/images/"
+    }
+</script>
+<script type="text/javascript" src="/ie6update/ie6update.js"></script>
+<![endif]-->
+</body>
+</html>

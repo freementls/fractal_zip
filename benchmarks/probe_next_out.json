@@ -1,0 +1,28 @@
+{
+    "generated": "2026-03-29T19:26:12-04:00",
+    "segment_length": 240,
+    "cases": [
+        {
+            "label": "test_files51",
+            "raw_bytes": 320,
+            "gzip9_bundle_bytes": 656,
+            "gzip9_seconds": 0.000125,
+            "seven_zip_folder_bytes": 556,
+            "seven_zip_seconds": 0.030371,
+            "fzc_bytes": 730,
+            "zip_seconds": 5.9398,
+            "extract_all_seconds": 0.0164,
+            "pct_of_raw_fzc": 228.13,
+            "pct_of_raw_gzip": 205,
+            "pct_of_raw_7z": 173.75,
+            "winner_compression": [
+                "7z"
+            ],
+            "winner_speed": [
+                "gzip"
+            ],
+            "outer_codec": "7z",
+            "segment_length": 240
+        }
+    ]
+}

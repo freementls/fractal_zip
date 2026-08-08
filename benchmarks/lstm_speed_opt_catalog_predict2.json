@@ -1,0 +1,42 @@
+{
+  "description": "Predict-path round 2: skip output GEMV on soft-skip (SOFT_HIDDEN). PTR_GEMV/SHARE_OUT REJECT @1m (slower / unsafe). Baseline stack = softskip6.",
+  "base_defs": [
+    "-DSEED=923",
+    "-DUPDATE_LIMIT=3000",
+    "-DFXCM_ENTITY_FOLD",
+    "-DFXCM_MATCH_MAX=3000000ull",
+    "-DFXCM_SPEED_INLINE_GET",
+    "-DNDEBUG",
+    "-DFXCM_PPMD_MB=8192",
+    "-DFXCM_RECIPE_RUNTIME",
+    "-DFXCM_FRACTAL_PRED",
+    "-DFXCM_LSTM_HIDDEN=384",
+    "-DFXCM_SPEED_LSTM_MATCH_SKIP_SOFT",
+    "-DFXCM_SPEED_MATCH_SKIP_MIN=6u"
+  ],
+  "baseline_name": "lstm384_full",
+  "beat_name": "lstm320",
+  "candidates": [
+    {
+      "name": "soft6_hid",
+      "extra_defs": ["-DFXCM_SPEED_LSTM_SOFT_HIDDEN"],
+      "note": "softskip6 + hidden-only advance (reuse probs, skip output GEMV)"
+    },
+    {
+      "name": "soft7_hid",
+      "extra_defs": [
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=7u",
+        "-DFXCM_SPEED_LSTM_SOFT_HIDDEN"
+      ],
+      "note": "milder skip rate + hidden-only"
+    },
+    {
+      "name": "soft5_hid",
+      "extra_defs": [
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=5u",
+        "-DFXCM_SPEED_LSTM_SOFT_HIDDEN"
+      ],
+      "note": "more skip + hidden-only; may reclaim time soft5 lost"
+    }
+  ]
+}

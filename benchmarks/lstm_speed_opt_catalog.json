@@ -1,0 +1,84 @@
+{
+  "description": "Compile-time candidates to legalize fractalv2 LSTM384 under ≤1.35× base wall. longest_match_ is match_length/32 clamped to 0..7 — MIN must be ≤7 to ever fire.",
+  "base_defs": [
+    "-DSEED=923",
+    "-DUPDATE_LIMIT=3000",
+    "-DFXCM_ENTITY_FOLD",
+    "-DFXCM_MATCH_MAX=3000000ull",
+    "-DFXCM_SPEED_INLINE_GET",
+    "-DNDEBUG",
+    "-DFXCM_PPMD_MB=8192",
+    "-DFXCM_RECIPE_RUNTIME",
+    "-DFXCM_FRACTAL_PRED",
+    "-DFXCM_LSTM_HIDDEN=384"
+  ],
+  "baseline_name": "lstm384_full",
+  "beat_name": "lstm320",
+  "candidates": [
+    {
+      "name": "ftanh",
+      "extra_defs": ["-DFXCM_SPEED_FAST_TANH"],
+      "note": "approx tanh; often near bit-identical, small speedup"
+    },
+    {
+      "name": "prefetch",
+      "extra_defs": ["-DFXCM_SPEED_PREFETCH"],
+      "note": "BH prefetch; should be bit-identical"
+    },
+    {
+      "name": "ftanh_prefetch",
+      "extra_defs": ["-DFXCM_SPEED_FAST_TANH", "-DFXCM_SPEED_PREFETCH"],
+      "note": "stack hygiene speed opts"
+    },
+    {
+      "name": "softskip7",
+      "extra_defs": [
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP_SOFT",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=7u"
+      ],
+      "note": "forward-only LSTM when match/32≥7 (longest matches only)"
+    },
+    {
+      "name": "softskip6",
+      "extra_defs": [
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP_SOFT",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=6u"
+      ],
+      "note": "soft analog of hard ls6 (hard REJECT vs 320 @1m)"
+    },
+    {
+      "name": "softskip5",
+      "extra_defs": [
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP_SOFT",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=5u"
+      ],
+      "note": "more aggressive soft skip"
+    },
+    {
+      "name": "ftanh_softskip7",
+      "extra_defs": [
+        "-DFXCM_SPEED_FAST_TANH",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP_SOFT",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=7u"
+      ],
+      "note": "best-bet stack for 384 legalization"
+    },
+    {
+      "name": "ftanh_softskip6",
+      "extra_defs": [
+        "-DFXCM_SPEED_FAST_TANH",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP_SOFT",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=6u"
+      ],
+      "note": "ftanh + softskip6"
+    },
+    {
+      "name": "hardskip7",
+      "extra_defs": [
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=7u"
+      ],
+      "note": "full Perceive skip, mildest useful MIN (vs ls6 MIN=6 REJECT)"
+    }
+  ]
+}

@@ -1,0 +1,1387 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "@w{QPKF54RE}">
+<html xmlns="@w{SZTDMW9J}" xml:lang="en" lang="en">
+<head profile="@w{B8XXCD23}">
+ <title>PHP: Predefined Variables - Manual</title>
+ <style type="text/css" media="all">
+  @import url("@w{2XX58MCD}");
+  @import url("@w{884KPP5P}");
+  
+ </style>
+ <!--[if IE]><![if gte IE 6]><![endif]-->
+  <style type="text/css" media="print">
+   @import url("@w{M98RFPWS}");
+  </style>
+ <!--[if IE]><![endif]><![endif]-->
+ <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+ <link rel="shortcut icon" href="@w{NGWYKJ8F}" />
+ <link rel="contents" href="index.php" />
+ <link rel="index" href="language.variables.php" />
+ <link rel="prev" href="language.variables.basics.php" />
+ <link rel="next" href="language.variables.scope.php" />
+ <link rel="schema.dc" href="@w{RNCDA8N4}" />
+ <link rel="schema.rdfs" href="@w{XGTVB7JY}" />
+ <link rev="canonical" rel="self alternate shorter shorturl shortlink" href="http://php.net/variables.predefined" />
+ <link rel="license" href="@w{G88D3FDX}" about="#content" />
+ <link rel="canonical" href="http://php.net/manual/en/language.variables.predefined.php" />
+ <script type="text/javascript" src="@w{4SAB2YT3}"></script>
+ <base href="@w{YX3KV6J4}" />
+ <meta http-equiv="Content-language" content="en" />
+            <script type="text/javascript" src="@w{ME5H2G8Y}"></script>
+            <script type="text/javascript" src="@w{BYSKBGP9}"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+    var toggleImage = function(elem) {
+        if ($(elem).hasClass("shown")) {
+            $(elem).removeClass("shown").addClass("hidden");
+            $("img", elem).attr("src", "/images/notes-add.gif");
+        }
+        else {
+            $(elem).removeClass("hidden").addClass("shown");
+            $("img", elem).attr("src", "/images/notes-reject.gif");
+        }
+    };
+
+    $(".soft-deprecation-notice h1.title").each(function() {
+        $(this).prepend("<a class='toggler shown' href='#'><img src='/images/notes-reject.gif' alt='minimize' /></a> ");
+    });
+    $(".refsect1 h3.title").each(function() {
+        url = "@w{BD87E369}" + $(this).parent().parent().attr("id") + "%23" + $(this).parent().attr("id");
+        $(this).parent().prepend("<div class='reportbug'><a href='" + url + "'>Report a bug</a></div>");
+        $(this).prepend("<a class='toggler shown' href='#'><img src='/images/notes-reject.gif' alt='reject note' /></a> ");
+    });
+    $("#usernotes .head").each(function() {
+        $(this).prepend("<a class='toggler shown' href='#'><img src='/images/notes-reject.gif' alt='reject note' /></a> ");
+    });
+    $(".soft-deprecation-notice h1.title .toggler").click(function() {
+        $(this).parent().siblings().slideToggle("slow");
+        toggleImage(this);
+        return false;
+    });
+    $(".refsect1 h3.title .toggler").click(function() {
+        $(this).parent().siblings().slideToggle("slow");
+        toggleImage(this);
+        return false;
+    });
+    $("#usernotes .head .toggler").click(function() {
+        $(this).parent().next().slideToggle("slow");
+        toggleImage(this);
+        return false;
+    });
+});
+</script>
+
+</head>
+<body>
+
+<div id="headnav">
+ <a href="/" rel="home"><img src="@w{BJ2SG82M}"
+ alt="PHP" width="120" height="67" id="phplogo" /></a>
+ <div id="headmenu">
+  <a href="/downloads.php">downloads</a> |
+  <a href="/docs.php">documentation</a> |
+  <a href="/FAQ.php">faq</a> |
+  <a href="/support.php">getting help</a> |
+  <a href="/mailing-lists.php">mailing lists</a> |
+  <a href="/license">licenses</a> |
+  <a href="@w{WEGCK3BV}">wiki</a> |
+  <a href="@w{JBVFFY7T}">reporting bugs</a> |
+  <a href="/sites.php">php.net sites</a> |
+  <a href="/conferences/">conferences</a> |
+  <a href="/my.php">my php.net</a>
+ </div>
+</div>
+
+<div id="headsearch">
+ <form method="post" action="/search.php" id="topsearch">
+  <p>
+   <span title="Keyboard shortcut: Alt+S (Win), Ctrl+S (Apple)">
+    <span class="shortkey">s</span>earch for
+   </span>
+   <input type="text" name="pattern" value="" size="30" accesskey="s" />
+   <span>in the</span>
+   <select name="show">
+    <option value="all"      >all php.net sites</option>
+    <option value="local"    >this mirror only</option>
+    <option value="quickref" selected="selected">function list</option>
+    <option value="manual"   >online documentation</option>
+    <option value="bugdb"    >bug database</option>
+    <option value="news_archive">Site News Archive</option>
+    <option value="changelogs">All Changelogs</option>
+    <option value="pear"     >just pear.php.net</option>
+    <option value="pecl"     >just pecl.php.net</option>
+    <option value="talks"    >just talks.php.net</option>
+    <option value="maillist" >general mailing list</option>
+    <option value="devlist"  >developer mailing list</option>
+    <option value="phpdoc"   >documentation mailing list</option>
+   </select>
+   <input type="image"
+          src="@w{XXWWP636}"
+          class="submit" alt="search" />
+   <input type="hidden" name="lang" value="en" />
+  </p>
+ </form>
+</div>
+
+<div id="layout_2">
+ <div id="leftbar">
+<!--UdmComment-->
+<ul class="toc">
+ <li class="header home"><a href="index.php">PHP Manual</a></li>
+ <li class="header up"><a href="langref.php">Language Reference</a></li>
+ <li class="header up"><a href="language.variables.php">Variables</a></li>
+ <li><a href="language.variables.basics.php">Basics</a></li>
+ <li class="active"><a href="language.variables.predefined.php">Predefined Variables</a></li>
+ <li><a href="language.variables.scope.php">Variable scope</a></li>
+ <li><a href="language.variables.variable.php">Variable variables</a></li>
+ <li><a href="language.variables.external.php">Variables From External Sources</a></li>
+</ul><!--/UdmComment-->
+
+ </div>
+ <div id="content" class="manual/en">
+<!--UdmComment-->
+<div class="manualnavbar manualnavbar_top">
+ <span class="next">
+  <a href="language.variables.scope.php">Variable scope<img src="@w{GVN7ETSY}" alt="&gt;" width="11" height="7" /></a>
+ </span>
+ <span class="prev">
+  <a href="language.variables.basics.php"><img src="@w{KX8YRRP2}" alt="&lt;" width="11" height="7" />Basics</a>
+ </span>
+ <hr />
+ <span class="lastupdated">[<a href="https://edit.php.net/?project=PHP&amp;perm=en/language.variables.predefined.php">edit</a>] Last updated: Fri, 27 Jul 2012</span>
+ <div class="langchooser">
+  <form action="/manual/change.php" method="get">
+   <p>view this page in </p><fieldset><select name="page">
+    <option value="pt_BR/language.variables.predefined.php">Brazilian Portuguese</option>
+    <option value="zh/language.variables.predefined.php">Chinese (Simplified)</option>
+    <option value="fr/language.variables.predefined.php">French</option>
+    <option value="de/language.variables.predefined.php">German</option>
+    <option value="ja/language.variables.predefined.php">Japanese</option>
+    <option value="pl/language.variables.predefined.php">Polish</option>
+    <option value="ro/language.variables.predefined.php">Romanian</option>
+    <option value="ru/language.variables.predefined.php">Russian</option>
+    <option value="fa/language.variables.predefined.php">Persian</option>
+    <option value="es/language.variables.predefined.php">Spanish</option>
+    <option value="tr/language.variables.predefined.php">Turkish</option>
+    <option value="help-translate.php">Other</option>
+   </select>
+   <input type="image" src="@w{XWTW8VF8}" id="changeLangImage" alt="Change language" />
+  </fieldset></form>
+ </div>
+</div>
+<!--/UdmComment-->
+
+<div id="language.variables.predefined" class="sect1">
+   <h2 class="title">Predefined Variables</h2>
+   
+   <p class="simpara">
+    PHP provides a large number of predefined variables to any script
+    which it runs. Many of these variables, however, cannot be fully
+    documented as they are dependent upon which server is running, the
+    version and setup of the server, and other factors. Some of these
+    variables will not be available when PHP is run on the 
+    <a href="features.commandline.php" class="link">command line</a>. 
+    For a listing of these variables, please see the section on 
+    <a href="reserved.variables.php" class="link">Reserved Predefined Variables</a>.
+   </p>
+
+   <div class="warning"><strong class="warning">Warning</strong>
+    <p class="simpara">
+     In PHP 4.2.0 and later, the default value for the PHP directive <a href="ini.core.php#ini.register-globals" class="link">register_globals</a> is 
+     <em class="emphasis">off</em>. This is a major change in PHP.  Having 
+     register_globals <em class="emphasis">off</em> affects the set of predefined 
+     variables available in the global scope.  For example, to get 
+     <var class="varname"><var class="varname">DOCUMENT_ROOT</var></var> you&#039;ll use 
+     <var class="varname"><var class="varname"><a href="reserved.variables.server.php" class="classname">$_SERVER['DOCUMENT_ROOT']</a></var></var> instead of 
+     <var class="varname"><var class="varname">$DOCUMENT_ROOT</var></var>, or <var class="varname"><var class="varname"><a href="reserved.variables.get.php" class="classname">$_GET['id']</a></var></var> from 
+     the URL <em>http://www.example.com/test.php?id=3</em> instead 
+     of <var class="varname"><var class="varname">$id</var></var>, or <var class="varname"><var class="varname"><a href="reserved.variables.environment.php" class="classname">$_ENV['HOME']</a></var></var> instead of 
+     <var class="varname"><var class="varname">$HOME</var></var>.
+    </p>
+    <p class="simpara">
+     For related information on this change, read the configuration entry for 
+     <a href="ini.core.php#ini.register-globals" class="link">register_globals</a>, the security 
+     chapter on <a href="security.globals.php" class="link">Using Register Globals
+     </a>, as well as the PHP <a href="http://www.php.net/releases/4_1_0.php" class="link external">&raquo;&nbsp;4.1.0
+     </a> and <a href="http://www.php.net/releases/4_2_0.php" class="link external">&raquo;&nbsp;4.2.0</a> Release 
+     Announcements.
+    </p>
+    <p class="simpara">
+     Using the available PHP Reserved Predefined Variables, like the 
+     <a href="language.variables.superglobals.php" class="link">superglobal arrays</a>, 
+     is preferred.
+    </p>
+   </div>
+
+   <p class="simpara">
+    From version 4.1.0 onward, PHP provides an additional set of predefined arrays
+    containing variables from the web server (if applicable), the
+    environment, and user input. These new arrays are rather special
+    in that they are automatically global--i.e., automatically
+    available in every scope. For this reason, they are often known as
+    &quot;superglobals&quot;. (There is no mechanism in PHP for
+    user-defined superglobals.) The superglobals are listed below;
+    however, for a listing of their contents and further discussion on
+    PHP predefined variables and their natures, please see the section
+    <a href="reserved.variables.php" class="link">Reserved Predefined Variables</a>.  
+    Also, you&#039;ll notice how the older predefined variables 
+    (<var class="varname"><var class="varname">$HTTP_*_VARS</var></var>) still exist.
+
+    As of PHP 5.0.0, the long PHP
+<a href="language.variables.predefined.php" class="link">predefined variable</a>
+arrays may be disabled with the
+<a href="ini.core.php#ini.register-long-arrays" class="link">register_long_arrays</a>
+directive.
+   </p>
+   
+   <blockquote class="note"><p><strong class="note">Note</strong>: 
+    <strong>Variable variables</strong><br />
+    <p class="para">
+     Superglobals cannot be used as 
+     <a href="language.variables.variable.php" class="link">variable variables</a>
+     inside functions or class methods.
+    </p>
+   </p></blockquote>
+
+   <blockquote class="note"><p><strong class="note">Note</strong>: 
+    <p class="para">
+     Even though both the superglobal and <em>HTTP_*_VARS</em> can exist at the same
+     time; they are not identical, so modifying one will not change the other.
+    </p>
+   </p></blockquote>
+
+   <p class="para">
+    If certain variables in <a href="ini.core.php#ini.variables-order" class="link">variables_order</a> are not set, their
+    appropriate PHP predefined arrays are also left empty.
+   </p>
+  </div><br /><br /><!--UdmComment-->
+<div class="manualnavbar manualnavbar_bottom">
+ <span class="next">
+  <a href="language.variables.scope.php">Variable scope<img src="@w{GVN7ETSY}" alt="&gt;" width="11" height="7" /></a>
+ </span>
+ <span class="prev">
+  <a href="language.variables.basics.php"><img src="@w{KX8YRRP2}" alt="&lt;" width="11" height="7" />Basics</a>
+ </span>
+ <hr />
+ <span class="lastupdated">[<a href="https://edit.php.net/?project=PHP&amp;perm=en/language.variables.predefined.php">edit</a>] Last updated: Fri, 27 Jul 2012</span>
+ <div class="langchooser">
+  &nbsp;
+ </div>
+</div>
+<!--/UdmComment-->
+
+
+<div id="usernotes">
+ <div class="head">
+  <span class="action"><a href="/manual/add-note.php?sect=language.variables.predefined&amp;redirect=@w{YX3KV6J4}"><img src="@w{WPBKWWJ7}" alt="add a note" width="13" height="13" class="middle" /></a> <small><a href="/manual/add-note.php?sect=language.variables.predefined&amp;redirect=@w{YX3KV6J4}">add a note</a></small></span>
+  <small>User Contributed Notes</small>
+  <strong>Predefined Variables</strong>
+ </div><div id="allnotes">
+ <a name="83270"></a>
+ <div class="note">
+  <strong class='user'>mvpetrovich</strong>
+  <a href="#83270" class="date">17-May-2008 10:52</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+Here is a function to get all your variables of interest.<br />
+<br />
+It uses the "parse_str function" and lets you enter your variable names as a space-delimited list.&nbsp; It's a quick way to get your variables.&nbsp; Note that in this function I strip tags, and trim the result.&nbsp; The function produces a "Query String" which is fed into the "parse_str_function."<br />
+<br />
+Example:<br />
+<span class="default">&lt;?php<br />
+&nbsp; parse_str</span><span class="keyword">(</span><span class="default">PostGetStr</span><span class="keyword">(</span><span class="string">'NAME PASSWORD SUBMIT'</span><span class="keyword">,</span><span class="string">'POST'</span><span class="keyword">));<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+This will produce three variables, $NAME, $PASSWORD, and $SUBMIT.&nbsp; If they were undefined, they will be null strings, ie, $NAME=''.<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">function </span><span class="default">PostGetStr</span><span class="keyword">(</span><span class="default">$str</span><span class="keyword">,</span><span class="default">$type</span><span class="keyword">){<br />
+&nbsp; </span><span class="default">$VARS </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">(</span><span class="string">' '</span><span class="keyword">,</span><span class="default">$str</span><span class="keyword">);<br />
+&nbsp; </span><span class="default">$RESULT </span><span class="keyword">= </span><span class="string">''</span><span class="keyword">;<br />
+&nbsp; if(</span><span class="default">$type </span><span class="keyword">== </span><span class="string">'POST'</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; foreach(</span><span class="default">$VARS </span><span class="keyword">as </span><span class="default">$PV</span><span class="keyword">) if(isset(</span><span class="default">$_POST</span><span class="keyword">[</span><span class="default">$PV</span><span class="keyword">])) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; </span><span class="default">$RESULT </span><span class="keyword">.= </span><span class="string">"$PV="</span><span class="keyword">.</span><span class="default">trim</span><span class="keyword">(</span><span class="default">strip_tags</span><span class="keyword">(</span><span class="default">$_POST</span><span class="keyword">[</span><span class="default">$PV</span><span class="keyword">])).</span><span class="string">'&amp;'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; } else {</span><span class="default">$RESULT </span><span class="keyword">.= </span><span class="string">"$PV=&amp;"</span><span class="keyword">;} <br />
+&nbsp; } elseif(</span><span class="default">$type </span><span class="keyword">== </span><span class="string">'GET'</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; foreach(</span><span class="default">$VARS </span><span class="keyword">as </span><span class="default">$PV</span><span class="keyword">) if(isset(</span><span class="default">$_GET</span><span class="keyword">[</span><span class="default">$PV</span><span class="keyword">])) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; </span><span class="default">$RESULT </span><span class="keyword">.= </span><span class="string">"$PV="</span><span class="keyword">.</span><span class="default">trim</span><span class="keyword">(</span><span class="default">strip_tags</span><span class="keyword">(</span><span class="default">$_GET</span><span class="keyword">[</span><span class="default">$PV</span><span class="keyword">])).</span><span class="string">'&amp;'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; } else {</span><span class="default">$RESULT </span><span class="keyword">.= </span><span class="string">"$PV=&amp;"</span><span class="keyword">;} <br />
+&nbsp; } elseif(</span><span class="default">$type </span><span class="keyword">== </span><span class="string">'BOTH'</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; foreach(</span><span class="default">$VARS </span><span class="keyword">as </span><span class="default">$PV</span><span class="keyword">) if(isset(</span><span class="default">$_REQUEST</span><span class="keyword">[</span><span class="default">$PV</span><span class="keyword">])) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; </span><span class="default">$RESULT </span><span class="keyword">.= </span><span class="string">"$PV="</span><span class="keyword">.</span><span class="default">trim</span><span class="keyword">(</span><span class="default">strip_tags</span><span class="keyword">(</span><span class="default">$_REQUEST</span><span class="keyword">[</span><span class="default">$PV</span><span class="keyword">])).</span><span class="string">'&amp;'</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; } else {</span><span class="default">$RESULT </span><span class="keyword">.= </span><span class="string">"$PV=&amp;"</span><span class="keyword">;} <br />
+&nbsp; }<br />
+&nbsp; </span><span class="default">$RESULT </span><span class="keyword">= </span><span class="default">substr</span><span class="keyword">(</span><span class="default">$RESULT</span><span class="keyword">,</span><span class="default">0</span><span class="keyword">,-</span><span class="default">1</span><span class="keyword">);<br />
+&nbsp; return </span><span class="default">$RESULT</span><span class="keyword">;<br />
+}<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code></div>
+  </div>
+ </div>
+ <a name="80794"></a>
+ <div class="note">
+  <strong class='user'>root at mantoru dot de</strong>
+  <a href="#80794" class="date">31-Jan-2008 12:56</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+To tokie at hanmail dot net: You took that out of context -- it is merely a recommendation.<br />
+<br />
+If your variables_order setting does not contain "E", $_ENV is still useful. Every call to getenv will be "cached" in $_ENV, so you can do this:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="comment">// variables_order = GPCS<br />
+</span><span class="default">var_dump</span><span class="keyword">(isset(</span><span class="default">$_ENV</span><span class="keyword">[</span><span class="string">'PATH'</span><span class="keyword">])); </span><span class="comment">// bool(false)<br />
+</span><span class="default">getenv</span><span class="keyword">(</span><span class="string">'PATH'</span><span class="keyword">);<br />
+</span><span class="default">var_dump</span><span class="keyword">(isset(</span><span class="default">$_ENV</span><span class="keyword">[</span><span class="string">'PATH'</span><span class="keyword">])); </span><span class="comment">// bool(true)<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+For some reason, it does not work with with own environment variables. The above example with PHP_TEST instead of PATH would fail (if it is set via putenv).</span>
+</code></div>
+  </div>
+ </div>
+ <a name="76062"></a>
+ <div class="note">
+  <strong class='user'>fabrizio at bibivu dot com</strong>
+  <a href="#76062" class="date">28-Jun-2007 07:05</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+theonly_DD32, I refined your function a little bit<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">function </span><span class="default">long_to_GET</span><span class="keyword">(</span><span class="default">$PATH_INFO</span><span class="keyword">=</span><span class="string">''</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">/**<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; * This function converts info.php/a/1/b/2/c?d=4 TO<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; * array ( [d] =&gt; 4 [a] =&gt; 1 [b] =&gt; 2 [c] =&gt; array ( [d] =&gt; 4 ) )<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; * got this function from <a href="http://php.net/GLOBALS" rel="nofollow" target="_blank">http://php.net/GLOBALS</a><br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; **/<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if(</span><span class="default">$PATH_INFO</span><span class="keyword">==</span><span class="string">'' </span><span class="keyword">&amp;&amp; isset(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PATH_INFO'</span><span class="keyword">]) &amp;&amp; </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PATH_INFO'</span><span class="keyword">] != </span><span class="string">''</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$PATH_INFO </span><span class="keyword">= </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PATH_INFO'</span><span class="keyword">];<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">$PATH_INFO </span><span class="keyword">!= </span><span class="string">''</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">//Split it out.<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$tmp </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">(</span><span class="string">'/'</span><span class="keyword">,</span><span class="default">$PATH_INFO</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">//Remove first empty item<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">unset(</span><span class="default">$tmp</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">//Loop through and apend it into the $_GET superglobal.<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">for(</span><span class="default">$i</span><span class="keyword">=</span><span class="default">1</span><span class="keyword">;</span><span class="default">$i</span><span class="keyword">&lt;=</span><span class="default">count</span><span class="keyword">(</span><span class="default">$tmp</span><span class="keyword">);</span><span class="default">$i</span><span class="keyword">+=</span><span class="default">2</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if(</span><span class="default">strpos</span><span class="keyword">(</span><span class="default">$tmp</span><span class="keyword">[</span><span class="default">$i</span><span class="keyword">],</span><span class="string">'?'</span><span class="keyword">)!==</span><span class="default">false</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$tmp1 </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">(</span><span class="string">'?'</span><span class="keyword">,</span><span class="default">$tmp</span><span class="keyword">[</span><span class="default">$i</span><span class="keyword">]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">parse_str</span><span class="keyword">(isset(</span><span class="default">$tmp1</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">])?</span><span class="default">$tmp1</span><span class="keyword">[</span><span class="default">1</span><span class="keyword">]:</span><span class="string">''</span><span class="keyword">,</span><span class="default">$_GET</span><span class="keyword">[</span><span class="default">$tmp1</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">]]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$i</span><span class="keyword">--;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; } else {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$_GET</span><span class="keyword">[</span><span class="default">$tmp</span><span class="keyword">[</span><span class="default">$i</span><span class="keyword">]] = isset(</span><span class="default">$tmp</span><span class="keyword">[</span><span class="default">$i</span><span class="keyword">+</span><span class="default">1</span><span class="keyword">])?</span><span class="default">$tmp</span><span class="keyword">[</span><span class="default">$i</span><span class="keyword">+</span><span class="default">1</span><span class="keyword">]:</span><span class="string">''</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code></div>
+  </div>
+ </div>
+ <a name="75309"></a>
+ <div class="note">
+  <strong class='user'>tokie at hanmail dot net</strong>
+  <a href="#75309" class="date">23-May-2007 06:45</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+I found something you should know in the settings file (php.ini) :<br />
+<br />
+;&nbsp; &nbsp;&nbsp; The environment variables are not hashed into the $_ENV.&nbsp; To access<br />
+;&nbsp; &nbsp;&nbsp; environment variables, you can use getenv() instead.<br />
+<br />
+so... don't be surprised if you print_r($_ENV) and you get NOTHING!!</span>
+</code></div>
+  </div>
+ </div>
+ <a name="74620"></a>
+ <div class="note">
+  <strong class='user'>pinkgothic at gmail dot com</strong>
+  <a href="#74620" class="date">20-Apr-2007 07:15</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+Dealing with "superglobals" and functions is not as straightforward as it may seem when you're doing plenty manipulations.<br />
+<br />
+For example:<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp; </span><span class="keyword">function </span><span class="default">some_other_method</span><span class="keyword">() {<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="default">$_REQUEST</span><span class="keyword">[</span><span class="string">'id'</span><span class="keyword">];<br />
+&nbsp; }<br />
+&nbsp; function </span><span class="default">some_method</span><span class="keyword">() {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$_REQUEST</span><span class="keyword">[</span><span class="string">'id'</span><span class="keyword">] = </span><span class="default">440</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">some_other_method</span><span class="keyword">();<br />
+&nbsp; }<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Calling some_method() will cause a warning-level error by PHP informing you that "id" is not set in some_other_method(). However, if you instead use:<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp; $_REQUEST</span><span class="keyword">[</span><span class="string">'id'</span><span class="keyword">] = </span><span class="default">0</span><span class="keyword">;<br />
+&nbsp; function </span><span class="default">some_other_method</span><span class="keyword">() {<br />
+&nbsp;&nbsp;&nbsp; echo </span><span class="default">$_REQUEST</span><span class="keyword">[</span><span class="string">'id'</span><span class="keyword">];<br />
+&nbsp; }<br />
+&nbsp; function </span><span class="default">some_method</span><span class="keyword">() {<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$_REQUEST</span><span class="keyword">[</span><span class="string">'id'</span><span class="keyword">] = </span><span class="default">440</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">some_other_method</span><span class="keyword">();<br />
+&nbsp; }<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Then the script will echo 440.<br />
+<br />
+In consequence, if you manually attempt to add keys to the superglobals, those keys *aren't* automatically superglobal. The above example isn't very sensible, of course, but this can be a huge gotcha if you're juggling user data between functions and you're unwittingly being forced to work inside a function (e.g. via PHP include in TYPO3).<br />
+<br />
+Unfortunately, global $_REQUEST['id'] won't save you, either - it causes a parse error - nor will a global $_REQUEST change anything after you've set the keys... consequently making it hard to conviniently 'hack' outdated scripts by making them believe they're still running in a different environment.<br />
+<br />
+The only "solution" to this issue is to use parameters.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="72829"></a>
+ <div class="note">
+  <strong class='user'>holger at doessing dot net</strong>
+  <a href="#72829" class="date">02-Feb-2007 06:07</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+On the subject of permalinks and queries:<br />
+Say, you use an inexpensive subdomain of (e.g.) www.nice.net, thus www.very.nice.net, and that the domain owner has simply placed a frame at this particular location, linking to the actual address (ugly and subject-to-change) of your site.<br />
+Consequently, the actual site URI and various associated hashes and query strings are not immediately visible to the user. Sometimes this is useful, but it also makes bookmarking/permalinking impossible (the browser will only bookmark the static address in the top frame).<br />
+However, as far as the query strings go, there is workaround. Instead of providing users with permalinks to the actual URI (e.g. prtcl://weird.and.ugly/~very/ugly.php?stuff=here; may even be subject to change), I provide them with this: prtcl://www.very.nice.net?stuff=here.<br />
+<br />
+In brief, I then use the following code to re-populate the $_GET array:<br />
+<br />
+if (isset($_SERVER['HTTP_REFERER'])) { // If set, this page is running in a frame<br />
+&nbsp;&nbsp;&nbsp; $uri = parse_url($_SERVER['HTTP_REFERER']); // grab URI of parent frame<br />
+&nbsp;&nbsp;&nbsp; $querystring = ($uri['query']) ? $uri['query'] : false; // grab the querystring<br />
+&nbsp;&nbsp;&nbsp; if ($querystring) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $vars = explode('&amp;', $querystring); // cut into individual statements<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; foreach ($vars as $varstring) { // populate $_GET<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $var = explode('=', $varstring);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; if (count($var) == 2) $_GET[$var[0]] = $var[1];<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; } // no, nothing to report from the parent frame<br />
+} // no, not using a parent frame today...<br />
+<br />
+If the actual host address is ever changed, users entering the frame (with the nicer address) will be using the new (and ugly) URI, but this way the old query strings will be available to the new address also. The users will never again be bothered by you moving to another neighborhood.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="72571"></a>
+ <div class="note">
+  <strong class='user'>Joe Marty</strong>
+  <a href="#72571" class="date">24-Jan-2007 11:48</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+I think it is very important to note that PHP will automatically replace dots ('.') AND spaces (' ') with underscores ('_') in any incoming POST or GET (or REQUEST) variables.<br />
+<br />
+This page notes the dot replacement, but not the space replacement:<br />
+<a href="http://us2.php.net/manual/en/language.variables.external.php" rel="nofollow" target="_blank">http://us2.php.net/manual/en/language.variables.external.php</a><br />
+<br />
+The reason is that '.' and ' ' are not valid characters to use in a variable name.&nbsp; This is confusing to many people, because most people use the format $_POST['name'] to access these values.&nbsp; In this case, the name is not used as a variable name but as an array index, in which those characters are valid.<br />
+<br />
+However, if the register_globals directive is set, these names must be used as variable names.&nbsp; As of now, PHP converts the names for these variables before inserting them into the external variable arrays, unfortunately - rather than leaving them as they are for the arrays and changing the names only for the variables set by register_globals.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="68765"></a>
+ <div class="note">
+  <strong class='user'>yarco dot w at gmail dot com</strong>
+  <a href="#68765" class="date">09-Aug-2006 07:13</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+And you should know<br />
+<br />
+$_POST is not a reference of $HTTP_POST_VARS<br />
+<br />
+So, if you change $_POST, there are no change to $HTTP_POST_VARS.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="65659"></a>
+ <div class="note">
+  <strong class='user'>IÃ±igo Medina</strong>
+  <a href="#65659" class="date">05-May-2006 01:22</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+It is true. I usually write variables in this way: $chuckNorrisFilms. So one almost never finds problems.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="64336"></a>
+ <div class="note">
+  <strong class='user'>johnphayes at gmail dot com</strong>
+  <a href="#64336" class="date">12-Apr-2006 10:36</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+I haven't found it anywhere else in the manual, so I'll make a note of it here - PHP will automatically replace any dots ('.') in an incoming variable name with underscores ('_'). So if you have dots in your incoming variables, e.g.:<br />
+<br />
+example.com/page.php?chuck.norris=nevercries<br />
+<br />
+you can not reference them by the name used in the URI:<br />
+//INCORRECT<br />
+echo $_GET['chuck.norris'];<br />
+<br />
+instead you must use:<br />
+//CORRECT<br />
+echo $_GET['chuck_norris'];</span>
+</code></div>
+  </div>
+ </div>
+ <a name="63708"></a>
+ <div class="note">
+  <strong class='user'>jk at ricochetsolutions dot com</strong>
+  <a href="#63708" class="date">28-Mar-2006 01:41</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+here is a one line snippet to do the same as DD32's func<br />
+<br />
+@preg_replace(<br />
+&nbsp;&nbsp; "/(?i)([a-z0-9_]+)\/([a-z0-9_]+)\/?/e", <br />
+&nbsp;&nbsp; '$_GET[\'$1\'] = "$2";', <br />
+&nbsp;&nbsp; ((isset($_SERVER['PATH_INFO'])) ? $_SERVER['PATH_INFO'] : '')<br />
+);<br />
+<br />
+may be faster, it may not ;o</span>
+</code></div>
+  </div>
+ </div>
+ <a name="63312"></a>
+ <div class="note">
+  <strong class='user'>DD32=theonly_DD32[&amp;amp;]yahoo.com.au</strong>
+  <a href="#63312" class="date">19-Mar-2006 05:43</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+I have this function in my main files, it allows for easier SEO for some pages without having to rely on .htaccess and mod_rewrite for some things.<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">function </span><span class="default">long_to_GET</span><span class="keyword">(){<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">/**<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; * This function converts info.php/a/1/b/2/c?d=4 TO<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; * Array ( [d] =&gt; 4 [a] =&gt; 1 [b] =&gt; 2 [c] =&gt; ) <br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; **/<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">if(isset(</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PATH_INFO'</span><span class="keyword">]) &amp;&amp; </span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PATH_INFO'</span><span class="keyword">] != </span><span class="string">''</span><span class="keyword">){<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">//Split it out.<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$tmp </span><span class="keyword">= </span><span class="default">explode</span><span class="keyword">(</span><span class="string">'/'</span><span class="keyword">,</span><span class="default">$_SERVER</span><span class="keyword">[</span><span class="string">'PATH_INFO'</span><span class="keyword">]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">//Remove first empty item<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">unset(</span><span class="default">$tmp</span><span class="keyword">[</span><span class="default">0</span><span class="keyword">]);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="comment">//Loop through and apend it into the $_GET superglobal.<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="keyword">for(</span><span class="default">$i</span><span class="keyword">=</span><span class="default">1</span><span class="keyword">;</span><span class="default">$i</span><span class="keyword">&lt;=</span><span class="default">count</span><span class="keyword">(</span><span class="default">$tmp</span><span class="keyword">);</span><span class="default">$i</span><span class="keyword">+=</span><span class="default">2</span><span class="keyword">){ </span><span class="default">$_GET</span><span class="keyword">[</span><span class="default">$tmp</span><span class="keyword">[</span><span class="default">$i</span><span class="keyword">]] = </span><span class="default">$tmp</span><span class="keyword">[</span><span class="default">$i</span><span class="keyword">+</span><span class="default">1</span><span class="keyword">];}<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; }<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Its probably not the most efficient, but it does the job rather nicely.<br />
+<br />
+DD32</span>
+</code></div>
+  </div>
+ </div>
+ <a name="62735"></a>
+ <div class="note">
+  <a href="#62735" class="date">08-Mar-2006 05:51</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+there is a difference to the scope of eg. java: variables that are defined inside a block are also defined outside of&nbsp; the brackets.<br />
+<br />
+eg. this works:<br />
+<br />
+if {true}<br />
+{<br />
+&nbsp; $a = 'it works';<br />
+}<br />
+<br />
+echo $a;</span>
+</code></div>
+  </div>
+ </div>
+ <a name="56717"></a>
+ <div class="note">
+  <strong class='user'>Graeme Jefferis</strong>
+  <a href="#56717" class="date">13-Sep-2005 04:06</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+I find this sort of thing consistently useful for dealing with superglobals in safety and comfort.<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">foreach (</span><span class="default">$_POST </span><span class="keyword">as </span><span class="default">$key </span><span class="keyword">=&gt; </span><span class="default">$value</span><span class="keyword">)<br />
+{<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; switch (</span><span class="default">$key</span><span class="keyword">)<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">"submitted_var_1"</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">"submitted_var_2"</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">"submitted_var_3"</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $</span><span class="default">$key </span><span class="keyword">= </span><span class="default">$value</span><span class="keyword">; break;<br />
+<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; case </span><span class="string">"dangerous_var"</span><span class="keyword">:<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$value </span><span class="keyword">= </span><span class="default">do_something_special_with</span><span class="keyword">(</span><span class="default">$value</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; $</span><span class="default">$key </span><span class="keyword">= </span><span class="default">$value</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; break;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; }<br />
+}<br />
+</span><span class="default">?&gt;</span>
+</span>
+</code></div>
+  </div>
+ </div>
+ <a name="56689"></a>
+ <div class="note">
+  <strong class='user'>Nicole King</strong>
+  <a href="#56689" class="date">12-Sep-2005 11:01</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+There seems to a maximum size of key that you can use for the $_SESSION array on php5. If you exceed this length, which seems to be around 72 characters, the value is stored in the array, but is not serialised and restored later in the session (ie. when a subsquent page is processed). The same restriction *might* apply to other system-defined arrays.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="56289"></a>
+ <div class="note">
+  <strong class='user'>webdesign at benking dot com</strong>
+  <a href="#56289" class="date">29-Aug-2005 02:33</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+# this is a follow-up to kasey at cornerspeed's 14-Jun-2004 08:33 post and debabratak at softhome's 14-Mar-2003 12:59 post, minus sessions but including a safety mechanism to block unwanted variables...<br />
+<br />
+# if you are like me and do not want to have to type $_POST[some_var] to get to all your passed variable data, you can safely convert all the data to the variable names (so it is like old style php) by using a pre-defined allowed arg names list like this;<br />
+<br />
+$allowed_args = ',f_name,l_name,subject,msg,';<br />
+<br />
+foreach(array_keys($_POST) as $k) {<br />
+&nbsp;&nbsp;&nbsp; $temp = ",$k,";<br />
+&nbsp;&nbsp;&nbsp; if(strpos($allowed_args,$temp) !== false) { $$k = $_POST[$k]; }<br />
+}<br />
+<br />
+# then you can use the programmer friendly (less typing) vars like so;<br />
+echo "Hello $f_name";<br />
+<br />
+# make sure you have commas in front of and after each var name in the $allowed_args list, so strpos will never surprise you by mistakingly finding an unwanted var name within another var name</span>
+</code></div>
+  </div>
+ </div>
+ <a name="52857"></a>
+ <div class="note">
+  <strong class='user'>dompody [at] gmail [dot] com</strong>
+  <a href="#52857" class="date">15-May-2005 05:08</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+To urbanheroes:<br />
+<br />
+version_compare() is only in PHP version 4.1.0 and up. This completely negates your function, since if the version is less than 4.1.0 it will generate an error anyway. The better solution is to do what is stated in the post above yours:<br />
+<br />
+<span class="default">&lt;?php<br />
+</span><span class="keyword">if (!isset(</span><span class="default">$_SERVER</span><span class="keyword">))<br />
+{<br />
+&nbsp;&nbsp; </span><span class="default">$_GET&nbsp; &nbsp; </span><span class="keyword">= &amp;</span><span class="default">$HTTP_GET_VARS</span><span class="keyword">;<br />
+&nbsp;&nbsp; </span><span class="default">$_POST&nbsp; &nbsp; </span><span class="keyword">= &amp;</span><span class="default">$HTTP_POST_VARS</span><span class="keyword">;<br />
+&nbsp;&nbsp; </span><span class="default">$_ENV&nbsp; &nbsp; </span><span class="keyword">= &amp;</span><span class="default">$HTTP_ENV_VARS</span><span class="keyword">;<br />
+&nbsp;&nbsp; </span><span class="default">$_SERVER&nbsp; </span><span class="keyword">= &amp;</span><span class="default">$HTTP_SERVER_VARS</span><span class="keyword">;<br />
+&nbsp;&nbsp; </span><span class="default">$_COOKIE&nbsp; </span><span class="keyword">= &amp;</span><span class="default">$HTTP_COOKIE_VARS</span><span class="keyword">;<br />
+&nbsp;&nbsp; </span><span class="default">$_REQUEST </span><span class="keyword">= </span><span class="default">array_merge</span><span class="keyword">(</span><span class="default">$_GET</span><span class="keyword">, </span><span class="default">$_POST</span><span class="keyword">, </span><span class="default">$_COOKIE</span><span class="keyword">);<br />
+}<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Include that before everything else in your script and it will fix the flaw.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="52304"></a>
+ <div class="note">
+  <strong class='user'>myfirstname dot barros at gmail dot com</strong>
+  <a href="#52304" class="date">27-Apr-2005 07:10</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+vars in $_REQUEST are *not* a reference to the respective $_POST and $_GET and $_COOKIE ones.<br />
+<br />
+Consider:<br />
+<a href="http://site.com/index.php?avar=abc" rel="nofollow" target="_blank">http://site.com/index.php?avar=abc</a><br />
+<br />
+index.php:<br />
+<span class="default">&lt;?php<br />
+$_GET</span><span class="keyword">[</span><span class="string">'avar'</span><span class="keyword">] = </span><span class="string">'b'</span><span class="keyword">;<br />
+</span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$_GET</span><span class="keyword">); print(</span><span class="string">'&lt;br&gt;'</span><span class="keyword">);<br />
+</span><span class="default">print_r</span><span class="keyword">(</span><span class="default">$_REQUEST</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+output:<br />
+Array ( [avar] =&gt; 'b' )<br />
+Array ( [avar] =&gt; 'abc' )</span>
+</code></div>
+  </div>
+ </div>
+ <a name="52283"></a>
+ <div class="note">
+  <strong class='user'>sendoshin[at]noodleroni[dot]com</strong>
+  <a href="#52283" class="date">26-Apr-2005 05:58</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+There is one way to safely execute PHP code files without running the risk of compromising your own code.&nbsp; A prior note pointed out that the code being evaluated would still have access to globals using the global keyword.&nbsp; While this is a valid point, there's one other approach to be looked at - one which actually gives you much more ability than just unsetting some variable references.&nbsp; It's known as code parsing.<br />
+<br />
+The specifics would be different and much more complex in a deployed site, but here's an extremely strip-down example of how to restrict access to global variables:<br />
+<br />
+<span class="default">&lt;?php<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">while (</span><span class="default">$x </span><span class="keyword">= </span><span class="default">stristr </span><span class="keyword">(</span><span class="default">$code_to_eval</span><span class="keyword">, </span><span class="string">"global"</span><span class="keyword">)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$temp </span><span class="keyword">= </span><span class="default">substr </span><span class="keyword">(</span><span class="default">$code_to_eval</span><span class="keyword">, </span><span class="default">1</span><span class="keyword">, </span><span class="default">$x</span><span class="keyword">-</span><span class="default">1</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$temp </span><span class="keyword">.= </span><span class="default">substr </span><span class="keyword">(</span><span class="default">$code_to_eval</span><span class="keyword">, </span><span class="default">stristr </span><span class="keyword">(</span><span class="default">$code_to_eval</span><span class="keyword">, </span><span class="string">";"</span><span class="keyword">, </span><span class="default">$x</span><span class="keyword">) + </span><span class="default">1</span><span class="keyword">);<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$code_to_eval </span><span class="keyword">= </span><span class="default">$temp</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$ret_val </span><span class="keyword">= eval (</span><span class="default">$code_to_eval</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Of course, that's just a rudimentary example, and a deployment version would have much more checking involved, but parsing the file before you eval it lets you remove any code you don't want to let run, thus making it as safe as your parsing rules.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="51757"></a>
+ <div class="note">
+  <strong class='user'>lanny at freemail dot hu</strong>
+  <a href="#51757" class="date">10-Apr-2005 02:32</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+From PHP 5.0.3 long predefined arrays such HTTP_GET_VARS got disabled by default. For backward compatibility you can enable them in php.ini:<br />
+<br />
+register_long_arrays = On<br />
+<br />
+I sugget a big WARNING up there like that one with the resister_globals. <br />
+<br />
+Anyway.. I cannot understand why they do such tings all the time.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="50044"></a>
+ <div class="note">
+  <a href="#50044" class="date">16-Feb-2005 04:35</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+php.net uses this<br />
+<br />
+// Backward compatible array creation. After this point, the<br />
+// PHP 4.1.0+ arrays can be used to access variables coming<br />
+// from outside PHP. But it should be noted that these variables<br />
+// are not necessarily superglobals, so they need to be global-ed!<br />
+if (!isset($_SERVER))<br />
+{<br />
+&nbsp;&nbsp;&nbsp; $_GET&nbsp; &nbsp;&nbsp; = &amp;$HTTP_GET_VARS;<br />
+&nbsp;&nbsp;&nbsp; $_POST&nbsp; &nbsp; = &amp;$HTTP_POST_VARS;<br />
+&nbsp;&nbsp;&nbsp; $_ENV&nbsp; &nbsp;&nbsp; = &amp;$HTTP_ENV_VARS;<br />
+&nbsp;&nbsp;&nbsp; $_SERVER&nbsp; = &amp;$HTTP_SERVER_VARS;<br />
+&nbsp;&nbsp;&nbsp; $_COOKIE&nbsp; = &amp;$HTTP_COOKIE_VARS;<br />
+&nbsp;&nbsp;&nbsp; $_REQUEST = array_merge($_GET, $_POST, $_COOKIE);<br />
+}<br />
+<br />
+$PHP_SELF = $_SERVER['PHP_SELF'];</span>
+</code></div>
+  </div>
+ </div>
+ <a name="43228"></a>
+ <div class="note">
+  <strong class='user'>kasey at cornerspeed dowt com</strong>
+  <a href="#43228" class="date">14-Jun-2004 05:33</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+I have a few points to note to (debabratak at softhome dot net).&nbsp; Firstly, extracting all your variables from the global variable arrays is rather cumbersome and possibly unsafe.&nbsp; This causes longer run times, and wastes more memory.&nbsp; Then, your script is starting the session before it parses the superglobals.&nbsp; Bad things can happen because of this:<br />
+<br />
+<span class="default">&lt;?php<br />
+<br />
+</span><span class="comment">// user sent a GET header with key = secret_access, val = true, so<br />
+<br />
+</span><span class="keyword">echo </span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">"secret_access"</span><span class="keyword">]; </span><span class="comment">// output: true<br />
+</span><span class="keyword">echo </span><span class="default">$secret_access</span><span class="keyword">; </span><span class="comment">// output:<br />
+<br />
+</span><span class="default">session_start</span><span class="keyword">();<br />
+<br />
+</span><span class="comment">// in previous logic, you set session variable $secret_access = false<br />
+<br />
+</span><span class="keyword">echo </span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">"secret_access"</span><span class="keyword">]; </span><span class="comment">// output: false<br />
+</span><span class="keyword">echo </span><span class="default">$secret_access</span><span class="keyword">; </span><span class="comment">// output: false<br />
+<br />
+</span><span class="default">extract_globals</span><span class="keyword">();&nbsp; </span><span class="comment">// Globals put into "normal" variables<br />
+<br />
+</span><span class="keyword">echo </span><span class="default">$_GET</span><span class="keyword">[</span><span class="string">"secret_access"</span><span class="keyword">]; </span><span class="comment">// output: true<br />
+</span><span class="keyword">echo </span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">"secret_access"</span><span class="keyword">]; </span><span class="comment">// output: false<br />
+</span><span class="keyword">echo </span><span class="default">$secret_access</span><span class="keyword">; </span><span class="comment">// output: true<br />
+<br />
+// VARIABLES ARE COMPROMISED!<br />
+// DO NOT USE $secret_access !<br />
+// USE $_SESSION["secret_access"] instead !!!<br />
+<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Secondly, I would like to point out the fact that all $_POST, $_GET, and $_COOKIE variables are intrinsically unsafe anyway.&nbsp; Users can create their own scripts in the language of their choosing (PHP, ASP, JSP, etc.) that generate those headers to send to your PHP program via socket connections.&nbsp; PHP cannot determine that these headers are any less valid than the ones sent by a web browser, so it parses them and places them in the $_POST, $_GET, or $_COOKIE variables.<br />
+<br />
+The best practice is to use $_SESSION variables to validate the user before making any decisions based on form data.&nbsp; e.g.:<br />
+<br />
+<span class="default">&lt;?php<br />
+session_start</span><span class="keyword">();<br />
+if (isset(</span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">"valid"</span><span class="keyword">]))<br />
+{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="comment">// all your program decisions and database interactions can go here<br />
+&nbsp;&nbsp;&nbsp; </span><span class="keyword">if (isset(</span><span class="default">$_POST</span><span class="keyword">[</span><span class="string">"button_name"</span><span class="keyword">]))<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; ...<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; ...<br />
+}<br />
+elseif (isset(</span><span class="default">$_POST</span><span class="keyword">[</span><span class="string">"submit_login"</span><span class="keyword">]))<br />
+{<br />
+&nbsp;&nbsp;&nbsp; if ((</span><span class="default">$_POST</span><span class="keyword">[</span><span class="string">"username"</span><span class="keyword">] == </span><span class="string">"foo"</span><span class="keyword">) AND (</span><span class="default">$_POST</span><span class="keyword">[</span><span class="string">"password"</span><span class="keyword">] == </span><span class="string">"bar"</span><span class="keyword">))<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$_SESSION</span><span class="keyword">[</span><span class="string">"valid"</span><span class="keyword">] = </span><span class="default">true</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; ...<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; else<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">session_unset</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">session_destroy</span><span class="keyword">();<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$error_msg </span><span class="keyword">= </span><span class="string">"Invalid username or password"</span><span class="keyword">;<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; </span><span class="default">$result_page </span><span class="keyword">= </span><span class="string">"login.php"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+elseif (isset(</span><span class="default">$logoff</span><span class="keyword">))<br />
+{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">session_unset</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">session_destroy</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$success_msg </span><span class="keyword">= </span><span class="string">"You have logged off successfully"</span><span class="keyword">;<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$result_page </span><span class="keyword">= </span><span class="string">"login.php"</span><span class="keyword">;<br />
+}<br />
+else<br />
+{<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">session_unset</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">session_destroy</span><span class="keyword">();<br />
+&nbsp;&nbsp;&nbsp; </span><span class="default">$result_page </span><span class="keyword">= </span><span class="string">"login.php"</span><span class="keyword">;<br />
+}<br />
+require (</span><span class="default">$result_page</span><span class="keyword">);<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Session variables are orders of magnitude harder to compromise than POST, GET, and COOKIE data, since the server keeps track of session id's, and the session id is unique to each client and somewhat randomly generated.&nbsp; If security is an ultimate concern, then you need to use SSL in case your traffic can be sniffed (since the session cookie is passed plain text to the client).<br />
+<br />
+In summary, extracting out all the superglobals to normal variable names is not a good idea for reasons of security and ambiguity, not to mention wasted CPU cycles.&nbsp; For private applications (ones that you don't want just anyone to be able to access), the only ways you can prevent malicious access is to 1) use sessions to ensure that the user is valid (for that page), and 2) use SSL-encryption to prevent session-hijacking.<br />
+<br />
+Kasey<br />
+<br />
+in reply to:<br />
+--------------------------------------------------------------<br />
+&nbsp;debabratak at softhome dot net<br />
+14-Mar-2003 12:59<br />
+After having register_globals = off, I am using the following piece of code to get all the variables created for me. I have put this code in a separate file and just make it require_once() on top of every page.<br />
+<br />
+session_start();<br />
+$ArrayList = array("_GET", "_POST", "_SESSION", "_COOKIE", "_SERVER");<br />
+foreach($ArrayList as $gblArray)<br />
+{<br />
+&nbsp;&nbsp; $keys = array_keys($$gblArray);<br />
+&nbsp;&nbsp; foreach($keys as $key)<br />
+&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp; $$key = trim(${$gblArray}[$key]);<br />
+&nbsp;&nbsp; }<br />
+}<br />
+<br />
+This pulls out all the possible variables for me, including the predefined variables, so I can keep coding the old style. Note that, this code does not handle the $_FILE.<br />
+<br />
+Hope this helps someone.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="42270"></a>
+ <div class="note">
+  <strong class='user'>bryan at nolifeline dot com</strong>
+  <a href="#42270" class="date">10-May-2004 12:07</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+to marcbender at mail dot com<br />
+<br />
+unset the globals<br />
+<br />
+use a preg_replace ( pattern: |\;[^\;]*$i[^\;]*\;|Uis, replacement: ";", where $i is the name of any function/variable you wish to prevent access to.) on the code-to-be-evaled.&nbsp; ideas are "global", "fopen", "mysql_connect", etc.&nbsp; You know, anything that you wouldn't want to give a hyperactive 13 year old access to.<br />
+<br />
+execute the code.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="42269"></a>
+ <div class="note">
+  <strong class='user'>bryan at nolifeline dot com</strong>
+  <a href="#42269" class="date">10-May-2004 11:59</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+This code needs slightly changed...<br />
+<br />
+function remap_globals() {<br />
+<br />
+&nbsp;&nbsp; global $GET_VARS, $POST_VARS, $COOKIE_VARS, $SESSION_VARS, $SERVER_VARS, $ENV_VARS;<br />
+<br />
+&nbsp;&nbsp; $parser_version = phpversion();<br />
+<br />
+&nbsp;&nbsp; if ($parser_version &lt;= "4.1.0") { <br />
+&nbsp;&nbsp; &nbsp; $GET = &amp;$GET_VARS;<br />
+&nbsp;&nbsp; &nbsp; $POST = &amp;$POST_VARS;<br />
+&nbsp;&nbsp; &nbsp; $COOKIES = &amp;$COOKIE_VARS;<br />
+&nbsp;&nbsp; &nbsp; $SESSION = &amp;$HTTP_SESSION_VARS;<br />
+&nbsp;&nbsp; &nbsp; $SERVER = &amp;$HTTP_SERVER_VARS;<br />
+&nbsp;&nbsp; &nbsp; $ENV = &amp;$HTTP_ENV_VARS;<br />
+&nbsp;&nbsp; }<br />
+&nbsp;&nbsp; if ($parser_version &gt;= "4.1.0") { <br />
+&nbsp;&nbsp; &nbsp; $GET = &amp;$_GET;<br />
+&nbsp;&nbsp; &nbsp; $POST = &amp;$_POST;<br />
+&nbsp;&nbsp; &nbsp; $COOKIES&nbsp; = &amp;$_COOKIE;<br />
+&nbsp;&nbsp; &nbsp; $SESSION&nbsp; = &amp;$_SESSION;<br />
+&nbsp;&nbsp; &nbsp; $SERVER = &amp;$_SERVER;<br />
+&nbsp;&nbsp; &nbsp; $ENV = &amp;$_ENV;<br />
+&nbsp;&nbsp; }<br />
+}<br />
+<br />
+Note the ampersands.&nbsp; They ensure that the variables act _exactly_ like the superglobal components, ie: changing $SESSION will update $_SESSION and thus update the local session files.<br />
+<br />
+So yeah.&nbsp; I don't know what the PHP name for that is, but in C it's called dereferencing, and I've seen it done in function definitions in myriad people's code, but not once in a standard variable situation.&nbsp; Oh well.&nbsp; Can't be creative all the time ^_^</span>
+</code></div>
+  </div>
+ </div>
+ <a name="41656"></a>
+ <div class="note">
+  <strong class='user'>marcbender_AT_mail_DOT_com</strong>
+  <a href="#41656" class="date">18-Apr-2004 02:23</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+-Security issue-<br />
+<br />
+In response to lopez at yellowspace,<br />
+<br />
+You provided a method for executing potentially unsafe code:<br />
+<br />
+&gt; function safeEval($evalcode) {<br />
+&gt;&nbsp; &nbsp; unset($GLOBALS);<br />
+&gt;&nbsp; &nbsp; unset($_ENV);<br />
+&gt;&nbsp; &nbsp; // unset any other superglobal...<br />
+&gt;&nbsp; &nbsp; return eval($evalcode);<br />
+&gt; }<br />
+<br />
+Your method, though clever, won't work.&nbsp; The problem is the way that PHP handles function scope.&nbsp; If $evalcode contains a function declaration, and runs that function, the "unset"s will be effectively useless inside the body of that function.<br />
+<br />
+Try running the above code with $evalcode set as follows:<br />
+<br />
+<span class="default">&lt;?php<br />
+$evalcode</span><span class="keyword">=</span><span class="string">'f();<br />
+function f() {<br />
+&nbsp;&nbsp; $GLOBALS["_SERVER"] = "compromised";<br />
+}'</span><span class="keyword">;<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+Then print $_SERVER and see what you get.<br />
+<br />
+Another problem is that the "global" directive will always grant access to global variables.&nbsp; Try this one:<br />
+<br />
+<span class="default">&lt;?php<br />
+$evalcode</span><span class="keyword">=</span><span class="string">'global $a;<br />
+$a = "compromised";'</span><span class="keyword">;<br />
+</span><span class="default">?&gt;<br />
+</span><br />
+$a will of course be changed at the global level.&nbsp; I don't know if it's supposed to work this way, but on my system (PHP 4.3.4) you can do the same to any superglobal by importing it using "global".<br />
+<br />
+As far as I can tell, there is NO way to execute potentially unsafe code without a lot of risk.&nbsp; With the sloppy way that PHP deals with function scope etc., there isn't much hope that it ever will be.&nbsp; What we'd need is (at least):<br />
+&nbsp; - a way to disable the "global" directive (restrictive eval).<br />
+&nbsp; - a way to shut off any write-access to superglobals within untrusted functions.<br />
+<br />
+The first wouldn't be too hard to implement.&nbsp; The second, on the other hand, is practically impossible IMHO.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="36878"></a>
+ <div class="note">
+  <strong class='user'>mark at pitchpipe dot org</strong>
+  <a href="#36878" class="date">25-Oct-2003 10:21</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+I had always mistakenly assumed that superglobal $_COOKIE (while preferred) was identical to the outdated $HTTP_COOKIE_VARS.&nbsp; However, if you assign:<br />
+<br />
+$_COOKIE['destroyWorld'] = "true";<br />
+if (isset($HTTP_COOKIE_VARS['destroyWorld'])) {<br />
+&nbsp;&nbsp; $temp =&amp; new Armeggedon();<br />
+&nbsp;&nbsp; $temp-&gt;pushRedButton();<br />
+&nbsp;}<br />
+<br />
+then the world will be safe forever.&nbsp; Might throw off a newbie, or someone like me who was updating really old code bit-by-bit.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="36167"></a>
+ <div class="note">
+  <strong class='user'>wagner at cesnet dot cz</strong>
+  <a href="#36167" class="date">29-Sep-2003 08:15</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+The redirected pages by response codes 301, 302, 303 change the request method always to GET, that's why $HTTP_POST_VARS are lost. It is described in Apache documentation.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="35627"></a>
+ <div class="note">
+  <strong class='user'>joker at vip dot hr</strong>
+  <a href="#35627" class="date">08-Sep-2003 07:42</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+If anyone of you have a problem with uploading files with globals off here is the solution... just add this to the top of the code:<br />
+<br />
+reset ($_FILES);<br />
+while (list ($key, $val) = each ($_FILES)) {<br />
+&nbsp;&nbsp;&nbsp; ${$key}=$_FILES[$key]['tmp_name'];<br />
+&nbsp;&nbsp;&nbsp; while (list ($key1, $val1) = each ($val)) {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; ${$key."_".$key1}=$_FILES[$key][$key1];<br />
+&nbsp;&nbsp;&nbsp; }<br />
+}<br />
+<br />
+&nbsp;&nbsp; Daniel</span>
+</code></div>
+  </div>
+ </div>
+ <a name="31772"></a>
+ <div class="note">
+  <strong class='user'>alexsp at olywa dot net</strong>
+  <a href="#31772" class="date">02-May-2003 07:26</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+For those of us who don't have the luxery of upgrading to the latest version of PHP on all of the servers we use but want to use the same variable names that are used in the latest version for super global arrays here's a snippet of code that will help:<br />
+&nbsp;&nbsp;&nbsp; // Makes available those super global arrays that are made available<br />
+&nbsp;&nbsp;&nbsp; // in versions of PHP after v4.1.0.<br />
+&nbsp;&nbsp;&nbsp; if (isset ($HTTP_SERVER_VARS))<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $_SERVER = &amp;$HTTP_SERVER_VARS;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; if (isset ($HTTP_GET_VARS))<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $_GET = &amp;$HTTP_GET_VARS;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; if (isset ($HTTP_POST_VARS))<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $_POST = &amp;$HTTP_POST_VARS;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; if (isset ($HTTP_COOKIE_VARS))<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $_COOKIE = &amp;$HTTP_COOKIE_VARS;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; if (isset ($HTTP_POST_FILES))<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $_FILES = &amp;$HTTP_POST_FILES;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; if (isset ($HTTP_ENV_VARS))<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $_ENV = &amp;$HTTP_ENV_VARS;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+&nbsp;&nbsp;&nbsp; <br />
+&nbsp;&nbsp;&nbsp; if (isset ($HTTP_SESSION_VARS))<br />
+&nbsp;&nbsp;&nbsp; {<br />
+&nbsp;&nbsp; &nbsp; &nbsp;&nbsp; $_SESSION = &amp;$HTTP_SESSION_VARS;<br />
+&nbsp;&nbsp;&nbsp; }<br />
+The only downfall to this is that there's no way to make them super global. Chances are, though, if you're using a lot of global arrays in your code you should consider a code redesign!&nbsp; :)&nbsp; Hope this helps.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="31724"></a>
+ <div class="note">
+  <a href="#31724" class="date">01-May-2003 09:06</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+In reply to destes at ix dot netcom dot com dot nospam:<br />
+<br />
+It's possible for a HTTP client to spoof HTTP_X_FORWARDED_FOR, and set it to a fake IP number.&nbsp; It's more secure to use this code and log BOTH the ip and the proxy ip.<br />
+<br />
+if ($_SERVER["HTTP_X_FORWARDED_FOR"]) {<br />
+&nbsp;&nbsp; if ($_SERVER["HTTP_CLIENT_IP"]) {<br />
+&nbsp;&nbsp;&nbsp; $proxy = $_SERVER["HTTP_CLIENT_IP"];<br />
+&nbsp; } else {<br />
+&nbsp;&nbsp;&nbsp; $proxy = $_SERVER["REMOTE_ADDR"];<br />
+&nbsp; }<br />
+&nbsp; $ip = $_SERVER["HTTP_X_FORWARDED_FOR"];<br />
+} else {<br />
+&nbsp; if ($_SERVER["HTTP_CLIENT_IP"]) {<br />
+&nbsp;&nbsp;&nbsp; $ip = $_SERVER["HTTP_CLIENT_IP"];<br />
+&nbsp; } else {<br />
+&nbsp;&nbsp;&nbsp; $ip = $_SERVER["REMOTE_ADDR"];<br />
+&nbsp; }<br />
+}<br />
+<br />
+echo "Your IP $ip&lt;BR&gt;\n";<br />
+if (isset($proxy)) {<br />
+&nbsp; echo "Your proxy IP is $proxy&lt;BR&gt;\n";<br />
+}</span>
+</code></div>
+  </div>
+ </div>
+ <a name="30678"></a>
+ <div class="note">
+  <strong class='user'>LouisGreen at pljg dot freeserve dot co dot uk</strong>
+  <a href="#30678" class="date">25-Mar-2003 10:22</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+It seems that when you wish to export a varible, you can do it as return $varible, return an array(), or globalise it. If you return something, information for that varible can only travel one way when the script is running, and that is out of the function. <br />
+<br />
+function fn() {<br />
+&nbsp;&nbsp; $varible = "something";<br />
+<br />
+&nbsp; return $variable;<br />
+}<br />
+<br />
+echo fn();<br />
+OR<br />
+$newvariable = fn();<br />
+<br />
+Although if global was used, it creates a pointer to a varible, whether it existed or not, and makes whatever is created in the function linked to that global pointer. So if the pointer was global $varible, and then you set a value to $varible, it would then be accessible in the global scope. But then what if you later on in the script redefine that global to equal something else. This means that whatever is put into the global array, the information that is set in the pointer, can be set at any point (overiden). Here is an example that might make this a little clearer:<br />
+<br />
+function fn1() {<br />
+<br />
+&nbsp;&nbsp; global $varible; // Pointer to the global array<br />
+&nbsp;&nbsp; $varible = "something";<br />
+}<br />
+<br />
+fn1();<br />
+echo $varible; // Prints something<br />
+$varible = "12345";<br />
+echo $varible; // Prints 12345<br />
+<br />
+function fn2() {<br />
+<br />
+&nbsp;&nbsp; global $varible; // Pointer to the global array<br />
+&nbsp;&nbsp; echo $varible;<br />
+}<br />
+<br />
+fn2(); // echos $varible which contains "12345"<br />
+<br />
+Basically when accessing the global array, you can set it refer to something already defined or set it to something, (a pointer) such as varible you plan to create in the function, and later possibly over ride the pointer with something else.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="30484"></a>
+ <div class="note">
+  <strong class='user'>Good Liam</strong>
+  <a href="#30484" class="date">19-Mar-2003 09:18</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+Warning:<br />
+If you use dynamic variables in a local scope, the variable doesn't "know" when it should be a superglobal.&nbsp; An example will help elucidate this:<br />
+<br />
+function Example($Variable_Name='_POST') {<br />
+&nbsp;&nbsp;&nbsp; print_r($$Variable_Name);<br />
+} // End Example<br />
+<br />
+This would print out<br />
+<br />
+NULL<br />
+<br />
+To use a dynamic variable to reference a superglobal, you have to declare the value (not the name) as a global:<br />
+<br />
+function WorkingExample($Variable_Name='_POST') {<br />
+&nbsp;&nbsp;&nbsp; global $$Variable_Name;<br />
+&nbsp;&nbsp;&nbsp; print_r($$Variable_Name);<br />
+} // End WorkingExample()<br />
+<br />
+This would print out the contents of your $_POST variable.<br />
+<br />
+This threw me when I first tried it, but it makes sense, in a way.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="30278"></a>
+ <div class="note">
+  <strong class='user'>LouisGreen at pljg dot freeserve dot co dot uk</strong>
+  <a href="#30278" class="date">12-Mar-2003 02:36</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+If you require access to Predefined Variables in different PHP/ servers versions and don't wish to mess about with how you access them, this little snippet of code might help you:<br />
+<br />
+function fn_http_vars_access() {<br />
+<br />
+&nbsp;&nbsp; global $GET_VARS, $POST_VARS, $COOKIE_VARS, $SESSION_VARS, $SERVER_VARS, $ENV_VARS;<br />
+<br />
+&nbsp;&nbsp; $parser_version = phpversion();<br />
+<br />
+&nbsp;&nbsp; if ($parser_version &lt;= "4.1.0") { <br />
+&nbsp;&nbsp; &nbsp;&nbsp; $GET_VARS&nbsp; &nbsp; &nbsp; = $GET_VARS;<br />
+&nbsp;&nbsp; &nbsp;&nbsp; $POST_VARS&nbsp; &nbsp;&nbsp; = $POST_VARS;<br />
+&nbsp;&nbsp; &nbsp;&nbsp; $COOKIE_VARS&nbsp;&nbsp; = $COOKIE_VARS;<br />
+&nbsp;&nbsp; &nbsp;&nbsp; $SESSION_VARS&nbsp; = $HTTP_SESSION_VARS;<br />
+&nbsp;&nbsp; &nbsp;&nbsp; $SERVER_VARS&nbsp;&nbsp; = $HTTP_SERVER_VARS;<br />
+&nbsp;&nbsp; &nbsp;&nbsp; $ENV_VARS&nbsp; &nbsp; &nbsp; = $HTTP_ENV_VARS;<br />
+&nbsp;&nbsp; }<br />
+&nbsp;&nbsp; if ($parser_version &gt;= "4.1.0") { <br />
+&nbsp;&nbsp; &nbsp;&nbsp; $GET_VARS&nbsp; &nbsp; &nbsp; = $_GET;<br />
+&nbsp;&nbsp; &nbsp;&nbsp; $POST_VARS&nbsp; &nbsp;&nbsp; = $_POST;<br />
+&nbsp;&nbsp; &nbsp;&nbsp; $COOKIE_VARS&nbsp;&nbsp; = $_COOKIE;<br />
+&nbsp;&nbsp; &nbsp;&nbsp; $SESSION_VARS&nbsp; = $_SESSION;<br />
+&nbsp;&nbsp; &nbsp;&nbsp; $SERVER_VARS&nbsp;&nbsp; = $_SERVER;<br />
+&nbsp;&nbsp; &nbsp;&nbsp; $ENV_VARS&nbsp; &nbsp; &nbsp; = $_ENV;<br />
+&nbsp;&nbsp; }<br />
+}<br />
+<br />
+fn_http_vars_access();</span>
+</code></div>
+  </div>
+ </div>
+ <a name="29386"></a>
+ <div class="note">
+  <a href="#29386" class="date">11-Feb-2003 10:12</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+i just noticed that the free web server i'm running my scripts on still only knows the deprecated variable names (i.e. it uses $HTTP_POST_VARS instead of $_POST). to make scripts work both on updated servers and servers that are a bit out of date, i now use:<br />
+<br />
+$variablename=(isset($_POST["variablename"])) ? $_POST["variablename"] : $HTTP_POST_VARS["variablename"];</span>
+</code></div>
+  </div>
+ </div>
+ <a name="28614"></a>
+ <div class="note">
+  <strong class='user'>lopez dot on dot the dot lists at yellowspace dot net</strong>
+  <a href="#28614" class="date">17-Jan-2003 06:11</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+- Security Issue and workaround - <br />
+If You use "eval()" to execute code stored in a database or elsewhere, you might find this tip useful.<br />
+<br />
+Issue:<br />
+By default, all superglobals are known in every function. <br />
+Thus, if you eval database- or dynamically generated code (let's call it "potentially unsafe code"), it can use _all_ the values stored in _any_ superglobal. <br />
+<br />
+Workaround:<br />
+Whenever you want to hide superglobals from use in evaluated code, wrap that eval() in an own function within which you unset() all the superglobals. The superglobals are not deleted by php in all scopes - just within that function. eg:<br />
+<br />
+function safeEval($evalcode) {<br />
+&nbsp;&nbsp;&nbsp; unset($GLOBALS);<br />
+&nbsp;&nbsp;&nbsp; unset($_ENV);<br />
+&nbsp;&nbsp;&nbsp; // unset any other superglobal...<br />
+&nbsp;&nbsp;&nbsp; return eval($evalcode);<br />
+}<br />
+<br />
+(This example assumes that the eval returns something with 'return')<br />
+<br />
+In addition, by defining such a function outside classes, in the global scope, you'll make sure as well that the evaluated ('unsafe') code doesn't have access to the object variables ($this-&gt; ...).</span>
+</code></div>
+  </div>
+ </div>
+ <a name="23063"></a>
+ <div class="note">
+  <a href="#23063" class="date">08-Jul-2002 01:46</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+Wouldn't it be great if there was a variable called $_SERVER["PATH_USERHOME"]. Here is how to set it yourself:<br />
+<br />
+$path_fs = split ("/", ltrim ($_SERVER["PATH_TRANSLATED"], "/"));<br />
+$path_fs_rev = array_reverse ($path_fs);<br />
+<br />
+$path_http = split ("/", ltrim ($_SERVER["PHP_SELF"], "/"));<br />
+$path_http_rev = array_reverse ($path_http);<br />
+<br />
+$num_same = 0;<br />
+while ($path_fs_rev[$num_same] == $path_http_rev[$num_same]) {<br />
+&nbsp;&nbsp;&nbsp; $num_same++;<br />
+}<br />
+<br />
+$path_userhome = array ();<br />
+$numdirs_userhome = sizeof ($path_http) - $num_same;<br />
+echo $numdirs_userhome;<br />
+<br />
+for ($i = 0; $i &lt; $numdirs_userhome; $i++) {<br />
+&nbsp;&nbsp;&nbsp; array_push ($path_userhome, $path_http[$i]);<br />
+}<br />
+<br />
+$_SERVER["PATH_USERHOME"] = "/" . implode ("/", $path_userhome) . "/";<br />
+<br />
+print_r ($_SERVER["PATH_USERHOME"]);<br />
+<br />
+;) Happy programming,<br />
+<br />
+Peder</span>
+</code></div>
+  </div>
+ </div>
+ <a name="21952"></a>
+ <div class="note">
+  <strong class='user'>juancri at TAGnet dot org</strong>
+  <a href="#21952" class="date">31-May-2002 08:52</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+If you try this:<br />
+<br />
+&lt;FORM action="hola"&gt;<br />
+&nbsp; ....<br />
+&lt;/FORM&gt;<br />
+<br />
+and hola is a directory, you have to write the final slash (/) because the page is redirected from hola to hola/ and you'll lost the POST variables.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="21005"></a>
+ <div class="note">
+  <strong class='user'>admin at SexDev dot com</strong>
+  <a href="#21005" class="date">25-Apr-2002 01:17</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+The problem with empty HTTP_X_FORWARDED_FOR is because of anonymous proxy servers:<br />
+<br />
+Anonymous - HTTP Proxy server does not send HTTP_X_FORWARDED_FOR variable to host, this improves privacy since your IP address cannot be logged.<br />
+<br />
+High anonymity - HTTP Servers of this type don’t send HTTP_X_FORWARDED_FOR, HTTP_VIA and HTTP_PROXY_CONNECTION variables. Host doesn’t even know you are using proxy server an of course it doesn’t know your IP address.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="14246"></a>
+ <div class="note">
+  <strong class='user'>rick@independence,netI</strong>
+  <a href="#14246" class="date">23-Jul-2001 06:13</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+It should be noted that $HTTP_RAW_POST_DATA only exists if the encoding type of the data is -not- the default of application/x-www.form-urlencoded, and so, to accessing raw post data from an HTTP form requires setting enctype= in your HTML.</span>
+</code></div>
+  </div>
+ </div>
+ <a name="9776"></a>
+ <div class="note">
+  <strong class='user'>mike at dbeat dot com</strong>
+  <a href="#9776" class="date">22-Nov-2000 06:30</a>
+  <div class="text">
+<div class="phpcode"><code><span class="html">
+If you're running PHP as a shell script, and you want to use the argv and argc arrays to get command-line arguments, make sure you have register_argc_argv&nbsp; =&nbsp; on.&nbsp; If you're using the 'optimized' php.ini, this defaults to off.</span>
+</code></div>
+  </div>
+ </div></div>
+
+ <div class="foot"><a href="/manual/add-note.php?sect=language.variables.predefined&amp;redirect=@w{YX3KV6J4}"><img src="@w{WPBKWWJ7}" alt="add a note" width="13" height="13" class="middle" /></a> <small><a href="/manual/add-note.php?sect=language.variables.predefined&amp;redirect=@w{YX3KV6J4}">add a note</a></small></div>
+</div><br />
+ </div>
+ <div class="cleaner">&nbsp;</div>
+</div>
+
+<div id="footnav">
+   <a href="/source.php?url=/manual/en/language.variables.predefined.php">show source</a> |
+ <a href="/credits.php">credits</a> |
+ <a href="/stats/">stats</a> |
+ <a href="/sitemap.php">sitemap</a> |
+ <a href="/contact.php">contact</a> |
+ <a href="/contact.php#ads">advertising</a> |
+ <a href="/mirrors.php">mirror sites</a>
+</div>
+
+<div id="pagefooter">
+ <div id="copyright">
+  <a href="/copyright.php">Copyright &copy; 2001-2012 The PHP Group</a><br />
+  All rights reserved.
+ </div>
+
+ <div id="thismirror">
+  <a href="/mirror.php">This mirror</a> generously provided by:
+  <a href="@w{TDAY9QJ9}">Yahoo! Inc.</a><br />
+  Last updated: Tue Jul 31 20:41:05 2012 UTC
+ </div>
+</div>
+<!--[if IE 6]>
+<script type="text/javascript">
+    /*Load jQuery if not already loaded*/ if(typeof jQuery == 'undefined'){ document.write("<script type=\"text/javascript\"   src=\"@w{8JFFCNVW}"></"+"script>"); var __noconflict = true; }
+    var IE6UPDATE_OPTIONS = {
+        icons_path: "/ie6update/images/"
+    }
+</script>
+<script type="text/javascript" src="/ie6update/ie6update.js"></script>
+<![endif]-->
+</body>
+</html>

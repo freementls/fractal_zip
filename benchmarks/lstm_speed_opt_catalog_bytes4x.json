@@ -1,0 +1,85 @@
+{
+  "description": "Deepen bytes inside the 4× band on banked pareto fp_ao16_n2_aggr (2 056 371 B @10 MiB, −9 KiB vs old pareto, ~714 s quiet-rel). Avoid NOVEL_SOFT/EDGE duds.",
+  "base_defs": [
+    "-DSEED=923",
+    "-DUPDATE_LIMIT=3000",
+    "-DFXCM_ENTITY_FOLD",
+    "-DFXCM_MATCH_MAX=3000000ull",
+    "-DFXCM_SPEED_INLINE_GET",
+    "-DNDEBUG",
+    "-DFXCM_RECIPE_RUNTIME",
+    "-DFXCM_FRACTAL_PRED",
+    "-DFXCM_LSTM_HIDDEN=64",
+    "-DFXCM_PPMD_MB=2048",
+    "-DFXCM_MATCH_MAX=1000000ull",
+    "-DFXCM_SPEED_MATCH_FASTPATH",
+    "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+    "-DFXCM_SPEED_MATCH_SKIP_MIN=1u",
+    "-DFXCM_SPEED_CM_MATCH_SKIP",
+    "-DFXCM_SPEED_CM_MATCH_MIN=4",
+    "-DFXCM_SPEED_ADVANCE_ONLY",
+    "-DFXCM_SPEED_OUTER_AO_MIN=4u",
+    "-DFXCM_CM_SCALE=2",
+    "-DFXCM_SPEED_LIGHT_MIX",
+    "-DFXCM_SPEED_LIGHT_MIX_AGGRESSIVE",
+    "-DFXCM_SPEED_OUTER_AO_MIN=16u",
+    "-DFXCM_SPEED_LSTM_NOVEL_STRIDE=2u"
+  ],
+  "candidates": [
+    {
+      "name": "b4_ctrl",
+      "extra_defs": [],
+      "note": "rebuild fp_ao16_n2_aggr control"
+    },
+    {
+      "name": "b4_slim",
+      "extra_defs": ["-DFXCM_SPEED_AO_SLIM"],
+      "note": "pareto + AO_SLIM"
+    },
+    {
+      "name": "b4_mid",
+      "extra_defs": ["-DFXCM_SPEED_MATCH_MID_SKIP"],
+      "note": "pareto + match mid-skip"
+    },
+    {
+      "name": "b4_slim_mid",
+      "extra_defs": [
+        "-DFXCM_SPEED_AO_SLIM",
+        "-DFXCM_SPEED_MATCH_MID_SKIP"
+      ],
+      "note": "pareto + slim + mid"
+    },
+    {
+      "name": "b4_extreme",
+      "extra_defs": [
+        "-DFXCM_SPEED_LIGHT_MIX_EXTREME"
+      ],
+      "note": "swap AGGRESSIVE→EXTREME on pareto stack (last -D wins if both; drop aggr via override — see note)"
+    },
+    {
+      "name": "b4_ms2",
+      "extra_defs": ["-DFXCM_SPEED_MATCH_SKIP_MIN=2u"],
+      "note": "lighter match-skip (MIN=2) + novel2 — buy bytes?"
+    },
+    {
+      "name": "b4_cm6",
+      "extra_defs": ["-DFXCM_SPEED_CM_MATCH_MIN=6"],
+      "note": "CM skip stricter — free wall / maybe bytes"
+    },
+    {
+      "name": "b4_ao12",
+      "extra_defs": ["-DFXCM_SPEED_OUTER_AO_MIN=12u"],
+      "note": "AO between 8 and 16"
+    },
+    {
+      "name": "b4_match3m",
+      "extra_defs": ["-DFXCM_MATCH_MAX=3000000ull"],
+      "note": "MATCH 3M on pareto"
+    },
+    {
+      "name": "b4_n2_ppmd",
+      "extra_defs": ["-DFXCM_SPEED_PPMD_FAST_SKIP"],
+      "note": "PPMD freeze on fastpath — wall for free?"
+    }
+  ]
+}

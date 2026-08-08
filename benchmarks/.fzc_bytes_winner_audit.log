@@ -1,0 +1,9 @@
+[1/23] test_files ... ok (fzc)
+[2/23] test_files2 ... ok (fzc)
+[3/23] test_files4 ... ok (fzc)
+[4/23] test_files10 ... ok (fzc)
+[5/23] test_files11 ... ok (fzc)
+[6/23] test_files13 ... ok (fzc)
+[7/23] test_files28 ... FAIL
+  winner_compression: ["ext"]
+  gzip9_B=1102  seven_zip_B=1115  best_ext_B=989  fzc_B=993

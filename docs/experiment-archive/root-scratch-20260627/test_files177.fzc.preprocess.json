@@ -1,0 +1,57 @@
+{
+    "version": 2,
+    "recipe": "png_to_bmp",
+    "source_dir": "/srv/http/fractal_zip/test_files177",
+    "verbatim_restore": "sidecar_files",
+    "members": {
+        "grid_01.png": {
+            "stored_as": "grid_01.bmp",
+            "forward": "png_to_bmp",
+            "reverse": "bmp_to_png",
+            "orig_sha256": "56a2b3e1dd450c92e8f0fb0ef6ba477149114044ca6a666b4360c1de4b32f51f",
+            "orig_bytes": 2727
+        },
+        "grid_02.png": {
+            "stored_as": "grid_02.bmp",
+            "forward": "png_to_bmp",
+            "reverse": "bmp_to_png",
+            "orig_sha256": "01736c4174f0e37f3b8c874db59da42815593a6e50685a6aaae386aa4520385b",
+            "orig_bytes": 2732
+        },
+        "grid_03.png": {
+            "stored_as": "grid_03.bmp",
+            "forward": "png_to_bmp",
+            "reverse": "bmp_to_png",
+            "orig_sha256": "b26fec998ed3811bb1fce41261f0cc3d34e7ff1770faf027dfd09cd034fee4aa",
+            "orig_bytes": 2646
+        },
+        "grid_04.png": {
+            "stored_as": "grid_04.bmp",
+            "forward": "png_to_bmp",
+            "reverse": "bmp_to_png",
+            "orig_sha256": "2e5388e0e64b8bc57778df9dd1ea8bf9a1595452606db4056481f3ef779f78f5",
+            "orig_bytes": 2670
+        },
+        "plasma_01.png": {
+            "stored_as": "plasma_01.bmp",
+            "forward": "png_to_bmp",
+            "reverse": "bmp_to_png",
+            "orig_sha256": "d1ed9f6274380c47cb398b0a1da0b0e52389f49568174d7072648f507a834869",
+            "orig_bytes": 17942
+        },
+        "plasma_02.png": {
+            "stored_as": "plasma_02.bmp",
+            "forward": "png_to_bmp",
+            "reverse": "bmp_to_png",
+            "orig_sha256": "659906196b235a418c3de6c4c408abe07a834ffc338a2b4d642ff79d36c24cb7",
+            "orig_bytes": 19177
+        },
+        "plasma_03.png": {
+            "stored_as": "plasma_03.bmp",
+            "forward": "png_to_bmp",
+            "reverse": "bmp_to_png",
+            "orig_sha256": "6ce839e6a314615c1608dd731039c47d944959cc097af2699c78e4f7a10d092e",
+            "orig_bytes": 17234
+        }
+    }
+}

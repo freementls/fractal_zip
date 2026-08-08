@@ -1,0 +1,9 @@
+# fractal_zip: block direct HTTP access to uploaded job data.
+# Downloads must use fzc_compress.php / fzc_extract.php ?job=…&dl=… (readfile, attachment).
+<IfModule mod_authz_core.c>
+	Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+	Order deny,allow
+	Deny from all
+</IfModule>

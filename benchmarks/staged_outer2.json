@@ -1,0 +1,471 @@
+{
+    "generated": "2026-03-31T14:23:02-04:00",
+    "segment_length": 240,
+    "repeat_runs": 3,
+    "best_ext_tools_probed": [
+        "zstd",
+        "brotli",
+        "xz"
+    ],
+    "summary": {
+        "case_count": 10,
+        "fzc_among_smallest_bytes": 10,
+        "fzc_sole_smallest_bytes": 10,
+        "total_bytes_fzc_minus_best": 0
+    },
+    "totals": {
+        "raw_bytes": 1496192,
+        "gzip9_bundle_bytes": 42339,
+        "seven_zip_folder_bytes": 39879,
+        "best_ext_folder_bytes": 30176,
+        "fzc_bytes": 28342,
+        "gzip9_seconds": 0.0469,
+        "seven_zip_seconds": 0.35139999999999993,
+        "best_ext_seconds": 0.4542,
+        "zip_seconds": 2.4229999999999996,
+        "extract_all_seconds": 0.0999
+    },
+    "skipped_cases": [],
+    "cases": [
+        {
+            "label": "test_files",
+            "raw_bytes": 1098,
+            "gzip9_bundle_bytes": 89,
+            "gzip9_seconds": 0.0002,
+            "seven_zip_folder_bytes": 247,
+            "seven_zip_seconds": 0.0147,
+            "best_ext_folder_bytes": 200,
+            "best_ext_seconds": 0.01,
+            "best_ext_winner": "brotli",
+            "best_ext_breakdown": {
+                "zstd": {
+                    "bytes": 214,
+                    "seconds": 0.046213
+                },
+                "brotli": {
+                    "bytes": 200,
+                    "seconds": 0.009858
+                },
+                "xz": {
+                    "bytes": 312,
+                    "seconds": 0.00504
+                }
+            },
+            "fzc_bytes": 77,
+            "zip_seconds": 0.3336,
+            "extract_all_seconds": 0.0004,
+            "pct_of_raw_fzc": 7.01,
+            "pct_of_raw_gzip": 8.11,
+            "pct_of_raw_7z": 22.5,
+            "pct_of_raw_best_ext": 18.21,
+            "winner_compression": [
+                "fzc"
+            ],
+            "winner_speed": [
+                "gzip"
+            ],
+            "outer_codec": "gzip",
+            "segment_length": 240,
+            "multipass_used": false,
+            "verify_ok": true,
+            "verify_mismatch_files": 0,
+            "repeat_runs": 3
+        },
+        {
+            "label": "test_files2",
+            "raw_bytes": 1100,
+            "gzip9_bundle_bytes": 135,
+            "gzip9_seconds": 0.0006,
+            "seven_zip_folder_bytes": 294,
+            "seven_zip_seconds": 0.0196,
+            "best_ext_folder_bytes": 243,
+            "best_ext_seconds": 0.0105,
+            "best_ext_winner": "brotli",
+            "best_ext_breakdown": {
+                "zstd": {
+                    "bytes": 258,
+                    "seconds": 0.049985
+                },
+                "brotli": {
+                    "bytes": 243,
+                    "seconds": 0.010688
+                },
+                "xz": {
+                    "bytes": 352,
+                    "seconds": 0.004039
+                }
+            },
+            "fzc_bytes": 122,
+            "zip_seconds": 0.3198,
+            "extract_all_seconds": 0.0005,
+            "pct_of_raw_fzc": 11.09,
+            "pct_of_raw_gzip": 12.27,
+            "pct_of_raw_7z": 26.73,
+            "pct_of_raw_best_ext": 22.09,
+            "winner_compression": [
+                "fzc"
+            ],
+            "winner_speed": [
+                "gzip"
+            ],
+            "outer_codec": "gzip",
+            "segment_length": 240,
+            "multipass_used": false,
+            "verify_ok": true,
+            "verify_mismatch_files": 0,
+            "repeat_runs": 3
+        },
+        {
+            "label": "test_files4",
+            "raw_bytes": 85,
+            "gzip9_bundle_bytes": 113,
+            "gzip9_seconds": 0.0003,
+            "seven_zip_folder_bytes": 244,
+            "seven_zip_seconds": 0.0193,
+            "best_ext_folder_bytes": 198,
+            "best_ext_seconds": 0.0063,
+            "best_ext_winner": "brotli",
+            "best_ext_breakdown": {
+                "zstd": {
+                    "bytes": 200,
+                    "seconds": 0.066776
+                },
+                "brotli": {
+                    "bytes": 198,
+                    "seconds": 0.006334
+                },
+                "xz": {
+                    "bytes": 296,
+                    "seconds": 0.005784
+                }
+            },
+            "fzc_bytes": 104,
+            "zip_seconds": 0.0018,
+            "extract_all_seconds": 0.0001,
+            "pct_of_raw_fzc": 122.35,
+            "pct_of_raw_gzip": 132.94,
+            "pct_of_raw_7z": 287.06,
+            "pct_of_raw_best_ext": 232.94,
+            "winner_compression": [
+                "fzc"
+            ],
+            "winner_speed": [
+                "gzip"
+            ],
+            "outer_codec": "gzip",
+            "segment_length": 240,
+            "multipass_used": false,
+            "verify_ok": true,
+            "verify_mismatch_files": 0,
+            "repeat_runs": 3
+        },
+        {
+            "label": "test_files10",
+            "raw_bytes": 29076,
+            "gzip9_bundle_bytes": 274,
+            "gzip9_seconds": 0.0012,
+            "seven_zip_folder_bytes": 330,
+            "seven_zip_seconds": 0.0246,
+            "best_ext_folder_bytes": 228,
+            "best_ext_seconds": 0.0501,
+            "best_ext_winner": "zstd",
+            "best_ext_breakdown": {
+                "zstd": {
+                    "bytes": 228,
+                    "seconds": 0.049515
+                },
+                "brotli": {
+                    "bytes": 236,
+                    "seconds": 0.011766
+                },
+                "xz": {
+                    "bytes": 332,
+                    "seconds": 0.005424
+                }
+            },
+            "fzc_bytes": 146,
+            "zip_seconds": 0.2372,
+            "extract_all_seconds": 0.0049,
+            "pct_of_raw_fzc": 0.5,
+            "pct_of_raw_gzip": 0.94,
+            "pct_of_raw_7z": 1.13,
+            "pct_of_raw_best_ext": 0.78,
+            "winner_compression": [
+                "fzc"
+            ],
+            "winner_speed": [
+                "gzip"
+            ],
+            "outer_codec": "zstd",
+            "segment_length": 240,
+            "multipass_used": false,
+            "verify_ok": true,
+            "verify_mismatch_files": 0,
+            "repeat_runs": 3
+        },
+        {
+            "label": "test_files11",
+            "raw_bytes": 29076,
+            "gzip9_bundle_bytes": 280,
+            "gzip9_seconds": 0.001,
+            "seven_zip_folder_bytes": 340,
+            "seven_zip_seconds": 0.023,
+            "best_ext_folder_bytes": 247,
+            "best_ext_seconds": 0.0581,
+            "best_ext_winner": "zstd",
+            "best_ext_breakdown": {
+                "zstd": {
+                    "bytes": 247,
+                    "seconds": 0.058138
+                },
+                "brotli": {
+                    "bytes": 253,
+                    "seconds": 0.013107
+                },
+                "xz": {
+                    "bytes": 348,
+                    "seconds": 0.004856
+                }
+            },
+            "fzc_bytes": 153,
+            "zip_seconds": 0.261,
+            "extract_all_seconds": 0.0033,
+            "pct_of_raw_fzc": 0.53,
+            "pct_of_raw_gzip": 0.96,
+            "pct_of_raw_7z": 1.17,
+            "pct_of_raw_best_ext": 0.85,
+            "winner_compression": [
+                "fzc"
+            ],
+            "winner_speed": [
+                "gzip"
+            ],
+            "outer_codec": "zstd",
+            "segment_length": 240,
+            "multipass_used": false,
+            "verify_ok": true,
+            "verify_mismatch_files": 0,
+            "repeat_runs": 3
+        },
+        {
+            "label": "test_files13",
+            "raw_bytes": 62870,
+            "gzip9_bundle_bytes": 7789,
+            "gzip9_seconds": 0.0029,
+            "seven_zip_folder_bytes": 7199,
+            "seven_zip_seconds": 0.0251,
+            "best_ext_folder_bytes": 6276,
+            "best_ext_seconds": 0.0481,
+            "best_ext_winner": "brotli",
+            "best_ext_breakdown": {
+                "zstd": {
+                    "bytes": 7368,
+                    "seconds": 0.068311
+                },
+                "brotli": {
+                    "bytes": 6276,
+                    "seconds": 0.048072
+                },
+                "xz": {
+                    "bytes": 7176,
+                    "seconds": 0.023768
+                }
+            },
+            "fzc_bytes": 6182,
+            "zip_seconds": 0.477,
+            "extract_all_seconds": 0.0051,
+            "pct_of_raw_fzc": 9.83,
+            "pct_of_raw_gzip": 12.39,
+            "pct_of_raw_7z": 11.45,
+            "pct_of_raw_best_ext": 9.98,
+            "winner_compression": [
+                "fzc"
+            ],
+            "winner_speed": [
+                "gzip"
+            ],
+            "outer_codec": "brotli",
+            "segment_length": 240,
+            "multipass_used": false,
+            "verify_ok": true,
+            "verify_mismatch_files": 0,
+            "repeat_runs": 3
+        },
+        {
+            "label": "test_files28",
+            "raw_bytes": 9498,
+            "gzip9_bundle_bytes": 1102,
+            "gzip9_seconds": 0.001,
+            "seven_zip_folder_bytes": 1115,
+            "seven_zip_seconds": 0.011,
+            "best_ext_folder_bytes": 994,
+            "best_ext_seconds": 0.0178,
+            "best_ext_winner": "brotli",
+            "best_ext_breakdown": {
+                "zstd": {
+                    "bytes": 1074,
+                    "seconds": 0.059793
+                },
+                "brotli": {
+                    "bytes": 994,
+                    "seconds": 0.017779
+                },
+                "xz": {
+                    "bytes": 1188,
+                    "seconds": 0.007128
+                }
+            },
+            "fzc_bytes": 921,
+            "zip_seconds": 0.2844,
+            "extract_all_seconds": 0.002,
+            "pct_of_raw_fzc": 9.7,
+            "pct_of_raw_gzip": 11.6,
+            "pct_of_raw_7z": 11.74,
+            "pct_of_raw_best_ext": 10.47,
+            "winner_compression": [
+                "fzc"
+            ],
+            "winner_speed": [
+                "gzip"
+            ],
+            "outer_codec": "brotli",
+            "segment_length": 240,
+            "multipass_used": false,
+            "verify_ok": true,
+            "verify_mismatch_files": 0,
+            "repeat_runs": 3
+        },
+        {
+            "label": "test_files29",
+            "raw_bytes": 1277926,
+            "gzip9_bundle_bytes": 7970,
+            "gzip9_seconds": 0.0295,
+            "seven_zip_folder_bytes": 7726,
+            "seven_zip_seconds": 0.1523,
+            "best_ext_folder_bytes": 267,
+            "best_ext_seconds": 0.0871,
+            "best_ext_winner": "brotli",
+            "best_ext_breakdown": {
+                "zstd": {
+                    "bytes": 417,
+                    "seconds": 0.065599
+                },
+                "brotli": {
+                    "bytes": 267,
+                    "seconds": 0.086558
+                },
+                "xz": {
+                    "bytes": 7756,
+                    "seconds": 0.073465
+                }
+            },
+            "fzc_bytes": 209,
+            "zip_seconds": 0.2143,
+            "extract_all_seconds": 0.0614,
+            "pct_of_raw_fzc": 0.02,
+            "pct_of_raw_gzip": 0.62,
+            "pct_of_raw_7z": 0.6,
+            "pct_of_raw_best_ext": 0.02,
+            "winner_compression": [
+                "fzc"
+            ],
+            "winner_speed": [
+                "gzip"
+            ],
+            "outer_codec": "brotli",
+            "segment_length": 240,
+            "multipass_used": false,
+            "verify_ok": true,
+            "verify_mismatch_files": 0,
+            "repeat_runs": 3
+        },
+        {
+            "label": "test_files49",
+            "raw_bytes": 85083,
+            "gzip9_bundle_bytes": 23821,
+            "gzip9_seconds": 0.01,
+            "seven_zip_folder_bytes": 21849,
+            "seven_zip_seconds": 0.0313,
+            "best_ext_folder_bytes": 20434,
+            "best_ext_seconds": 0.097,
+            "best_ext_winner": "brotli",
+            "best_ext_breakdown": {
+                "zstd": {
+                    "bytes": 22445,
+                    "seconds": 0.093789
+                },
+                "brotli": {
+                    "bytes": 20434,
+                    "seconds": 0.101497
+                },
+                "xz": {
+                    "bytes": 21860,
+                    "seconds": 0.054607
+                }
+            },
+            "fzc_bytes": 20336,
+            "zip_seconds": 0.2218,
+            "extract_all_seconds": 0.0076,
+            "pct_of_raw_fzc": 23.9,
+            "pct_of_raw_gzip": 28,
+            "pct_of_raw_7z": 25.68,
+            "pct_of_raw_best_ext": 24.02,
+            "winner_compression": [
+                "fzc"
+            ],
+            "winner_speed": [
+                "gzip"
+            ],
+            "outer_codec": "brotli",
+            "segment_length": 240,
+            "multipass_used": false,
+            "verify_ok": true,
+            "verify_mismatch_files": 0,
+            "repeat_runs": 3
+        },
+        {
+            "label": "test_files52",
+            "raw_bytes": 380,
+            "gzip9_bundle_bytes": 766,
+            "gzip9_seconds": 0.0002,
+            "seven_zip_folder_bytes": 535,
+            "seven_zip_seconds": 0.0305,
+            "best_ext_folder_bytes": 1089,
+            "best_ext_seconds": 0.0692,
+            "best_ext_winner": "zstd",
+            "best_ext_breakdown": {
+                "zstd": {
+                    "bytes": 1089,
+                    "seconds": 0.068369
+                },
+                "brotli": {
+                    "bytes": 1098,
+                    "seconds": 0.317325
+                },
+                "xz": {
+                    "bytes": 1184,
+                    "seconds": 0.038967
+                }
+            },
+            "fzc_bytes": 92,
+            "zip_seconds": 0.0721,
+            "extract_all_seconds": 0.0146,
+            "pct_of_raw_fzc": 24.21,
+            "pct_of_raw_gzip": 201.58,
+            "pct_of_raw_7z": 140.79,
+            "pct_of_raw_best_ext": 286.58,
+            "winner_compression": [
+                "fzc"
+            ],
+            "winner_speed": [
+                "gzip"
+            ],
+            "outer_codec": "brotli",
+            "segment_length": 240,
+            "multipass_used": false,
+            "verify_ok": true,
+            "verify_mismatch_files": 0,
+            "repeat_runs": 3
+        }
+    ]
+}

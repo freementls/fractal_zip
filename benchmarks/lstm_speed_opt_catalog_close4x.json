@@ -1,0 +1,138 @@
+{
+  "description": "Close true-4× gap on dual_lm_aggr (~755 s quiet, need ≤729.5 s ≈ −3.5%) and/or stack ao16 tax (−173 KiB vs kitchen) onto the speed tip without giving the wall back.",
+  "base_defs": [
+    "-DSEED=923",
+    "-DUPDATE_LIMIT=3000",
+    "-DFXCM_ENTITY_FOLD",
+    "-DFXCM_MATCH_MAX=3000000ull",
+    "-DFXCM_SPEED_INLINE_GET",
+    "-DNDEBUG",
+    "-DFXCM_RECIPE_RUNTIME",
+    "-DFXCM_FRACTAL_PRED",
+    "-DFXCM_LSTM_HIDDEN=64",
+    "-DFXCM_PPMD_MB=2048",
+    "-DFXCM_MATCH_MAX=1000000ull",
+    "-DFXCM_SPEED_MATCH_FASTPATH",
+    "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+    "-DFXCM_SPEED_MATCH_SKIP_MIN=1u",
+    "-DFXCM_SPEED_CM_MATCH_SKIP",
+    "-DFXCM_SPEED_CM_MATCH_MIN=4",
+    "-DFXCM_SPEED_ADVANCE_ONLY",
+    "-DFXCM_SPEED_OUTER_AO_MIN=4u",
+    "-DFXCM_CM_SCALE=2"
+  ],
+  "candidates": [
+    {
+      "name": "c4_aggr_ctrl",
+      "extra_defs": [
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_AGGRESSIVE"
+      ],
+      "note": "rebuild dual_lm_aggr speed tip"
+    },
+    {
+      "name": "c4_aggr_mid",
+      "extra_defs": [
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_AGGRESSIVE",
+        "-DFXCM_SPEED_MATCH_MID_SKIP"
+      ],
+      "note": "aggr + Match mid-skip"
+    },
+    {
+      "name": "c4_aggr_slim",
+      "extra_defs": [
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_AGGRESSIVE",
+        "-DFXCM_SPEED_AO_SLIM"
+      ],
+      "note": "aggr + AO_SLIM"
+    },
+    {
+      "name": "c4_aggr_mid_slim",
+      "extra_defs": [
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_AGGRESSIVE",
+        "-DFXCM_SPEED_MATCH_MID_SKIP",
+        "-DFXCM_SPEED_AO_SLIM"
+      ],
+      "note": "aggr + mid + slim"
+    },
+    {
+      "name": "c4_aggr_novel2",
+      "extra_defs": [
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_AGGRESSIVE",
+        "-DFXCM_SPEED_LSTM_NOVEL_STRIDE=2u"
+      ],
+      "note": "aggr + LSTM novel stride 2"
+    },
+    {
+      "name": "c4_aggr_fxr16",
+      "extra_defs": [
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_AGGRESSIVE",
+        "-DFXCM_SPEED_FXCM_FAST_SKIP",
+        "-DFXCM_SPEED_FXCM_REFRESH=16u"
+      ],
+      "note": "aggr + gentle FXCM skip"
+    },
+    {
+      "name": "c4_ao16_aggr",
+      "extra_defs": [
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_AGGRESSIVE",
+        "-DFXCM_SPEED_OUTER_AO_MIN=16u"
+      ],
+      "note": "stack ao16 tax gate on AGGRESSIVE (not EXTREME)"
+    },
+    {
+      "name": "c4_ao8_aggr",
+      "extra_defs": [
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_AGGRESSIVE",
+        "-DFXCM_SPEED_OUTER_AO_MIN=8u"
+      ],
+      "note": "milder AO gate on aggr"
+    },
+    {
+      "name": "c4_ao16_ctrl",
+      "extra_defs": [
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_EXTREME",
+        "-DFXCM_SPEED_OUTER_AO_MIN=16u"
+      ],
+      "note": "rebuild dual_lm_ao16 bytes tip"
+    },
+    {
+      "name": "c4_ao16_mid",
+      "extra_defs": [
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_EXTREME",
+        "-DFXCM_SPEED_OUTER_AO_MIN=16u",
+        "-DFXCM_SPEED_MATCH_MID_SKIP"
+      ],
+      "note": "bytes tip + mid-skip for wall"
+    },
+    {
+      "name": "c4_ao16_slim",
+      "extra_defs": [
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_EXTREME",
+        "-DFXCM_SPEED_OUTER_AO_MIN=16u",
+        "-DFXCM_SPEED_AO_SLIM"
+      ],
+      "note": "bytes tip + AO_SLIM"
+    },
+    {
+      "name": "c4_ao16_novel2",
+      "extra_defs": [
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_EXTREME",
+        "-DFXCM_SPEED_OUTER_AO_MIN=16u",
+        "-DFXCM_SPEED_LSTM_NOVEL_STRIDE=2u"
+      ],
+      "note": "bytes tip + novel stride"
+    }
+  ]
+}

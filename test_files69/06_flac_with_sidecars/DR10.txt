@@ -1,0 +1,40 @@
+foobar2000 2.0 / Dynamic Range Meter 1.1.1
+log date: 2024-06-29 19:33:11
+
+--------------------------------------------------------------------------------
+Analyzed: Daft Punk, Barry Manilow, Marty Panzer / Discovery (1)
+          Daft Punk, DJ Sneak, George Duke / Discovery (2)
+          Daft Punk, Edwin Birdsong / Discovery (3)
+          Daft Punk, Romanthony / Discovery (4-5)
+          Daft Punk, Todd Edwards / Discovery (6)
+          Daft Punk / Discovery (7-14)
+--------------------------------------------------------------------------------
+
+DR         Peak         RMS     Duration Track
+--------------------------------------------------------------------------------
+DR8        0.00 dB   -10.23 dB      3:58 07-Superheroes
+DR9        0.00 dB   -12.11 dB      4:58 03-Digital Love
+DR10       0.00 dB   -11.39 dB      3:44 04-Harder, Better, Faster, Stronger
+DR9        0.00 dB   -11.65 dB      5:21 01-One More Time
+DR9        0.00 dB   -11.21 dB     10:00 14-Too Long
+DR10       0.00 dB   -11.03 dB      4:00 13-Face To Face
+DR10       0.00 dB   -12.22 dB      3:27 02-Aerodynamic
+DR9        0.00 dB   -10.68 dB      3:32 05-Crescendolls
+DR14      -0.54 dB   -15.77 dB      1:44 06-Night Vision
+DR10       0.00 dB   -12.83 dB      3:22 08-High Life
+DR11       0.00 dB   -13.48 dB      3:51 09-Something About Us
+DR10       0.00 dB   -12.76 dB      3:48 10-Voyager
+DR11       0.00 dB   -12.23 dB      5:45 11-Veridis Quo
+DR9        0.00 dB   -11.27 dB      3:27 12-Short Circuit
+--------------------------------------------------------------------------------
+
+Number of tracks:  14
+Official DR value: DR10
+
+Samplerate:        44100 Hz
+Channels:          2
+Bits per sample:   16
+Bitrate:           812 kbps
+Codec:             FLAC
+================================================================================
+

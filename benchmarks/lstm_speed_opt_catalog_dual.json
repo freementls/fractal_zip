@@ -1,0 +1,131 @@
+{
+  "description": "Dual Pareto: (A) cut byte tax on fast kplus_lm (~766 s quiet / +80 KiB vs kitchen), (B) speed up best-byte arms (kitchen / kplus_slim −25 KiB). Screen @1 MiB vs banked kitchen+lm+slim; promote to pinned @10 MiB.",
+  "base_defs": [
+    "-DSEED=923",
+    "-DUPDATE_LIMIT=3000",
+    "-DFXCM_ENTITY_FOLD",
+    "-DFXCM_MATCH_MAX=3000000ull",
+    "-DFXCM_SPEED_INLINE_GET",
+    "-DNDEBUG",
+    "-DFXCM_RECIPE_RUNTIME",
+    "-DFXCM_FRACTAL_PRED",
+    "-DFXCM_LSTM_HIDDEN=64",
+    "-DFXCM_PPMD_MB=2048",
+    "-DFXCM_MATCH_MAX=1000000ull",
+    "-DFXCM_SPEED_MATCH_FASTPATH",
+    "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+    "-DFXCM_SPEED_MATCH_SKIP_MIN=1u",
+    "-DFXCM_SPEED_CM_MATCH_SKIP",
+    "-DFXCM_SPEED_CM_MATCH_MIN=4",
+    "-DFXCM_SPEED_ADVANCE_ONLY",
+    "-DFXCM_SPEED_OUTER_AO_MIN=4u",
+    "-DFXCM_CM_SCALE=2"
+  ],
+  "candidates": [
+    {
+      "name": "dual_lm_ctrl",
+      "extra_defs": [
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_EXTREME"
+      ],
+      "track": "fast_bytes",
+      "note": "rebuild kplus_lm control"
+    },
+    {
+      "name": "dual_lm_soft",
+      "extra_defs": ["-DFXCM_SPEED_LIGHT_MIX"],
+      "track": "fast_bytes",
+      "note": "LM without EXTREME — expect more bytes restored, some wall lost"
+    },
+    {
+      "name": "dual_lm_aggr",
+      "extra_defs": [
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_AGGRESSIVE"
+      ],
+      "track": "fast_bytes",
+      "note": "middle LM lean (scm only mid-byte)"
+    },
+    {
+      "name": "dual_lm_slim",
+      "extra_defs": [
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_EXTREME",
+        "-DFXCM_SPEED_AO_SLIM"
+      ],
+      "track": "fast_bytes",
+      "note": "LM extreme + AO_SLIM (slim alone cut kitchen bytes)"
+    },
+    {
+      "name": "dual_lm_ao16",
+      "extra_defs": [
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_EXTREME",
+        "-DFXCM_SPEED_OUTER_AO_MIN=16u"
+      ],
+      "track": "fast_bytes",
+      "note": "raise AO gate (taxcut lever) keep LM extreme"
+    },
+    {
+      "name": "dual_lm_ao16_fp4",
+      "extra_defs": [
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_EXTREME",
+        "-DFXCM_SPEED_OUTER_AO_MIN=16u",
+        "-DFXCM_SPEED_OUTER_FP_MIN=4u"
+      ],
+      "track": "fast_bytes",
+      "note": "mild_ao16_fp4 recipe on kitchen+LM base"
+    },
+    {
+      "name": "dual_lm_soft_slim",
+      "extra_defs": [
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_AO_SLIM"
+      ],
+      "track": "fast_bytes",
+      "note": "soft LM + slim — likely best tax/speed compromise"
+    },
+    {
+      "name": "dual_slim_ctrl",
+      "extra_defs": ["-DFXCM_SPEED_AO_SLIM"],
+      "track": "bytes_speed",
+      "note": "rebuild kplus_slim control (best bytes @10 MiB)"
+    },
+    {
+      "name": "dual_slim_soft",
+      "extra_defs": [
+        "-DFXCM_SPEED_AO_SLIM",
+        "-DFXCM_SPEED_LIGHT_MIX"
+      ],
+      "track": "bytes_speed",
+      "note": "slim + soft LM — speed kitchen-bytes king"
+    },
+    {
+      "name": "dual_slim_aggr",
+      "extra_defs": [
+        "-DFXCM_SPEED_AO_SLIM",
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_AGGRESSIVE"
+      ],
+      "track": "bytes_speed",
+      "note": "slim + aggressive LM"
+    },
+    {
+      "name": "dual_kit_soft",
+      "extra_defs": ["-DFXCM_SPEED_LIGHT_MIX"],
+      "track": "bytes_speed",
+      "note": "kitchen + soft LM (no slim)"
+    },
+    {
+      "name": "dual_slim_fxr16",
+      "extra_defs": [
+        "-DFXCM_SPEED_AO_SLIM",
+        "-DFXCM_SPEED_FXCM_FAST_SKIP",
+        "-DFXCM_SPEED_FXCM_REFRESH=16u"
+      ],
+      "track": "bytes_speed",
+      "note": "slim + gentle FXCM refresh (16; fxr8 taxed)"
+    }
+  ]
+}

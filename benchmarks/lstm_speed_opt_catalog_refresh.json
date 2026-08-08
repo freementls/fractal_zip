@@ -1,0 +1,76 @@
+{
+  "description": "Hybrid hard-skip + periodic soft refresh. soft5_hid was 0.97× base but +680B vs320; refresh aims to recover bytes while keeping wall near base.",
+  "base_defs": [
+    "-DSEED=923",
+    "-DUPDATE_LIMIT=3000",
+    "-DFXCM_ENTITY_FOLD",
+    "-DFXCM_MATCH_MAX=3000000ull",
+    "-DFXCM_SPEED_INLINE_GET",
+    "-DNDEBUG",
+    "-DFXCM_PPMD_MB=8192",
+    "-DFXCM_RECIPE_RUNTIME",
+    "-DFXCM_FRACTAL_PRED",
+    "-DFXCM_LSTM_HIDDEN=384",
+    "-DFXCM_SPEED_LSTM_MATCH_SKIP_SOFT"
+  ],
+  "baseline_name": "lstm384_full",
+  "beat_name": "lstm320",
+  "candidates": [
+    {
+      "name": "s6_r4",
+      "extra_defs": [
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=6u",
+        "-DFXCM_SPEED_LSTM_SKIP_REFRESH",
+        "-DFXCM_SPEED_LSTM_REFRESH=4u"
+      ],
+      "note": "soft6 ForwardOnly every 4th long-match; hard-skip others"
+    },
+    {
+      "name": "s6_r8",
+      "extra_defs": [
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=6u",
+        "-DFXCM_SPEED_LSTM_SKIP_REFRESH",
+        "-DFXCM_SPEED_LSTM_REFRESH=8u"
+      ],
+      "note": "soft6 refresh every 8th"
+    },
+    {
+      "name": "s5_r4",
+      "extra_defs": [
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=5u",
+        "-DFXCM_SPEED_LSTM_SKIP_REFRESH",
+        "-DFXCM_SPEED_LSTM_REFRESH=4u"
+      ],
+      "note": "soft5 + refresh4 — chase soft5_hid speed with better bytes"
+    },
+    {
+      "name": "s5_r2",
+      "extra_defs": [
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=5u",
+        "-DFXCM_SPEED_LSTM_SKIP_REFRESH",
+        "-DFXCM_SPEED_LSTM_REFRESH=2u"
+      ],
+      "note": "soft5 refresh every other — more bytes, less speed"
+    },
+    {
+      "name": "s5_hid_r4",
+      "extra_defs": [
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=5u",
+        "-DFXCM_SPEED_LSTM_SKIP_REFRESH",
+        "-DFXCM_SPEED_LSTM_REFRESH=4u",
+        "-DFXCM_SPEED_LSTM_SOFT_HIDDEN"
+      ],
+      "note": "hard-skip 3/4; hidden-only refresh 1/4"
+    },
+    {
+      "name": "s6_hid_r4",
+      "extra_defs": [
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=6u",
+        "-DFXCM_SPEED_LSTM_SKIP_REFRESH",
+        "-DFXCM_SPEED_LSTM_REFRESH=4u",
+        "-DFXCM_SPEED_LSTM_SOFT_HIDDEN"
+      ],
+      "note": "MIN6 hard-skip + hidden refresh"
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "description": "Soft6 legalization: AVX dud under -ffp-model=fast (already auto-vecs). Cut outer mixer via MATCH_FASTPATH with independent OUTER_FP_MIN; keep LSTM soft MIN=6.",
+  "base_defs": [
+    "-DSEED=923",
+    "-DUPDATE_LIMIT=3000",
+    "-DFXCM_ENTITY_FOLD",
+    "-DFXCM_MATCH_MAX=3000000ull",
+    "-DFXCM_SPEED_INLINE_GET",
+    "-DNDEBUG",
+    "-DFXCM_PPMD_MB=8192",
+    "-DFXCM_RECIPE_RUNTIME",
+    "-DFXCM_FRACTAL_PRED",
+    "-DFXCM_LSTM_HIDDEN=384",
+    "-DFXCM_SPEED_LSTM_MATCH_SKIP_SOFT",
+    "-DFXCM_SPEED_MATCH_SKIP_MIN=6u"
+  ],
+  "baseline_name": "lstm384",
+  "beat_name": "lstm320",
+  "candidates": [
+    {
+      "name": "soft6_fp2",
+      "extra_defs": [
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=2u"
+      ],
+      "note": "outer fastpath@2 + soft6@6 — primary legalization bet"
+    },
+    {
+      "name": "soft6_fp4",
+      "extra_defs": [
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=4u"
+      ],
+      "note": "milder outer fastpath"
+    },
+    {
+      "name": "soft6_fp6",
+      "extra_defs": [
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=6u"
+      ],
+      "note": "outer fp only when soft6 also fires"
+    },
+    {
+      "name": "soft6_fp2_ao4",
+      "extra_defs": [
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=2u",
+        "-DFXCM_SPEED_ADVANCE_ONLY",
+        "-DFXCM_SPEED_OUTER_AO_MIN=4u"
+      ],
+      "note": "fp2 + advance-only stack"
+    },
+    {
+      "name": "soft6_ppmd2k",
+      "extra_defs": ["-DFXCM_PPMD_MB=2048"],
+      "note": "cheaper PPMD only"
+    },
+    {
+      "name": "soft6_avx",
+      "extra_defs": ["-DFXCM_SPEED_LSTM_AVX_GEMV"],
+      "note": "control: expect ~no wall win vs stock soft6"
+    }
+  ]
+}

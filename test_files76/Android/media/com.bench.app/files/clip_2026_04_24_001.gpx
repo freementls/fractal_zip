@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="bench">
+  <trk><name>morning</name>
+    <trkseg>
+      <trkpt lat="40.0" lon="-75.0"><time>2026-04-24T12:00:00Z</time><ele>12</ele></trkpt>
+      <trkpt lat="40.0001" lon="-75.0001"><time>2026-04-24T12:00:20Z</time><ele>13</ele></trkpt>
+    </trkseg>
+  </trk>
+</gpx>

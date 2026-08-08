@@ -1,0 +1,23 @@
+{
+  "description": "Close ~11KiB gap between b4_slim pareto (novel2) and bytes_tip (no novel). Peel novel / soften.",
+  "base_defs": [
+    "-DSEED=923", "-DUPDATE_LIMIT=3000", "-DFXCM_ENTITY_FOLD",
+    "-DFXCM_MATCH_MAX=3000000ull", "-DFXCM_SPEED_INLINE_GET", "-DNDEBUG",
+    "-DFXCM_RECIPE_RUNTIME", "-DFXCM_FRACTAL_PRED", "-DFXCM_LSTM_HIDDEN=64",
+    "-DFXCM_PPMD_MB=2048", "-DFXCM_MATCH_MAX=1000000ull",
+    "-DFXCM_SPEED_MATCH_FASTPATH", "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+    "-DFXCM_SPEED_MATCH_SKIP_MIN=1u", "-DFXCM_SPEED_CM_MATCH_SKIP",
+    "-DFXCM_SPEED_CM_MATCH_MIN=4", "-DFXCM_SPEED_ADVANCE_ONLY",
+    "-DFXCM_SPEED_OUTER_AO_MIN=16u", "-DFXCM_CM_SCALE=2",
+    "-DFXCM_SPEED_LIGHT_MIX", "-DFXCM_SPEED_LIGHT_MIX_AGGRESSIVE",
+    "-DFXCM_SPEED_AO_SLIM"
+  ],
+  "candidates": [
+    {"name": "gap_nonovel", "extra_defs": [], "note": "b4_slim without novel2 — AGGRESSIVE bytes_tip shape"},
+    {"name": "gap_n3", "extra_defs": ["-DFXCM_SPEED_LSTM_NOVEL_STRIDE=3u"], "note": "novel3 instead of 2"},
+    {"name": "gap_n2_soft", "extra_defs": ["-DFXCM_SPEED_LSTM_NOVEL_STRIDE=2u", "-DFXCM_SPEED_LSTM_NOVEL_SOFT"], "note": "soft novel on b4_slim"},
+    {"name": "gap_n2_edge4", "extra_defs": ["-DFXCM_SPEED_LSTM_NOVEL_STRIDE=2u", "-DFXCM_SPEED_LSTM_NOVEL_EDGE=4u"], "note": "edge4 on b4_slim"},
+    {"name": "gap_extreme", "extra_defs": ["-DFXCM_SPEED_LIGHT_MIX_EXTREME", "-DFXCM_SPEED_LSTM_NOVEL_STRIDE=2u"], "note": "rebuild EXTREME+slim+novel2 (=old pareto)"},
+    {"name": "gap_bt_aggr", "extra_defs": ["-DFXCM_SPEED_LIGHT_MIX_EXTREME"], "note": "bytes_tip shape but will strip — see build script for extreme-only no novel"}
+  ]
+}

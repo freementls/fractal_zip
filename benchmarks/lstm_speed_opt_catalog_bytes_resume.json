@@ -1,0 +1,69 @@
+{
+  "description": "After ~2× speed bank: resume byte paths — mid LSTM sizes + softskip6 stacks. Find Pareto that beats LSTM320 bytes at ≤1.35× base wall (soft6@384 is 1.52×).",
+  "base_defs": [
+    "-DSEED=923",
+    "-DUPDATE_LIMIT=3000",
+    "-DFXCM_ENTITY_FOLD",
+    "-DFXCM_MATCH_MAX=3000000ull",
+    "-DFXCM_SPEED_INLINE_GET",
+    "-DNDEBUG",
+    "-DFXCM_PPMD_MB=8192",
+    "-DFXCM_RECIPE_RUNTIME",
+    "-DFXCM_FRACTAL_PRED"
+  ],
+  "baseline_name": "lstm384",
+  "beat_name": "lstm320",
+  "candidates": [
+    {
+      "name": "l200",
+      "extra_defs": ["-DFXCM_LSTM_HIDDEN=200"],
+      "note": "default-ish hidden; ~1.2×@256k vs320"
+    },
+    {
+      "name": "l256",
+      "extra_defs": ["-DFXCM_LSTM_HIDDEN=256"],
+      "note": "mid size between 200 and banked 320"
+    },
+    {
+      "name": "l288",
+      "extra_defs": ["-DFXCM_LSTM_HIDDEN=288"],
+      "note": "near-320 with lower GEMV tax"
+    },
+    {
+      "name": "soft6_l256",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=256",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP_SOFT",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=6u"
+      ],
+      "note": "soft6 byte idea on cheaper LSTM"
+    },
+    {
+      "name": "soft6_l288",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=288",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP_SOFT",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=6u"
+      ],
+      "note": "soft6 near-320"
+    },
+    {
+      "name": "soft6_l320",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=320",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP_SOFT",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=6u"
+      ],
+      "note": "soft6 on banked size — keep 320 wall class?"
+    },
+    {
+      "name": "soft6_l384",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=384",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP_SOFT",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=6u"
+      ],
+      "note": "alias of softskip6 — ref max-bytes arm"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "theme": "Gruvbox",
+  "tabSize": 4,
+  "insertSpaces": true,
+  "rulers": [100, 120],
+  "files.associations": { "*.fzc": "text" },
+  "search.followSymlinks": false,
+  "python.analysis.stubPath": "./.stubs"
+}

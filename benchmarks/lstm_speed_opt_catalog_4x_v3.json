@@ -1,0 +1,148 @@
+{
+  "description": "4× v3: after outer MATCH_FASTPATH, LSTM ByteUpdate is already skipped — hard-stride alone cannot hit 4×. Cut residual PPMD+CM on fastpath (PPMD_FAST_SKIP, LIGHT_MIX_*) and novel-byte LSTM stride. Screen with FRESH refs (no --reuse-refs). 1m bar ~2.5×; real 4× gate at 10m (kitchen was 2.35×@1m / 3.14×@10m).",
+  "base_defs": [
+    "-DSEED=923",
+    "-DUPDATE_LIMIT=3000",
+    "-DFXCM_ENTITY_FOLD",
+    "-DFXCM_MATCH_MAX=3000000ull",
+    "-DFXCM_SPEED_INLINE_GET",
+    "-DNDEBUG",
+    "-DFXCM_RECIPE_RUNTIME",
+    "-DFXCM_FRACTAL_PRED"
+  ],
+  "candidates": [
+    {
+      "name": "ksink",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=64",
+        "-DFXCM_PPMD_MB=2048",
+        "-DFXCM_MATCH_MAX=1000000ull",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=2u",
+        "-DFXCM_SPEED_ADVANCE_ONLY",
+        "-DFXCM_SPEED_OUTER_AO_MIN=4u",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=2u",
+        "-DFXCM_SPEED_CM_MATCH_SKIP",
+        "-DFXCM_SPEED_CM_MATCH_MIN=4",
+        "-DFXCM_CM_SCALE=2"
+      ],
+      "note": "control ≈ prior fp2_l64_p2k_cm_ao (3.14×@10m)"
+    },
+    {
+      "name": "ksink_ppmd",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=64",
+        "-DFXCM_PPMD_MB=2048",
+        "-DFXCM_MATCH_MAX=1000000ull",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=2u",
+        "-DFXCM_SPEED_ADVANCE_ONLY",
+        "-DFXCM_SPEED_OUTER_AO_MIN=4u",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=2u",
+        "-DFXCM_SPEED_CM_MATCH_SKIP",
+        "-DFXCM_SPEED_CM_MATCH_MIN=4",
+        "-DFXCM_CM_SCALE=2",
+        "-DFXCM_SPEED_PPMD_FAST_SKIP"
+      ],
+      "note": "kitchen + freeze PPMD on outer fastpath — primary 4× lever"
+    },
+    {
+      "name": "ksink_ppmd_lm",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=64",
+        "-DFXCM_PPMD_MB=2048",
+        "-DFXCM_MATCH_MAX=1000000ull",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=2u",
+        "-DFXCM_SPEED_ADVANCE_ONLY",
+        "-DFXCM_SPEED_OUTER_AO_MIN=4u",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=2u",
+        "-DFXCM_SPEED_CM_MATCH_SKIP",
+        "-DFXCM_SPEED_CM_MATCH_MIN=4",
+        "-DFXCM_CM_SCALE=2",
+        "-DFXCM_SPEED_PPMD_FAST_SKIP",
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_EXTREME"
+      ],
+      "note": "ppmd skip + extreme light mid-byte CM"
+    },
+    {
+      "name": "ksink_ppmd_fp1",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=64",
+        "-DFXCM_PPMD_MB=1024",
+        "-DFXCM_MATCH_MAX=1000000ull",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=1u",
+        "-DFXCM_SPEED_ADVANCE_ONLY",
+        "-DFXCM_SPEED_OUTER_AO_MIN=2u",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=1u",
+        "-DFXCM_SPEED_CM_MATCH_SKIP",
+        "-DFXCM_SPEED_CM_MATCH_MIN=2",
+        "-DFXCM_CM_SCALE=2",
+        "-DFXCM_SPEED_PPMD_FAST_SKIP",
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_EXTREME"
+      ],
+      "note": "max-skip hammer toward ≥4×"
+    },
+    {
+      "name": "l128_ppmd_fp2",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=128",
+        "-DFXCM_PPMD_MB=4096",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=2u",
+        "-DFXCM_SPEED_PPMD_FAST_SKIP"
+      ],
+      "note": "low-tax path: l128 (+8k@10m plain) + mild fp + ppmd freeze"
+    },
+    {
+      "name": "l192_ppmd_fp2",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=192",
+        "-DFXCM_PPMD_MB=8192",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=2u",
+        "-DFXCM_SPEED_PPMD_FAST_SKIP"
+      ],
+      "note": "mid-LSTM + ppmd freeze — byte-preserving 4× attempt"
+    },
+    {
+      "name": "l256_novel2_fp4",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=256",
+        "-DFXCM_PPMD_MB=8192",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=2u",
+        "-DFXCM_SPEED_LSTM_NOVEL_STRIDE=2u",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=4u",
+        "-DFXCM_SPEED_PPMD_FAST_SKIP"
+      ],
+      "note": "large net; LSTM only every 2nd novel byte + mild outer"
+    },
+    {
+      "name": "l128_novel2_ao",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=128",
+        "-DFXCM_PPMD_MB=4096",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=2u",
+        "-DFXCM_SPEED_LSTM_NOVEL_STRIDE=2u",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=2u",
+        "-DFXCM_SPEED_ADVANCE_ONLY",
+        "-DFXCM_SPEED_OUTER_AO_MIN=4u",
+        "-DFXCM_SPEED_PPMD_FAST_SKIP",
+        "-DFXCM_SPEED_CM_MATCH_SKIP",
+        "-DFXCM_SPEED_CM_MATCH_MIN=4"
+      ],
+      "note": "l128 envelope + novel stride + ao/cm/ppmd"
+    }
+  ]
+}

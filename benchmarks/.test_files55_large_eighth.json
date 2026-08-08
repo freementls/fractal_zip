@@ -1,0 +1,119 @@
+{
+    "generated": "2026-04-05T11:09:52-04:00",
+    "case_timeout_sec": null,
+    "baseline_cache": {
+        "enabled": true,
+        "path": "/home/lulu/fractal_zip/benchmarks/.baseline_cache.json",
+        "refreshed": false
+    },
+    "phase1_case_cache": {
+        "enabled": false,
+        "path": "/home/lulu/fractal_zip/benchmarks/.phase1_case_cache.json",
+        "refreshed": false
+    },
+    "skipped_cases_log": "/home/lulu/fractal_zip/benchmarks/.last_skipped_cases.json",
+    "include_large": true,
+    "heavy_corpora_folder_gzip_fast_default": [
+        "test_files35",
+        "test_files61",
+        "test_files54",
+        "test_files55",
+        "test_files56",
+        "test_files57",
+        "test_files58",
+        "test_files59"
+    ],
+    "segment_length": 300,
+    "repeat_runs": 1,
+    "best_ext_tools_probed": [
+        "arc",
+        "zstd",
+        "brotli",
+        "xz"
+    ],
+    "summary": {
+        "case_count": 1,
+        "fzc_among_smallest_bytes": 1,
+        "fzc_sole_smallest_bytes": 1,
+        "total_bytes_fzc_minus_best": 0
+    },
+    "totals": {
+        "raw_bytes": 25630833,
+        "gzip9_bundle_bytes": 7763909,
+        "seven_zip_folder_bytes": 2191775,
+        "best_ext_folder_bytes": 2161817,
+        "fzc_bytes": 2158962,
+        "gzip9_seconds": 1.5214,
+        "seven_zip_seconds": 15.09,
+        "best_ext_seconds": 38.7712,
+        "zip_seconds": 129.7518,
+        "extract_all_seconds": 2.0819,
+        "gzip9_extract_seconds": 0.2704,
+        "seven_zip_extract_seconds": 0.2697,
+        "best_ext_extract_seconds": 0.1728,
+        "bytes_winner_extract_seconds": 2.0819,
+        "j_curve_weight": 0.5,
+        "fzc_score": 35483922.87629172
+    },
+    "skipped_cases": [],
+    "cases": [
+        {
+            "label": "test_files55",
+            "raw_bytes": 25630833,
+            "gzip9_bundle_bytes": 7763909,
+            "gzip9_seconds": 1.5214,
+            "gzip9_extract_seconds": 0.2704,
+            "seven_zip_folder_bytes": 2191775,
+            "seven_zip_seconds": 15.09,
+            "seven_zip_extract_seconds": 0.2697,
+            "best_ext_folder_bytes": 2161817,
+            "best_ext_seconds": 38.7712,
+            "best_ext_extract_seconds": 0.1728,
+            "best_ext_winner": "brotli",
+            "best_ext_breakdown": {
+                "arc": {
+                    "bytes": 2181947,
+                    "seconds": 6.534197
+                },
+                "zstd": {
+                    "bytes": 2447186,
+                    "seconds": 9.130723
+                },
+                "brotli": {
+                    "bytes": 2161817,
+                    "seconds": 38.771175
+                },
+                "xz": {
+                    "bytes": 2190052,
+                    "seconds": 24.356705
+                }
+            },
+            "bytes_winner_extract_seconds": 2.0819,
+            "winner_extract": [
+                "ext"
+            ],
+            "fzc_bytes": 2158962,
+            "zip_seconds": 129.7518,
+            "extract_all_seconds": 2.0819,
+            "pct_of_raw_fzc": 8.42,
+            "pct_of_raw_gzip": 30.29,
+            "pct_of_raw_7z": 8.55,
+            "pct_of_raw_best_ext": 8.43,
+            "winner_compression": [
+                "fzc"
+            ],
+            "outer_codec": "brotli",
+            "folder_gzip_fast": false,
+            "folder_unified_stream": true,
+            "segment_length": 300,
+            "multipass_used": false,
+            "verify_ok": true,
+            "verify_mismatch_files": 0,
+            "baseline_cache_hit": true,
+            "j_curve_w_scale": 0.5,
+            "repeat_runs": 1,
+            "j_curve_weight": 0.5,
+            "fzc_score": 35483922.87629172
+        }
+    ]
+}

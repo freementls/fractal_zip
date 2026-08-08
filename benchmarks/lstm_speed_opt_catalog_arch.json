@@ -1,0 +1,49 @@
+{
+  "description": "After s5_r2@100m: try ARCH dual-LSTM (large 384 + small on easy bytes) stacked with softskip6. Prior stock arch_refresh was SKIP(+1059); re-screen on fractal entityfold stack.",
+  "base_defs": [
+    "-DSEED=923",
+    "-DUPDATE_LIMIT=3000",
+    "-DFXCM_ENTITY_FOLD",
+    "-DFXCM_MATCH_MAX=3000000ull",
+    "-DFXCM_SPEED_INLINE_GET",
+    "-DNDEBUG",
+    "-DFXCM_PPMD_MB=8192",
+    "-DFXCM_RECIPE_RUNTIME",
+    "-DFXCM_FRACTAL_PRED",
+    "-DFXCM_LSTM_HIDDEN=384",
+    "-DFXCM_ARCH_SPEED",
+    "-DFXCM_SPEED_LSTM_MATCH_SKIP_SOFT",
+    "-DFXCM_SPEED_MATCH_SKIP_MIN=6u"
+  ],
+  "baseline_name": "lstm384_full",
+  "beat_name": "lstm320",
+  "candidates": [
+    {
+      "name": "arch384_s6_r4",
+      "extra_defs": [
+        "-DFXCM_LSTM_SMALL=64",
+        "-DFXCM_ARCH_LSTM_REFRESH=4u"
+      ],
+      "note": "dual LSTM384/64 + soft6; refresh large every 4 easy bytes"
+    },
+    {
+      "name": "arch384_s6_r8",
+      "extra_defs": [
+        "-DFXCM_LSTM_SMALL=64",
+        "-DFXCM_ARCH_LSTM_REFRESH=8u"
+      ],
+      "note": "less large refresh"
+    },
+    {
+      "name": "arch384_s6_r4_s5r2",
+      "extra_defs": [
+        "-DFXCM_LSTM_SMALL=64",
+        "-DFXCM_ARCH_LSTM_REFRESH=4u",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=5u",
+        "-DFXCM_SPEED_LSTM_SKIP_REFRESH",
+        "-DFXCM_SPEED_LSTM_REFRESH=2u"
+      ],
+      "note": "arch + s5_r2 hybrid — max speed stack"
+    }
+  ]
+}

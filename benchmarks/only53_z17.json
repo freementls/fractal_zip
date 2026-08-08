@@ -1,0 +1,77 @@
+{
+    "generated": "2026-04-02T14:38:58-04:00",
+    "segment_length": 240,
+    "repeat_runs": 3,
+    "best_ext_tools_probed": [
+        "zstd",
+        "brotli",
+        "xz"
+    ],
+    "summary": {
+        "case_count": 1,
+        "fzc_among_smallest_bytes": 0,
+        "fzc_sole_smallest_bytes": 0,
+        "total_bytes_fzc_minus_best": 10768
+    },
+    "totals": {
+        "raw_bytes": 940298,
+        "gzip9_bundle_bytes": 121338,
+        "seven_zip_folder_bytes": 93727,
+        "best_ext_folder_bytes": 88033,
+        "fzc_bytes": 98801,
+        "gzip9_seconds": 0.0446,
+        "seven_zip_seconds": 0.1787,
+        "best_ext_seconds": 2.7541,
+        "zip_seconds": 0.4002,
+        "extract_all_seconds": 0.1232,
+        "fzc_score": 39540.1602
+    },
+    "skipped_cases": [],
+    "cases": [
+        {
+            "label": "test_files53",
+            "raw_bytes": 940298,
+            "gzip9_bundle_bytes": 121338,
+            "gzip9_seconds": 0.0446,
+            "seven_zip_folder_bytes": 93727,
+            "seven_zip_seconds": 0.1787,
+            "best_ext_folder_bytes": 88033,
+            "best_ext_seconds": 2.7541,
+            "best_ext_winner": "brotli",
+            "best_ext_breakdown": {
+                "zstd": {
+                    "bytes": 95373,
+                    "seconds": 0.781148
+                },
+                "brotli": {
+                    "bytes": 88033,
+                    "seconds": 2.496422
+                },
+                "xz": {
+                    "bytes": 94204,
+                    "seconds": 0.471571
+                }
+            },
+            "fzc_bytes": 98801,
+            "zip_seconds": 0.4002,
+            "extract_all_seconds": 0.1232,
+            "pct_of_raw_fzc": 10.51,
+            "pct_of_raw_gzip": 12.9,
+            "pct_of_raw_7z": 9.97,
+            "pct_of_raw_best_ext": 9.36,
+            "winner_compression": [
+                "ext"
+            ],
+            "winner_speed": [
+                "gzip"
+            ],
+            "outer_codec": "zstd",
+            "segment_length": 240,
+            "multipass_used": false,
+            "verify_ok": true,
+            "verify_mismatch_files": 0,
+            "repeat_runs": 3,
+            "fzc_score": 39540.1602
+        }
+    ]
+}

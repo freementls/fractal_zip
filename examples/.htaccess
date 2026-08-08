@@ -1,0 +1,28 @@
+# Favicon: browsers may request /favicon.ico at the site root; demo pages use <link rel="icon">
+# via fzc_web_render_favicon_links() → examples/icons/fractal-zip-favicon.svg and examples/favicon.ico.
+# For https://example.com/favicon.ico at the domain root, copy examples/favicon.ico to the vhost document root.
+#
+# fractal_zip web examples — multipart limits (Apache + mod_php only; nginx ignores this file).
+<IfModule mod_php.c>
+	php_value upload_max_filesize 128M
+	php_value post_max_size 160M
+	AddHandler application/x-httpd-php .fzsx .fzsxsd .fzsd
+</IfModule>
+<IfModule mod_proxy_fcgi.c>
+	<FilesMatch "\.(fzsx|fzsxsd|fzsd)$">
+		SetHandler "application/x-httpd-php"
+	</FilesMatch>
+</IfModule>
+# Operators: host tool parity for web extract — docs/WEB_LOCAL_PARITY.md, examples/fzc_capability_report.php
+#
+# Optional: raise staged-upload cap for fzc_compress (default 8 MiB tree if unset; PHP reads getenv).
+# Extract page allows 10× by default (80 MiB .fzc) unless FZC_WEB_MAX_EXTRACT_ARCHIVE_BYTES is set.
+# Uncomment and adjust for mod_php; PHP-FPM needs env in the pool file instead.
+# Backup if putenv in fz_fractal_local_env.php is not loaded (mod_php / LiteSpeed SetEnv):
+SetEnv FZC_WEB_MAX_UPLOAD_BYTES 33554432
+SetEnv FZC_WEB_MAX_EXTRACT_ARCHIVE_BYTES 335544320
+# .fzsx / .fzsxsd / .fzsd polyglot: rewrite to fzsx_serve.php when mod_rewrite works; otherwise AddHandler runs polyglot web entry.
+<IfModule mod_rewrite.c>
+	RewriteEngine On
+	RewriteRule ^(.+\.(fzsx|fzsxsd|fzsd))$ fzsx_serve.php?f=$1 [L,QSA]
+</IfModule>

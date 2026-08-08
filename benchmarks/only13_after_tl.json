@@ -1,0 +1,77 @@
+{
+    "generated": "2026-04-02T14:49:19-04:00",
+    "segment_length": 240,
+    "repeat_runs": 3,
+    "best_ext_tools_probed": [
+        "zstd",
+        "brotli",
+        "xz"
+    ],
+    "summary": {
+        "case_count": 1,
+        "fzc_among_smallest_bytes": 0,
+        "fzc_sole_smallest_bytes": 0,
+        "total_bytes_fzc_minus_best": 24
+    },
+    "totals": {
+        "raw_bytes": 62870,
+        "gzip9_bundle_bytes": 7789,
+        "seven_zip_folder_bytes": 7204,
+        "best_ext_folder_bytes": 6275,
+        "fzc_bytes": 6299,
+        "gzip9_seconds": 0.0025,
+        "seven_zip_seconds": 0.0491,
+        "best_ext_seconds": 0.1349,
+        "zip_seconds": 0.7354,
+        "extract_all_seconds": 0.0249,
+        "fzc_score": 4632.2846
+    },
+    "skipped_cases": [],
+    "cases": [
+        {
+            "label": "test_files13",
+            "raw_bytes": 62870,
+            "gzip9_bundle_bytes": 7789,
+            "gzip9_seconds": 0.0025,
+            "seven_zip_folder_bytes": 7204,
+            "seven_zip_seconds": 0.0491,
+            "best_ext_folder_bytes": 6275,
+            "best_ext_seconds": 0.1349,
+            "best_ext_winner": "brotli",
+            "best_ext_breakdown": {
+                "zstd": {
+                    "bytes": 7369,
+                    "seconds": 0.204231
+                },
+                "brotli": {
+                    "bytes": 6275,
+                    "seconds": 0.129167
+                },
+                "xz": {
+                    "bytes": 7176,
+                    "seconds": 0.086932
+                }
+            },
+            "fzc_bytes": 6299,
+            "zip_seconds": 0.7354,
+            "extract_all_seconds": 0.0249,
+            "pct_of_raw_fzc": 10.02,
+            "pct_of_raw_gzip": 12.39,
+            "pct_of_raw_7z": 11.46,
+            "pct_of_raw_best_ext": 9.98,
+            "winner_compression": [
+                "ext"
+            ],
+            "winner_speed": [
+                "gzip"
+            ],
+            "outer_codec": "brotli",
+            "segment_length": 240,
+            "multipass_used": false,
+            "verify_ok": true,
+            "verify_mismatch_files": 0,
+            "repeat_runs": 3,
+            "fzc_score": 4632.2846
+        }
+    ]
+}

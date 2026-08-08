@@ -1,0 +1,140 @@
+{
+  "description": "Hit ≥4× wall vs banked LSTM320 with minimal byte tax. Prior: fp2_l64_cm_ao=3.14×/+472KB; l128=2.03×/+8KB. New: LSTM_STRIDE (Perceive every N) + mid LSTM + outer FP. Gates relaxed for speed Pareto (still record Δ320).",
+  "base_defs": [
+    "-DSEED=923",
+    "-DUPDATE_LIMIT=3000",
+    "-DFXCM_ENTITY_FOLD",
+    "-DFXCM_MATCH_MAX=3000000ull",
+    "-DFXCM_SPEED_INLINE_GET",
+    "-DNDEBUG",
+    "-DFXCM_RECIPE_RUNTIME",
+    "-DFXCM_FRACTAL_PRED"
+  ],
+  "baseline_name": "lstm320",
+  "beat_name": "lstm320",
+  "candidates": [
+    {
+      "name": "l160_s2",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=160",
+        "-DFXCM_PPMD_MB=8192",
+        "-DFXCM_SPEED_LSTM_STRIDE=2u"
+      ],
+      "note": "mid LSTM + Perceive every 2nd byte"
+    },
+    {
+      "name": "l192_s2",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=192",
+        "-DFXCM_PPMD_MB=8192",
+        "-DFXCM_SPEED_LSTM_STRIDE=2u"
+      ],
+      "note": "larger mid + stride2"
+    },
+    {
+      "name": "l256_s2",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=256",
+        "-DFXCM_PPMD_MB=8192",
+        "-DFXCM_SPEED_LSTM_STRIDE=2u"
+      ],
+      "note": "keep more bytes via H=256 + stride"
+    },
+    {
+      "name": "l320_s2",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=320",
+        "-DFXCM_PPMD_MB=8192",
+        "-DFXCM_SPEED_LSTM_STRIDE=2u"
+      ],
+      "note": "banked size, half Perceive — byte-preserving speed"
+    },
+    {
+      "name": "l320_s4",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=320",
+        "-DFXCM_PPMD_MB=8192",
+        "-DFXCM_SPEED_LSTM_STRIDE=4u"
+      ],
+      "note": "Perceive every 4th"
+    },
+    {
+      "name": "l192_s2_fp2",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=192",
+        "-DFXCM_PPMD_MB=8192",
+        "-DFXCM_SPEED_LSTM_STRIDE=2u",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=2u"
+      ],
+      "note": "stride+outer fp toward 4×"
+    },
+    {
+      "name": "l160_s2_fp2",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=160",
+        "-DFXCM_PPMD_MB=8192",
+        "-DFXCM_SPEED_LSTM_STRIDE=2u",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=2u"
+      ],
+      "note": "smaller + stride + fp"
+    },
+    {
+      "name": "l128_s2_fp2",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=128",
+        "-DFXCM_PPMD_MB=8192",
+        "-DFXCM_SPEED_LSTM_STRIDE=2u",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=2u"
+      ],
+      "note": "l128 was 2×; stack stride+fp for 4×"
+    },
+    {
+      "name": "l128_s2_fp2_ao4",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=128",
+        "-DFXCM_PPMD_MB=4096",
+        "-DFXCM_SPEED_LSTM_STRIDE=2u",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=2u",
+        "-DFXCM_SPEED_ADVANCE_ONLY",
+        "-DFXCM_SPEED_OUTER_AO_MIN=4u"
+      ],
+      "note": "kitchen toward ≥4×, watch byte tax"
+    },
+    {
+      "name": "l192_s4_fp2",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=192",
+        "-DFXCM_PPMD_MB=8192",
+        "-DFXCM_SPEED_LSTM_STRIDE=4u",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=2u"
+      ],
+      "note": "more stride, mid size"
+    },
+    {
+      "name": "l256_s2_hid",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=256",
+        "-DFXCM_PPMD_MB=8192",
+        "-DFXCM_SPEED_LSTM_STRIDE=2u",
+        "-DFXCM_SPEED_LSTM_SOFT_HIDDEN"
+      ],
+      "note": "stride miss = hidden-only (cheaper than ForwardOnly)"
+    },
+    {
+      "name": "l320_s2_fp2",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=320",
+        "-DFXCM_PPMD_MB=8192",
+        "-DFXCM_SPEED_LSTM_STRIDE=2u",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=2u"
+      ],
+      "note": "preserve 320 capacity + stride + outer fp"
+    }
+  ]
+}

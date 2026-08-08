@@ -1,0 +1,34 @@
+# Lightweight checks for fractal_zip_encode_pipeline (merge helpers, optional pcntl fork pool, synthetic zip strict-tree repro).
+name: pipeline-smoke
+
+on:
+  push:
+    paths:
+      - 'fractal_zip_encode_pipeline.php'
+      - 'fractal_zip.php'
+      - 'benchmarks/repro_folder_zip_verify.php'
+      - 'benchmarks/smoke_repro_folder_zip_roundtrip.php'
+      - 'tests/encode_pipeline_*.php'
+      - 'tests/run_pipeline_tests.sh'
+      - '.github/workflows/pipeline-smoke.yml'
+  pull_request:
+    paths:
+      - 'fractal_zip_encode_pipeline.php'
+      - 'fractal_zip.php'
+      - 'benchmarks/repro_folder_zip_verify.php'
+      - 'benchmarks/smoke_repro_folder_zip_roundtrip.php'
+      - 'tests/encode_pipeline_*.php'
+      - 'tests/run_pipeline_tests.sh'
+      - '.github/workflows/pipeline-smoke.yml'
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pcntl, mbstring
+      - name: Pipeline smoke tests
+        run: bash tests/run_pipeline_tests.sh

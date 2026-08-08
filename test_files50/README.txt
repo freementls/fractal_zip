@@ -1,0 +1,1 @@
+Optional stress corpus (not run by default benchmarks): add tiny one-byte files locally (e.g. `m0000.txt` …) if you want. Include in benches with `php benchmarks/run_benchmarks.php --with-synthetic-micro`. See repo README for memory-related env vars. Data files are gitignored (`m*.txt`).

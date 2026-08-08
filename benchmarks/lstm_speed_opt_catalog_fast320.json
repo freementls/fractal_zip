@@ -1,0 +1,126 @@
+{
+  "description": "Cut banked LSTM320 wall ~2\u00d7 for prize envelope (enwik9 \u227250h) and faster screens. Baseline=lstm320. MATCH_FASTPATH skips outer mixer on long matches \u2014 main 2\u00d7 lever. Accept moderate byte tax; gate later @1m/10m.",
+  "base_defs": [
+    "-DSEED=923",
+    "-DUPDATE_LIMIT=3000",
+    "-DFXCM_ENTITY_FOLD",
+    "-DFXCM_MATCH_MAX=3000000ull",
+    "-DFXCM_SPEED_INLINE_GET",
+    "-DNDEBUG",
+    "-DFXCM_PPMD_MB=8192",
+    "-DFXCM_RECIPE_RUNTIME",
+    "-DFXCM_FRACTAL_PRED",
+    "-DFXCM_LSTM_HIDDEN=320"
+  ],
+  "baseline_name": "lstm320",
+  "beat_name": "lstm320",
+  "candidates": [
+    {
+      "name": "h6",
+      "extra_defs": [
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=6u"
+      ],
+      "note": "hard LSTM skip match/32\u22656"
+    },
+    {
+      "name": "h5",
+      "extra_defs": [
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=5u"
+      ],
+      "note": "hard LSTM skip MIN=5"
+    },
+    {
+      "name": "h4",
+      "extra_defs": [
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=4u"
+      ],
+      "note": "hard LSTM skip MIN=4"
+    },
+    {
+      "name": "fp6",
+      "extra_defs": [
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=6u"
+      ],
+      "note": "outer match fastpath MIN=6"
+    },
+    {
+      "name": "fp4",
+      "extra_defs": [
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=4u"
+      ],
+      "note": "outer match fastpath MIN=4"
+    },
+    {
+      "name": "fp2",
+      "extra_defs": [
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=2u"
+      ],
+      "note": "outer match fastpath MIN=2 \u2014 aggressive"
+    },
+    {
+      "name": "ao_fp",
+      "extra_defs": [
+        "-DFXCM_SPEED_ADVANCE_ONLY",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_AO_MIN=8u"
+      ],
+      "note": "advance-only + outer AO fastpath"
+    },
+    {
+      "name": "fp4_h6",
+      "extra_defs": [
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=4u"
+      ],
+      "note": "fastpath+hard LSTM (same MIN via last -D)"
+    },
+    {
+      "name": "fp4_cm",
+      "extra_defs": [
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=4u",
+        "-DFXCM_SPEED_CM_MATCH_SKIP",
+        "-DFXCM_SPEED_CM_MATCH_MIN=8"
+      ],
+      "note": "fastpath + CM mid-byte skip"
+    },
+    {
+      "name": "fp4_ppmd4k",
+      "extra_defs": [
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=4u",
+        "-DFXCM_PPMD_MB=4096"
+      ],
+      "note": "fastpath + smaller PPMD"
+    },
+    {
+      "name": "fp2_h4_cm_ppmd4k",
+      "extra_defs": [
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=2u",
+        "-DFXCM_SPEED_CM_MATCH_SKIP",
+        "-DFXCM_SPEED_CM_MATCH_MIN=6",
+        "-DFXCM_PPMD_MB=4096"
+      ],
+      "note": "kitchen-sink speed stack for 2\u00d7 hunt"
+    },
+    {
+      "name": "r2_h5",
+      "extra_defs": [
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP_SOFT",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=5u",
+        "-DFXCM_SPEED_LSTM_SKIP_REFRESH",
+        "-DFXCM_SPEED_LSTM_REFRESH=2u"
+      ],
+      "note": "s5_r2 shape on LSTM320 (was 1.26\u00d7@10m on 384)"
+    }
+  ]
+}

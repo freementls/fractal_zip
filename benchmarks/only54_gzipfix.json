@@ -1,0 +1,36 @@
+{
+    "generated": "2026-04-02T12:51:53-04:00",
+    "segment_length": 240,
+    "repeat_runs": 1,
+    "best_ext_tools_probed": [
+        "zstd",
+        "brotli",
+        "xz"
+    ],
+    "summary": {
+        "case_count": 0,
+        "fzc_among_smallest_bytes": 0,
+        "fzc_sole_smallest_bytes": 0,
+        "total_bytes_fzc_minus_best": null
+    },
+    "totals": {
+        "raw_bytes": 0,
+        "gzip9_bundle_bytes": 0,
+        "seven_zip_folder_bytes": null,
+        "best_ext_folder_bytes": null,
+        "fzc_bytes": 0,
+        "gzip9_seconds": 0,
+        "seven_zip_seconds": null,
+        "best_ext_seconds": null,
+        "zip_seconds": 0,
+        "extract_all_seconds": null,
+        "fzc_score": null
+    },
+    "skipped_cases": [
+        {
+            "label": "test_files54",
+            "reason": "timeout>1800s"
+        }
+    ],
+    "cases": []
+}

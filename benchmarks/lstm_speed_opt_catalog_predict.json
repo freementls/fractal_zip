@@ -1,0 +1,62 @@
+{
+  "description": "Predict-path candidates stacked on banked softskip6 (WEAK @10m 1.52×). Target ≤1.35× base. SHARE_OUT avoids vocab×hidden copy on soft path; PTR_GEMV speeds gate/output matmuls.",
+  "base_defs": [
+    "-DSEED=923",
+    "-DUPDATE_LIMIT=3000",
+    "-DFXCM_ENTITY_FOLD",
+    "-DFXCM_MATCH_MAX=3000000ull",
+    "-DFXCM_SPEED_INLINE_GET",
+    "-DNDEBUG",
+    "-DFXCM_PPMD_MB=8192",
+    "-DFXCM_RECIPE_RUNTIME",
+    "-DFXCM_FRACTAL_PRED",
+    "-DFXCM_LSTM_HIDDEN=384",
+    "-DFXCM_SPEED_LSTM_MATCH_SKIP_SOFT",
+    "-DFXCM_SPEED_MATCH_SKIP_MIN=6u"
+  ],
+  "baseline_name": "lstm384_full",
+  "beat_name": "lstm320",
+  "candidates": [
+    {
+      "name": "soft6_share",
+      "extra_defs": ["-DFXCM_SPEED_LSTM_SHARE_OUT"],
+      "note": "alias output weights on ForwardOnly (bit-identical to copy)"
+    },
+    {
+      "name": "soft6_gemv",
+      "extra_defs": ["-DFXCM_SPEED_LSTM_PTR_GEMV"],
+      "note": "pointer+unroll GEMV in gate ForwardPass and output softmax"
+    },
+    {
+      "name": "soft6_share_gemv",
+      "extra_defs": [
+        "-DFXCM_SPEED_LSTM_SHARE_OUT",
+        "-DFXCM_SPEED_LSTM_PTR_GEMV"
+      ],
+      "note": "stack share+gemv on softskip6 — primary legalization bet"
+    },
+    {
+      "name": "soft6_memcpy",
+      "extra_defs": ["-DFXCM_SPEED_LSTM_MEMCPY_OUT"],
+      "note": "memcpy instead of valarray assign for output weight copy"
+    },
+    {
+      "name": "soft6_share_gemv_h96",
+      "extra_defs": [
+        "-DFXCM_SPEED_LSTM_SHARE_OUT",
+        "-DFXCM_SPEED_LSTM_PTR_GEMV",
+        "-DFXCM_LSTM_HORIZON=96"
+      ],
+      "note": "shorter BPTT horizon; may change bytes"
+    },
+    {
+      "name": "soft6_share_gemv_h64",
+      "extra_defs": [
+        "-DFXCM_SPEED_LSTM_SHARE_OUT",
+        "-DFXCM_SPEED_LSTM_PTR_GEMV",
+        "-DFXCM_LSTM_HORIZON=64"
+      ],
+      "note": "horizon 64; more aggressive time/bytes trade"
+    }
+  ]
+}

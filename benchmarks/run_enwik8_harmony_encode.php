@@ -1,0 +1,73 @@
+#!/usr/bin/env php
+<?php
+declare(strict_types=1);
+
+ini_set('memory_limit', '4096M');
+
+/**
+ * Integrated harmony encode (boilerplate + world-record stack, no PAQ wrap).
+ *
+ * Usage: php benchmarks/run_enwik8_harmony_encode.php [--name=harmony1]
+ */
+
+$repo = dirname(__DIR__);
+require_once $repo . DIRECTORY_SEPARATOR . 'fractal_zip.php';
+require_once $repo . DIRECTORY_SEPARATOR . 'benchmarks' . DIRECTORY_SEPARATOR . 'bench_world_record_env.php';
+
+$name = 'harmony1';
+foreach ($argv as $arg) {
+	if (str_starts_with($arg, '--name=')) {
+		$name = substr($arg, 7);
+	}
+}
+
+bench_world_record_apply_harmony_env();
+putenv('FRACTAL_ZIP_PAQ_NATIVE_COMPARE=0');
+putenv('FRACTAL_ZIP_PAQ_SWEEP=0');
+putenv('FRACTAL_ZIP_ENWIK_RAW_PAQ_COMPARE=0');
+
+$dir = $repo . DIRECTORY_SEPARATOR . 'test_files109';
+$fzcPath = rtrim($dir, DIRECTORY_SEPARATOR) . '.fz';
+if (!is_dir($dir)) {
+	exit(1);
+}
+
+$src = $dir . DIRECTORY_SEPARATOR . 'enwik8';
+@unlink($fzcPath);
+$rawHash = is_file($src) ? hash_file('sha256', $src) : '';
+
+$t0 = microtime(true);
+$fz = new fractal_zip();
+$fz->zip_folder($dir, false);
+$sec = microtime(true) - $t0;
+$fzcBytes = is_file($fzcPath) ? (int) filesize($fzcPath) : 0;
+
+$t1 = microtime(true);
+$fz2 = new fractal_zip();
+$fz2->open_container($fzcPath);
+$extSec = microtime(true) - $t1;
+$restoredHash = is_file($src) ? hash_file('sha256', $src) : '';
+$verifyOk = ($rawHash !== '' && hash_equals($rawHash, $restoredHash));
+
+$outJson = $repo . DIRECTORY_SEPARATOR . 'benchmarks' . DIRECTORY_SEPARATOR . '.enwik8_exp_' . $name . '.json';
+file_put_contents($outJson, json_encode(array(
+	'generated' => date('c'),
+	'bench_profile' => 'world-record-harmony',
+	'cases' => array(array(
+		'label' => 'test_files109',
+		'raw_bytes' => is_file($src) ? (int) filesize($src) : 100000000,
+		'fzc_bytes' => $fzcBytes,
+		'zip_seconds' => round($sec, 4),
+		'extract_seconds' => round($extSec, 4),
+		'verify_ok' => $verifyOk,
+		'bench_profile' => 'world-record-harmony',
+		'harmony' => true,
+	)),
+), JSON_PRETTY_PRINT));
+
+if (!$verifyOk) {
+	fwrite(STDERR, "FAIL verify\n");
+	exit(1);
+}
+fwrite(STDERR, "[enwik8_harmony] {$name}: fzc={$fzcBytes} B in " . number_format($sec, 1) . "s verify_ok → {$outJson}\n");
+echo "fzc_bytes={$fzcBytes}\nverify_ok=1\n";

@@ -1,0 +1,25 @@
+Windows Registry Editor Version 5.00
+
+; One-time: merge after adjusting php.exe path. Double-click .fzsx / .fzsxsd runs PHP on the archive.
+; Default assumes PHP is on PATH as php.exe — edit the command line if needed.
+
+[HKEY_CLASSES_ROOT\.fzsx]
+@="FZSXArchive"
+
+[HKEY_CLASSES_ROOT\.fzsxsd]
+@="FZSXSDArchive"
+
+[HKEY_CLASSES_ROOT\FZSXArchive]
+@="FZSX self-extracting archive"
+
+[HKEY_CLASSES_ROOT\FZSXSDArchive]
+@="FZSXSD self-destructing archive"
+
+[HKEY_CLASSES_ROOT\FZSXArchive\shell\open\command]
+@="\"C:\\Windows\\System32\\cmd.exe\" /c php.exe \"%1\""
+
+[HKEY_CLASSES_ROOT\FZSXSDArchive\shell\open\command]
+@="\"C:\\Windows\\System32\\cmd.exe\" /c php.exe \"%1\""
+
+; Alternative when php is not on GUI PATH — use repo launcher (edit path):
+; @="\"D:\\path\\to\\fractal_zip\\scripts\\fzsx-open.cmd\" \"%1\""

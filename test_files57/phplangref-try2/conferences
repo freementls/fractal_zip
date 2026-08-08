@@ -1,0 +1,575 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                      "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+ <title>PHP: PHP Conferences around the world</title>
+ <style type="text/css" media="all">
+  @import url("http://static.php.net/www.php.net/styles/site.css");
+  @import url("http://static.php.net/www.php.net/styles/phpnet.css");
+  
+ </style>
+ <!--[if IE]><![if gte IE 6]><![endif]-->
+  <style type="text/css" media="print">
+   @import url("http://static.php.net/www.php.net/styles/print.css");
+  </style>
+ <!--[if IE]><![endif]><![endif]-->
+ <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+ <link rel="shortcut icon" href="http://static.php.net/www.php.net/favicon.ico" />
+ <link rel="canonical" href="http://php.net/conferences/index.php" />
+ <script type="text/javascript" src="http://static.php.net/www.php.net/userprefs.js"></script>
+ <base href="http://www.php.net/conferences/index.php" />
+ <link rel="alternate" type="application/atom+xml" title="PHP: Conference announcements" href="http://www.php.net/feed.atom" />
+</head>
+<body>
+
+<div id="headnav">
+ <a href="/" rel="home"><img src="http://static.php.net/www.php.net/images/php.gif"
+ alt="PHP" width="120" height="67" id="phplogo" /></a>
+ <div id="headmenu">
+  <a href="/downloads.php">downloads</a> |
+  <a href="/docs.php">documentation</a> |
+  <a href="/FAQ.php">faq</a> |
+  <a href="/support.php">getting help</a> |
+  <a href="/mailing-lists.php">mailing lists</a> |
+  <a href="/license">licenses</a> |
+  <a href="https://wiki.php.net/">wiki</a> |
+  <a href="https://bugs.php.net/">reporting bugs</a> |
+  <a href="/sites.php">php.net sites</a> |
+  <a href="/conferences/">conferences</a> |
+  <a href="/my.php">my php.net</a>
+ </div>
+</div>
+
+<div id="headsearch">
+ <form method="post" action="/search.php" id="topsearch">
+  <p>
+   <span title="Keyboard shortcut: Alt+S (Win), Ctrl+S (Apple)">
+    <span class="shortkey">s</span>earch for
+   </span>
+   <input type="text" name="pattern" value="" size="30" accesskey="s" />
+   <span>in the</span>
+   <select name="show">
+    <option value="all"      >all php.net sites</option>
+    <option value="local"    >this mirror only</option>
+    <option value="quickref" selected="selected">function list</option>
+    <option value="manual"   >online documentation</option>
+    <option value="bugdb"    >bug database</option>
+    <option value="news_archive">Site News Archive</option>
+    <option value="changelogs">All Changelogs</option>
+    <option value="pear"     >just pear.php.net</option>
+    <option value="pecl"     >just pecl.php.net</option>
+    <option value="talks"    >just talks.php.net</option>
+    <option value="maillist" >general mailing list</option>
+    <option value="devlist"  >developer mailing list</option>
+    <option value="phpdoc"   >documentation mailing list</option>
+   </select>
+   <input type="image"
+          src="http://static.php.net/www.php.net/images/small_submit_white.gif"
+          class="submit" alt="search" />
+  </p>
+ </form>
+</div>
+
+<div id="layout_1"><div id="conferencesSidebar">
+    <div id="contact">
+        <p>
+            Are you planning a PHP related conference and want it listed here?
+            <a href="mailto:php-webmaster@lists.php.net">Let us know.</a>
+        </p>
+    </div>
+    <h4>Upcoming Events <a href="/submit-event.php">[add]</a></h4>
+<h4 class="eventmonth">July</h4>
+<h4>User Group Events</h4>
+<span class="event_MYS vevent"><abbr title="2012-07-31" class="dtstart">31</abbr>. <a href="/cal.php?id=2527" class="summary">Malaysia PHP Meetup</a></span><br />
+<span class="event_DEU vevent"><abbr title="2012-07-31" class="dtstart">31</abbr>. <a href="/cal.php?id=2600" class="summary">PHP Usergroup Karlsruhe</a></span><br />
+<span class="event_DEU vevent"><abbr title="2012-07-31" class="dtstart">31</abbr>. <a href="/cal.php?id=2660" class="summary">PHPUG Wuerzburg</a></span><br />
+<span class="event_ITA vevent"><abbr title="2012-07-31" class="dtstart">31</abbr>. <a href="/cal.php?id=4626" class="summary">PHP User Group Roma</a></span><br />
+<span class="event_BRA vevent"><abbr title="2012-07-31" class="dtstart">31</abbr>. <a href="/cal.php?id=5276" class="summary">PHPUBSP</a></span><br />
+<h4 class="eventmonth">August</h4>
+<h4>Conferences</h4>
+<span class="event_IND vevent"><abbr title="2012-08-06" class="dtstart">06</abbr>. <a href="/cal.php?id=5377" class="summary">PHP with YII Training Event</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-11" class="dtstart">11</abbr>. <a href="/cal.php?id=5344" class="summary">CodeIgniter Conference SF</a></span><br />
+<span class="event_BRA vevent"><abbr title="2012-08-17" class="dtstart">17</abbr>. <a href="/cal.php?id=5395" class="summary">PHPMS Conf 2012</a></span><br />
+<span class="event_MEX vevent"><abbr title="2012-08-17" class="dtstart">17</abbr>. <a href="/cal.php?id=5400" class="summary">PHP Congress México 2012</a></span><br />
+<span class="event_MEX vevent"><abbr title="2012-08-18" class="dtstart">18</abbr>. <a href="/cal.php?id=5331" class="summary">2do Congreso de PHP en México</a></span><br />
+<span class="event_GBR vevent"><abbr title="2012-08-30" class="dtstart">30</abbr>. <a href="/cal.php?id=5396" class="summary">CakeFest 2012 CakePHP Conference</a></span><br />
+<h4>User Group Events</h4>
+<span class="event_DEU vevent"><abbr title="2012-08-01" class="dtstart">01</abbr>. <a href="/cal.php?id=2352" class="summary">Meeting PHP Usergroup OWL</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-01" class="dtstart">01</abbr>. <a href="/cal.php?id=2682" class="summary">BostonPHP</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-01" class="dtstart">01</abbr>. <a href="/cal.php?id=3793" class="summary">Pittsburgh PHP Meetup Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-01" class="dtstart">01</abbr>. <a href="/cal.php?id=5369" class="summary">NWI PHP User Group Meeting</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-02" class="dtstart">02</abbr>. <a href="/cal.php?id=109" class="summary">SDPHP (San Diego, CA)</a></span><br />
+<span class="event_DEU vevent"><abbr title="2012-08-02" class="dtstart">02</abbr>. <a href="/cal.php?id=272" class="summary">Hannover</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-02" class="dtstart">02</abbr>. <a href="/cal.php?id=561" class="summary">Meetup Day</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-02" class="dtstart">02</abbr>. <a href="/cal.php?id=1005" class="summary">Omaha PHP Users Group Meetup</a></span><br />
+<span class="event_GBR vevent"><abbr title="2012-08-02" class="dtstart">02</abbr>. <a href="/cal.php?id=1304" class="summary">PHP London</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-02" class="dtstart">02</abbr>. <a href="/cal.php?id=1624" class="summary">The Houston PHP Users Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-02" class="dtstart">02</abbr>. <a href="/cal.php?id=1632" class="summary">Boston PHP Meetup</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-02" class="dtstart">02</abbr>. <a href="/cal.php?id=1706" class="summary">Atlanta PHP User Group</a></span><br />
+<span class="event_AUS vevent"><abbr title="2012-08-02" class="dtstart">02</abbr>. <a href="/cal.php?id=1918" class="summary">Sydney PHP Group meetings</a></span><br />
+<span class="event_NZL vevent"><abbr title="2012-08-02" class="dtstart">02</abbr>. <a href="/cal.php?id=2017" class="summary">PHP UG Meetup Auckland</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-02" class="dtstart">02</abbr>. <a href="/cal.php?id=2418" class="summary">Seattle PHP Meetup Group</a></span><br />
+<span class="event_DNK vevent"><abbr title="2012-08-02" class="dtstart">02</abbr>. <a href="/cal.php?id=2734" class="summary">The Copenhagen PHP Meetup Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-02" class="dtstart">02</abbr>. <a href="/cal.php?id=2932" class="summary">SF PHP Meetup</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-02" class="dtstart">02</abbr>. <a href="/cal.php?id=3416" class="summary">Knoxville Python &amp; PHP UG</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-02" class="dtstart">02</abbr>. <a href="/cal.php?id=3861" class="summary">Minnesota PHP User Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-02" class="dtstart">02</abbr>. <a href="/cal.php?id=4014" class="summary">OrlandoPHP User Group</a></span><br />
+<span class="event_GBR vevent"><abbr title="2012-08-02" class="dtstart">02</abbr>. <a href="/cal.php?id=4147" class="summary">PHP Cardiff Meetup</a></span><br />
+<span class="event_GBR vevent"><abbr title="2012-08-02" class="dtstart">02</abbr>. <a href="/cal.php?id=4799" class="summary">PHPEM</a></span><br />
+<span class="event_DEU vevent"><abbr title="2012-08-03" class="dtstart">03</abbr>. <a href="/cal.php?id=153" class="summary">Köln/Bonn</a></span><br />
+<span class="event_IRN vevent"><abbr title="2012-08-03" class="dtstart">03</abbr>. <a href="/cal.php?id=2663" class="summary">Iran PHP developer&#039;s meetup</a></span><br />
+<span class="event_CHN vevent"><abbr title="2012-08-05" class="dtstart">05</abbr>. <a href="/cal.php?id=1923" class="summary">PHP meeting online in China</a></span><br />
+<span class="event_BOL vevent"><abbr title="2012-08-05" class="dtstart">05</abbr>. <a href="/cal.php?id=2540" class="summary">meeting de LAMPistas en La Paz</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-06" class="dtstart">06</abbr>. <a href="/cal.php?id=4720" class="summary">PHP Online User Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-07" class="dtstart">07</abbr>. <a href="/cal.php?id=1745" class="summary">SW Florida Linux Users Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-07" class="dtstart">07</abbr>. <a href="/cal.php?id=1860" class="summary">PDXPHP monthly meeting</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-07" class="dtstart">07</abbr>. <a href="/cal.php?id=2301" class="summary">Jacksonville User Group</a></span><br />
+<span class="event_DEU vevent"><abbr title="2012-08-07" class="dtstart">07</abbr>. <a href="/cal.php?id=2814" class="summary">Berlin PHP Usergroup Meeting</a></span><br />
+<span class="event_GBR vevent"><abbr title="2012-08-07" class="dtstart">07</abbr>. <a href="/cal.php?id=3294" class="summary">PHPNW: PHP North West user group</a></span><br />
+<span class="event_DEU vevent"><abbr title="2012-08-08" class="dtstart">08</abbr>. <a href="/cal.php?id=3684" class="summary">PHP User Group Stuttgart</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-08" class="dtstart">08</abbr>. <a href="/cal.php?id=4222" class="summary">South Florida PHP Users Group</a></span><br />
+<span class="event_GBR vevent"><abbr title="2012-08-08" class="dtstart">08</abbr>. <a href="/cal.php?id=4751" class="summary">PHP South West User Group</a></span><br />
+<span class="event_GBR vevent"><abbr title="2012-08-08" class="dtstart">08</abbr>. <a href="/cal.php?id=5017" class="summary">PHPSW, UK</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-08" class="dtstart">08</abbr>. <a href="/cal.php?id=5212" class="summary">DC PHP Developer&#039;s Community</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-08" class="dtstart">08</abbr>. <a href="/cal.php?id=5388" class="summary">VenturaPHP Developers Meetup</a></span><br />
+<span class="event_DEU vevent"><abbr title="2012-08-09" class="dtstart">09</abbr>. <a href="/cal.php?id=1848" class="summary">Meeting usergroup Dortmund</a></span><br />
+<span class="event_DEU vevent"><abbr title="2012-08-09" class="dtstart">09</abbr>. <a href="/cal.php?id=1946" class="summary">PHP Usergroup Frankfurt/Main</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-09" class="dtstart">09</abbr>. <a href="/cal.php?id=4636" class="summary">Metro Jersey PHP Usergroup</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-09" class="dtstart">09</abbr>. <a href="/cal.php?id=5322" class="summary">Seattle PHP Meetup/Users Group</a></span><br />
+<span class="event_CAN vevent"><abbr title="2012-08-11" class="dtstart">11</abbr>. <a href="/cal.php?id=1732" class="summary">PHP User Group Nanaimo, BC/CA</a></span><br />
+<span class="event_CHN vevent"><abbr title="2012-08-11" class="dtstart">11</abbr>. <a href="/cal.php?id=2580" class="summary">PEA meeting from phpchina</a></span><br />
+<span class="event_IND vevent"><abbr title="2012-08-11" class="dtstart">11</abbr>. <a href="/cal.php?id=3722" class="summary">Nagpur PHP Meetup</a></span><br />
+<span class="event_MEX vevent"><abbr title="2012-08-11" class="dtstart">11</abbr>. <a href="/cal.php?id=4258" class="summary">Nezahualcoyotl PHP Ramptors</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-12" class="dtstart">12</abbr>. <a href="/cal.php?id=3760" class="summary">Los Angeles PHP Developers Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-13" class="dtstart">13</abbr>. <a href="/cal.php?id=4308" class="summary">Queen City (Charlotte) PHP</a></span><br />
+<span class="event_DEU vevent"><abbr title="2012-08-14" class="dtstart">14</abbr>. <a href="/cal.php?id=1385" class="summary">Hamburg</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-14" class="dtstart">14</abbr>. <a href="/cal.php?id=1523" class="summary">Dallas PHP/MySQL Users Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-14" class="dtstart">14</abbr>. <a href="/cal.php?id=1670" class="summary">Dallas PHP Users Group (DPUG)</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-14" class="dtstart">14</abbr>. <a href="/cal.php?id=1652" class="summary">Austin PHP Meetup</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-14" class="dtstart">14</abbr>. <a href="/cal.php?id=1665" class="summary">OKC PHP Meetup</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-14" class="dtstart">14</abbr>. <a href="/cal.php?id=1847" class="summary">Nashville PHP User Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-14" class="dtstart">14</abbr>. <a href="/cal.php?id=3643" class="summary">Oklahoma City PHP User Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-14" class="dtstart">14</abbr>. <a href="/cal.php?id=3980" class="summary">Buffalo PHP Meetup</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-15" class="dtstart">15</abbr>. <a href="/cal.php?id=1545" class="summary">Miami PHP User Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-15" class="dtstart">15</abbr>. <a href="/cal.php?id=1546" class="summary">Broward Php Usergroup</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-15" class="dtstart">15</abbr>. <a href="/cal.php?id=2208" class="summary">Chicago PHP User Group Brunch</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-15" class="dtstart">15</abbr>. <a href="/cal.php?id=3925" class="summary">Baltimore PHP User Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-16" class="dtstart">16</abbr>. <a href="/cal.php?id=1704" class="summary">TriPUG</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-16" class="dtstart">16</abbr>. <a href="/cal.php?id=1719" class="summary">OINK-PUG (Cincinnati, Ohio)</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-16" class="dtstart">16</abbr>. <a href="/cal.php?id=1820" class="summary">Utah PHP Users Group Meeting</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-16" class="dtstart">16</abbr>. <a href="/cal.php?id=4507" class="summary">Denver - FRPUG</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-16" class="dtstart">16</abbr>. <a href="/cal.php?id=5372" class="summary">San Diego PHP</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-16" class="dtstart">16</abbr>. <a href="/cal.php?id=5092" class="summary">B/CS PHP User Group</a></span><br />
+<span class="event_NLD vevent"><abbr title="2012-08-16" class="dtstart">16</abbr>. <a href="/cal.php?id=5343" class="summary">AmsterdamPHP Meetup</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-18" class="dtstart">18</abbr>. <a href="/cal.php?id=1346" class="summary">Miami Linux Users Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-18" class="dtstart">18</abbr>. <a href="/cal.php?id=1671" class="summary">Twin Cities PHP</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-18" class="dtstart">18</abbr>. <a href="/cal.php?id=2449" class="summary">Los Angeles LAMPsig</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-18" class="dtstart">18</abbr>. <a href="/cal.php?id=5401" class="summary">Kansas City</a></span><br />
+<span class="event_AUS vevent"><abbr title="2012-08-21" class="dtstart">21</abbr>. <a href="/cal.php?id=2246" class="summary">PHP Brisbane Meetup Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-21" class="dtstart">21</abbr>. <a href="/cal.php?id=3708" class="summary">Nashville Enterprise LAMP UG</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-21" class="dtstart">21</abbr>. <a href="/cal.php?id=3761" class="summary">Chattanooga PHP Developers</a></span><br />
+<span class="event_GBR vevent"><abbr title="2012-08-21" class="dtstart">21</abbr>. <a href="/cal.php?id=4725" class="summary">PHP North-East User Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-21" class="dtstart">21</abbr>. <a href="/cal.php?id=5222" class="summary">NWO-PUG User Group Meeting</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-21" class="dtstart">21</abbr>. <a href="/cal.php?id=5368" class="summary">CHOPUG</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-21" class="dtstart">21</abbr>. <a href="/cal.php?id=5370" class="summary">Lake / Kenosha PHP User Group</a></span><br />
+<span class="event_GBR vevent"><abbr title="2012-08-22" class="dtstart">22</abbr>. <a href="/cal.php?id=5135" class="summary">Edinburgh PHP Users Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-23" class="dtstart">23</abbr>. <a href="/cal.php?id=4256" class="summary">Memphis PHP</a></span><br />
+<span class="event_DEU vevent"><abbr title="2012-08-23" class="dtstart">23</abbr>. <a href="/cal.php?id=5052" class="summary">PHP Usergroup D/DU/KR</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-25" class="dtstart">25</abbr>. <a href="/cal.php?id=2662" class="summary">Miami Linux Meetup</a></span><br />
+<span class="event_BRA vevent"><abbr title="2012-08-25" class="dtstart">25</abbr>. <a href="/cal.php?id=3422" class="summary">PHP RIO Meetup</a></span><br />
+<span class="event_HKG vevent"><abbr title="2012-08-25" class="dtstart">25</abbr>. <a href="/cal.php?id=4019" class="summary">PHP User Group Hong Kong</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-27" class="dtstart">27</abbr>. <a href="/cal.php?id=1099" class="summary">Long Island PHP Users Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-27" class="dtstart">27</abbr>. <a href="/cal.php?id=4648" class="summary">Tampa Bay Florida PHP</a></span><br />
+<span class="event_CAN vevent"><abbr title="2012-08-27" class="dtstart">27</abbr>. <a href="/cal.php?id=4767" class="summary">Winnipeg PHP</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-28" class="dtstart">28</abbr>. <a href="/cal.php?id=409" class="summary">New York</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-28" class="dtstart">28</abbr>. <a href="/cal.php?id=384" class="summary">AzPHP</a></span><br />
+<span class="event_MYS vevent"><abbr title="2012-08-28" class="dtstart">28</abbr>. <a href="/cal.php?id=2527" class="summary">Malaysia PHP Meetup</a></span><br />
+<span class="event_DEU vevent"><abbr title="2012-08-28" class="dtstart">28</abbr>. <a href="/cal.php?id=2600" class="summary">PHP Usergroup Karlsruhe</a></span><br />
+<span class="event_DEU vevent"><abbr title="2012-08-28" class="dtstart">28</abbr>. <a href="/cal.php?id=2660" class="summary">PHPUG Wuerzburg</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-28" class="dtstart">28</abbr>. <a href="/cal.php?id=3075" class="summary">DCPHP Beverage Subgroup</a></span><br />
+<span class="event_AUS vevent"><abbr title="2012-08-28" class="dtstart">28</abbr>. <a href="/cal.php?id=3653" class="summary">Brisbane PHP User Group</a></span><br />
+<span class="event_ITA vevent"><abbr title="2012-08-28" class="dtstart">28</abbr>. <a href="/cal.php?id=4626" class="summary">PHP User Group Roma</a></span><br />
+<span class="event_BRA vevent"><abbr title="2012-08-28" class="dtstart">28</abbr>. <a href="/cal.php?id=5276" class="summary">PHPUBSP</a></span><br />
+<span class="event_IRL vevent"><abbr title="2012-08-29" class="dtstart">29</abbr>. <a href="/cal.php?id=2500" class="summary">Irish PHP Users Group meeting</a></span><br />
+<span class="event_CAN vevent"><abbr title="2012-08-29" class="dtstart">29</abbr>. <a href="/cal.php?id=4922" class="summary">Guelph PHP Users Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-08-29" class="dtstart">29</abbr>. <a href="/cal.php?id=5313" class="summary">Louisville PHP User Group</a></span><br />
+<span class="event_SAU vevent"><abbr title="2012-08-30" class="dtstart">30</abbr>. <a href="/cal.php?id=1316" class="summary">Arabic PHP Group Meeting</a></span><br />
+<span class="event_MYS vevent"><abbr title="2012-08-30" class="dtstart">30</abbr>. <a href="/cal.php?id=1708" class="summary">Malaysia PHP User Group Meet Up</a></span><br />
+<h4 class="eventmonth">September</h4>
+<h4>Conferences</h4>
+<span class="event_GBR vevent"><abbr title="2012-09-01" class="dtstart">01</abbr>. <a href="/cal.php?id=5396" class="summary">CakeFest 2012 CakePHP Conference</a></span><br />
+<span class="event_IND vevent"><abbr title="2012-09-03" class="dtstart">03</abbr>. <a href="/cal.php?id=5377" class="summary">PHP with YII Training Event</a></span><br />
+<span class="event_NLD vevent"><abbr title="2012-09-15" class="dtstart">15</abbr>. <a href="/cal.php?id=5383" class="summary">PFCongres by PFZ.nl</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-26" class="dtstart">26</abbr>. <a href="/cal.php?id=5399" class="summary">Symfony Live San Francisco 2012</a></span><br />
+<h4>User Group Events</h4>
+<span class="event_CHN vevent"><abbr title="2012-09-02" class="dtstart">02</abbr>. <a href="/cal.php?id=1923" class="summary">PHP meeting online in China</a></span><br />
+<span class="event_BOL vevent"><abbr title="2012-09-02" class="dtstart">02</abbr>. <a href="/cal.php?id=2540" class="summary">meeting de LAMPistas en La Paz</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-03" class="dtstart">03</abbr>. <a href="/cal.php?id=4720" class="summary">PHP Online User Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-04" class="dtstart">04</abbr>. <a href="/cal.php?id=1745" class="summary">SW Florida Linux Users Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-04" class="dtstart">04</abbr>. <a href="/cal.php?id=1860" class="summary">PDXPHP monthly meeting</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-04" class="dtstart">04</abbr>. <a href="/cal.php?id=2301" class="summary">Jacksonville User Group</a></span><br />
+<span class="event_DEU vevent"><abbr title="2012-09-04" class="dtstart">04</abbr>. <a href="/cal.php?id=2814" class="summary">Berlin PHP Usergroup Meeting</a></span><br />
+<span class="event_GBR vevent"><abbr title="2012-09-04" class="dtstart">04</abbr>. <a href="/cal.php?id=3294" class="summary">PHPNW: PHP North West user group</a></span><br />
+<span class="event_DEU vevent"><abbr title="2012-09-05" class="dtstart">05</abbr>. <a href="/cal.php?id=2352" class="summary">Meeting PHP Usergroup OWL</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-05" class="dtstart">05</abbr>. <a href="/cal.php?id=2682" class="summary">BostonPHP</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-05" class="dtstart">05</abbr>. <a href="/cal.php?id=3793" class="summary">Pittsburgh PHP Meetup Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-06" class="dtstart">06</abbr>. <a href="/cal.php?id=109" class="summary">SDPHP (San Diego, CA)</a></span><br />
+<span class="event_DEU vevent"><abbr title="2012-09-06" class="dtstart">06</abbr>. <a href="/cal.php?id=272" class="summary">Hannover</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-06" class="dtstart">06</abbr>. <a href="/cal.php?id=561" class="summary">Meetup Day</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-06" class="dtstart">06</abbr>. <a href="/cal.php?id=1005" class="summary">Omaha PHP Users Group Meetup</a></span><br />
+<span class="event_GBR vevent"><abbr title="2012-09-06" class="dtstart">06</abbr>. <a href="/cal.php?id=1304" class="summary">PHP London</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-06" class="dtstart">06</abbr>. <a href="/cal.php?id=1624" class="summary">The Houston PHP Users Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-06" class="dtstart">06</abbr>. <a href="/cal.php?id=1632" class="summary">Boston PHP Meetup</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-06" class="dtstart">06</abbr>. <a href="/cal.php?id=1706" class="summary">Atlanta PHP User Group</a></span><br />
+<span class="event_AUS vevent"><abbr title="2012-09-06" class="dtstart">06</abbr>. <a href="/cal.php?id=1918" class="summary">Sydney PHP Group meetings</a></span><br />
+<span class="event_NZL vevent"><abbr title="2012-09-06" class="dtstart">06</abbr>. <a href="/cal.php?id=2017" class="summary">PHP UG Meetup Auckland</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-06" class="dtstart">06</abbr>. <a href="/cal.php?id=2418" class="summary">Seattle PHP Meetup Group</a></span><br />
+<span class="event_DNK vevent"><abbr title="2012-09-06" class="dtstart">06</abbr>. <a href="/cal.php?id=2734" class="summary">The Copenhagen PHP Meetup Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-06" class="dtstart">06</abbr>. <a href="/cal.php?id=2932" class="summary">SF PHP Meetup</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-06" class="dtstart">06</abbr>. <a href="/cal.php?id=3416" class="summary">Knoxville Python &amp; PHP UG</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-06" class="dtstart">06</abbr>. <a href="/cal.php?id=3861" class="summary">Minnesota PHP User Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-06" class="dtstart">06</abbr>. <a href="/cal.php?id=4014" class="summary">OrlandoPHP User Group</a></span><br />
+<span class="event_GBR vevent"><abbr title="2012-09-06" class="dtstart">06</abbr>. <a href="/cal.php?id=4147" class="summary">PHP Cardiff Meetup</a></span><br />
+<span class="event_GBR vevent"><abbr title="2012-09-06" class="dtstart">06</abbr>. <a href="/cal.php?id=4799" class="summary">PHPEM</a></span><br />
+<span class="event_DEU vevent"><abbr title="2012-09-07" class="dtstart">07</abbr>. <a href="/cal.php?id=153" class="summary">Köln/Bonn</a></span><br />
+<span class="event_IRN vevent"><abbr title="2012-09-07" class="dtstart">07</abbr>. <a href="/cal.php?id=2663" class="summary">Iran PHP developer&#039;s meetup</a></span><br />
+<span class="event_CAN vevent"><abbr title="2012-09-08" class="dtstart">08</abbr>. <a href="/cal.php?id=1732" class="summary">PHP User Group Nanaimo, BC/CA</a></span><br />
+<span class="event_CHN vevent"><abbr title="2012-09-08" class="dtstart">08</abbr>. <a href="/cal.php?id=2580" class="summary">PEA meeting from phpchina</a></span><br />
+<span class="event_IND vevent"><abbr title="2012-09-08" class="dtstart">08</abbr>. <a href="/cal.php?id=3722" class="summary">Nagpur PHP Meetup</a></span><br />
+<span class="event_MEX vevent"><abbr title="2012-09-08" class="dtstart">08</abbr>. <a href="/cal.php?id=4258" class="summary">Nezahualcoyotl PHP Ramptors</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-09" class="dtstart">09</abbr>. <a href="/cal.php?id=3760" class="summary">Los Angeles PHP Developers Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-10" class="dtstart">10</abbr>. <a href="/cal.php?id=4308" class="summary">Queen City (Charlotte) PHP</a></span><br />
+<span class="event_DEU vevent"><abbr title="2012-09-11" class="dtstart">11</abbr>. <a href="/cal.php?id=1385" class="summary">Hamburg</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-11" class="dtstart">11</abbr>. <a href="/cal.php?id=1523" class="summary">Dallas PHP/MySQL Users Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-11" class="dtstart">11</abbr>. <a href="/cal.php?id=1670" class="summary">Dallas PHP Users Group (DPUG)</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-11" class="dtstart">11</abbr>. <a href="/cal.php?id=1652" class="summary">Austin PHP Meetup</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-11" class="dtstart">11</abbr>. <a href="/cal.php?id=1665" class="summary">OKC PHP Meetup</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-11" class="dtstart">11</abbr>. <a href="/cal.php?id=1847" class="summary">Nashville PHP User Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-11" class="dtstart">11</abbr>. <a href="/cal.php?id=3643" class="summary">Oklahoma City PHP User Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-11" class="dtstart">11</abbr>. <a href="/cal.php?id=3980" class="summary">Buffalo PHP Meetup</a></span><br />
+<span class="event_DEU vevent"><abbr title="2012-09-12" class="dtstart">12</abbr>. <a href="/cal.php?id=3684" class="summary">PHP User Group Stuttgart</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-12" class="dtstart">12</abbr>. <a href="/cal.php?id=4222" class="summary">South Florida PHP Users Group</a></span><br />
+<span class="event_GBR vevent"><abbr title="2012-09-12" class="dtstart">12</abbr>. <a href="/cal.php?id=4751" class="summary">PHP South West User Group</a></span><br />
+<span class="event_GBR vevent"><abbr title="2012-09-12" class="dtstart">12</abbr>. <a href="/cal.php?id=5017" class="summary">PHPSW, UK</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-12" class="dtstart">12</abbr>. <a href="/cal.php?id=5212" class="summary">DC PHP Developer&#039;s Community</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-12" class="dtstart">12</abbr>. <a href="/cal.php?id=5388" class="summary">VenturaPHP Developers Meetup</a></span><br />
+<span class="event_DEU vevent"><abbr title="2012-09-13" class="dtstart">13</abbr>. <a href="/cal.php?id=1848" class="summary">Meeting usergroup Dortmund</a></span><br />
+<span class="event_DEU vevent"><abbr title="2012-09-13" class="dtstart">13</abbr>. <a href="/cal.php?id=1946" class="summary">PHP Usergroup Frankfurt/Main</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-13" class="dtstart">13</abbr>. <a href="/cal.php?id=4636" class="summary">Metro Jersey PHP Usergroup</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-13" class="dtstart">13</abbr>. <a href="/cal.php?id=5322" class="summary">Seattle PHP Meetup/Users Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-15" class="dtstart">15</abbr>. <a href="/cal.php?id=1346" class="summary">Miami Linux Users Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-15" class="dtstart">15</abbr>. <a href="/cal.php?id=1671" class="summary">Twin Cities PHP</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-15" class="dtstart">15</abbr>. <a href="/cal.php?id=2449" class="summary">Los Angeles LAMPsig</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-15" class="dtstart">15</abbr>. <a href="/cal.php?id=5401" class="summary">Kansas City</a></span><br />
+<span class="event_AUS vevent"><abbr title="2012-09-18" class="dtstart">18</abbr>. <a href="/cal.php?id=2246" class="summary">PHP Brisbane Meetup Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-18" class="dtstart">18</abbr>. <a href="/cal.php?id=3708" class="summary">Nashville Enterprise LAMP UG</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-18" class="dtstart">18</abbr>. <a href="/cal.php?id=3761" class="summary">Chattanooga PHP Developers</a></span><br />
+<span class="event_GBR vevent"><abbr title="2012-09-18" class="dtstart">18</abbr>. <a href="/cal.php?id=4725" class="summary">PHP North-East User Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-18" class="dtstart">18</abbr>. <a href="/cal.php?id=5222" class="summary">NWO-PUG User Group Meeting</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-18" class="dtstart">18</abbr>. <a href="/cal.php?id=5368" class="summary">CHOPUG</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-18" class="dtstart">18</abbr>. <a href="/cal.php?id=5370" class="summary">Lake / Kenosha PHP User Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-19" class="dtstart">19</abbr>. <a href="/cal.php?id=1545" class="summary">Miami PHP User Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-19" class="dtstart">19</abbr>. <a href="/cal.php?id=1546" class="summary">Broward Php Usergroup</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-19" class="dtstart">19</abbr>. <a href="/cal.php?id=2208" class="summary">Chicago PHP User Group Brunch</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-19" class="dtstart">19</abbr>. <a href="/cal.php?id=3925" class="summary">Baltimore PHP User Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-20" class="dtstart">20</abbr>. <a href="/cal.php?id=1704" class="summary">TriPUG</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-20" class="dtstart">20</abbr>. <a href="/cal.php?id=1719" class="summary">OINK-PUG (Cincinnati, Ohio)</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-20" class="dtstart">20</abbr>. <a href="/cal.php?id=1820" class="summary">Utah PHP Users Group Meeting</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-20" class="dtstart">20</abbr>. <a href="/cal.php?id=4507" class="summary">Denver - FRPUG</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-20" class="dtstart">20</abbr>. <a href="/cal.php?id=5372" class="summary">San Diego PHP</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-20" class="dtstart">20</abbr>. <a href="/cal.php?id=5092" class="summary">B/CS PHP User Group</a></span><br />
+<span class="event_NLD vevent"><abbr title="2012-09-20" class="dtstart">20</abbr>. <a href="/cal.php?id=5343" class="summary">AmsterdamPHP Meetup</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-24" class="dtstart">24</abbr>. <a href="/cal.php?id=1099" class="summary">Long Island PHP Users Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-24" class="dtstart">24</abbr>. <a href="/cal.php?id=4648" class="summary">Tampa Bay Florida PHP</a></span><br />
+<span class="event_CAN vevent"><abbr title="2012-09-24" class="dtstart">24</abbr>. <a href="/cal.php?id=4767" class="summary">Winnipeg PHP</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-25" class="dtstart">25</abbr>. <a href="/cal.php?id=409" class="summary">New York</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-25" class="dtstart">25</abbr>. <a href="/cal.php?id=384" class="summary">AzPHP</a></span><br />
+<span class="event_MYS vevent"><abbr title="2012-09-25" class="dtstart">25</abbr>. <a href="/cal.php?id=2527" class="summary">Malaysia PHP Meetup</a></span><br />
+<span class="event_DEU vevent"><abbr title="2012-09-25" class="dtstart">25</abbr>. <a href="/cal.php?id=2600" class="summary">PHP Usergroup Karlsruhe</a></span><br />
+<span class="event_DEU vevent"><abbr title="2012-09-25" class="dtstart">25</abbr>. <a href="/cal.php?id=2660" class="summary">PHPUG Wuerzburg</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-25" class="dtstart">25</abbr>. <a href="/cal.php?id=3075" class="summary">DCPHP Beverage Subgroup</a></span><br />
+<span class="event_AUS vevent"><abbr title="2012-09-25" class="dtstart">25</abbr>. <a href="/cal.php?id=3653" class="summary">Brisbane PHP User Group</a></span><br />
+<span class="event_ITA vevent"><abbr title="2012-09-25" class="dtstart">25</abbr>. <a href="/cal.php?id=4626" class="summary">PHP User Group Roma</a></span><br />
+<span class="event_BRA vevent"><abbr title="2012-09-25" class="dtstart">25</abbr>. <a href="/cal.php?id=5276" class="summary">PHPUBSP</a></span><br />
+<span class="event_IRL vevent"><abbr title="2012-09-26" class="dtstart">26</abbr>. <a href="/cal.php?id=2500" class="summary">Irish PHP Users Group meeting</a></span><br />
+<span class="event_CAN vevent"><abbr title="2012-09-26" class="dtstart">26</abbr>. <a href="/cal.php?id=4922" class="summary">Guelph PHP Users Group</a></span><br />
+<span class="event_GBR vevent"><abbr title="2012-09-26" class="dtstart">26</abbr>. <a href="/cal.php?id=5135" class="summary">Edinburgh PHP Users Group</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-26" class="dtstart">26</abbr>. <a href="/cal.php?id=5313" class="summary">Louisville PHP User Group</a></span><br />
+<span class="event_SAU vevent"><abbr title="2012-09-27" class="dtstart">27</abbr>. <a href="/cal.php?id=1316" class="summary">Arabic PHP Group Meeting</a></span><br />
+<span class="event_MYS vevent"><abbr title="2012-09-27" class="dtstart">27</abbr>. <a href="/cal.php?id=1708" class="summary">Malaysia PHP User Group Meet Up</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-27" class="dtstart">27</abbr>. <a href="/cal.php?id=4256" class="summary">Memphis PHP</a></span><br />
+<span class="event_DEU vevent"><abbr title="2012-09-27" class="dtstart">27</abbr>. <a href="/cal.php?id=5052" class="summary">PHP Usergroup D/DU/KR</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-29" class="dtstart">29</abbr>. <a href="/cal.php?id=2662" class="summary">Miami Linux Meetup</a></span><br />
+<span class="event_BRA vevent"><abbr title="2012-09-29" class="dtstart">29</abbr>. <a href="/cal.php?id=3422" class="summary">PHP RIO Meetup</a></span><br />
+<span class="event_HKG vevent"><abbr title="2012-09-29" class="dtstart">29</abbr>. <a href="/cal.php?id=4019" class="summary">PHP User Group Hong Kong</a></span><br />
+<h4>Training</h4>
+<span class="event_BRA vevent"><abbr title="2012-09-01" class="dtstart">01</abbr>. <a href="/cal.php?id=2702" class="summary">PHP &amp; AJAX -Construindo Websites</a></span><br />
+<span class="event_IND vevent"><abbr title="2012-09-01" class="dtstart">01</abbr>. <a href="/cal.php?id=3560" class="summary">Core and Advanced PHP Workshop</a></span><br />
+<span class="event_IND vevent"><abbr title="2012-09-02" class="dtstart">02</abbr>. <a href="/cal.php?id=2023" class="summary">Ahmedabad PHP Group Training</a></span><br />
+<span class="event_IND vevent"><abbr title="2012-09-02" class="dtstart">02</abbr>. <a href="/cal.php?id=4230" class="summary">php training</a></span><br />
+<span class="event_ESP vevent"><abbr title="2012-09-03" class="dtstart">03</abbr>. <a href="/cal.php?id=338" class="summary">MySQL Spain</a></span><br />
+<span class="event_ESP vevent"><abbr title="2012-09-03" class="dtstart">03</abbr>. <a href="/cal.php?id=456" class="summary">Curso PHP Madrid</a></span><br />
+<span class="event_DEU vevent"><abbr title="2012-09-03" class="dtstart">03</abbr>. <a href="/cal.php?id=641" class="summary">PHP E-Learning/Germany</a></span><br />
+<span class="event_ESP vevent"><abbr title="2012-09-03" class="dtstart">03</abbr>. <a href="/cal.php?id=998" class="summary">Curso on-line ActionScript / PHP</a></span><br />
+<span class="event_DEU vevent"><abbr title="2012-09-03" class="dtstart">03</abbr>. <a href="/cal.php?id=1198" class="summary">PHP &amp; MySQL Training in Kassel</a></span><br />
+<span class="event_BRA vevent"><abbr title="2012-09-03" class="dtstart">03</abbr>. <a href="/cal.php?id=1360" class="summary">PHP &amp; MySQL com Dreamweaver MX</a></span><br />
+<span class="event_ESP vevent"><abbr title="2012-09-03" class="dtstart">03</abbr>. <a href="/cal.php?id=1981" class="summary">Curso on-line de PHP</a></span><br />
+<span class="event_BRA vevent"><abbr title="2012-09-03" class="dtstart">03</abbr>. <a href="/cal.php?id=2051" class="summary">PHP &amp; MYSQL-Construindo WebSites</a></span><br />
+<span class="event_DEU vevent"><abbr title="2012-09-03" class="dtstart">03</abbr>. <a href="/cal.php?id=3053" class="summary">PHP Training Heilbronn</a></span><br />
+<span class="event_IND vevent"><abbr title="2012-09-03" class="dtstart">03</abbr>. <a href="/cal.php?id=5298" class="summary">Basic PHP Course</a></span><br />
+<span class="event_ESP vevent"><abbr title="2012-09-04" class="dtstart">04</abbr>. <a href="/cal.php?id=841" class="summary">Curso on-line de PHP-MySQL</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-04" class="dtstart">04</abbr>. <a href="/cal.php?id=1490" class="summary">PHP Class at CalTek</a></span><br />
+<span class="event_IND vevent"><abbr title="2012-09-05" class="dtstart">05</abbr>. <a href="/cal.php?id=2144" class="summary">PHP Training - Chennai - India</a></span><br />
+<span class="event_IND vevent"><abbr title="2012-09-05" class="dtstart">05</abbr>. <a href="/cal.php?id=3703" class="summary">Zend Certification</a></span><br />
+<span class="event_RUS vevent"><abbr title="2012-09-05" class="dtstart">05</abbr>. <a href="/cal.php?id=5305" class="summary">PHP: Web-sites and MySQL</a></span><br />
+<span class="event_MEX vevent"><abbr title="2012-09-05" class="dtstart">05</abbr>. <a href="/cal.php?id=5380" class="summary">1st Wednesdays Aztek PHP Course</a></span><br />
+<span class="event_ESP vevent"><abbr title="2012-09-06" class="dtstart">06</abbr>. <a href="/cal.php?id=1516" class="summary">Curso de PHP Avanzado en Bilbao</a></span><br />
+<span class="event_FRA vevent"><abbr title="2012-09-06" class="dtstart">06</abbr>. <a href="/cal.php?id=5126" class="summary">Initiation -la programmation php</a></span><br />
+<span class="event_FRA vevent"><abbr title="2012-09-06" class="dtstart">06</abbr>. <a href="/cal.php?id=5229" class="summary">Initiation à la programmation</a></span><br />
+<span class="event_ESP vevent"><abbr title="2012-09-10" class="dtstart">10</abbr>. <a href="/cal.php?id=1466" class="summary">PHP para Expertos Curso on-line</a></span><br />
+<span class="event_ECU vevent"><abbr title="2012-09-10" class="dtstart">10</abbr>. <a href="/cal.php?id=1583" class="summary">Curso PHP y MySQL</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-10" class="dtstart">10</abbr>. <a href="/cal.php?id=5355" class="summary">ZEND: PHPI: Foundations On-line</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-10" class="dtstart">10</abbr>. <a href="/cal.php?id=5356" class="summary">ZEND: PHPII: Higher Structures</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-10" class="dtstart">10</abbr>. <a href="/cal.php?id=5357" class="summary">ZEND: Test Prep: PHP 5.3 Cert</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-10" class="dtstart">10</abbr>. <a href="/cal.php?id=5358" class="summary">ZEND: PHP for OO/Procedural Prog</a></span><br />
+<span class="event_FRA vevent"><abbr title="2012-09-10" class="dtstart">10</abbr>. <a href="/cal.php?id=5367" class="summary">Traitement de données XML en PH</a></span><br />
+<span class="event_GBR vevent"><abbr title="2012-09-12" class="dtstart">12</abbr>. <a href="/cal.php?id=3385" class="summary">UK Object Orientation Workshop</a></span><br />
+<span class="event_MEX vevent"><abbr title="2012-09-12" class="dtstart">12</abbr>. <a href="/cal.php?id=5381" class="summary">2nd Wednesdays PHP Workshop</a></span><br />
+<span class="event_GBR vevent"><abbr title="2012-09-13" class="dtstart">13</abbr>. <a href="/cal.php?id=3386" class="summary">UK Smarty Templating Workshop</a></span><br />
+<span class="event_DEU vevent"><abbr title="2012-09-17" class="dtstart">17</abbr>. <a href="/cal.php?id=1200" class="summary">PHP &amp; MySQL Training / Gießen</a></span><br />
+<span class="event_ZAF vevent"><abbr title="2012-09-17" class="dtstart">17</abbr>. <a href="/cal.php?id=2589" class="summary">PHP Intro Course South Africa</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-17" class="dtstart">17</abbr>. <a href="/cal.php?id=5359" class="summary">ZEND: Studio On-line</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-17" class="dtstart">17</abbr>. <a href="/cal.php?id=5360" class="summary">ZEND: Framework: Fundamentals</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-17" class="dtstart">17</abbr>. <a href="/cal.php?id=5361" class="summary">ZEND: Framework: Advanced</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-17" class="dtstart">17</abbr>. <a href="/cal.php?id=5364" class="summary">Zend: Server On-line</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-17" class="dtstart">17</abbr>. <a href="/cal.php?id=5365" class="summary">ZEND: PHP I Foundations for IBMi</a></span><br />
+<span class="event_ESP vevent"><abbr title="2012-09-18" class="dtstart">18</abbr>. <a href="/cal.php?id=1389" class="summary">Cursos de PHP en Bilbao</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-18" class="dtstart">18</abbr>. <a href="/cal.php?id=5363" class="summary">ZEND: PHP Security On-line</a></span><br />
+<span class="event_MEX vevent"><abbr title="2012-09-19" class="dtstart">19</abbr>. <a href="/cal.php?id=5382" class="summary">3rd Wednesdays PHP Seminary</a></span><br />
+<span class="event_DEU vevent"><abbr title="2012-09-19" class="dtstart">19</abbr>. <a href="/cal.php?id=5387" class="summary">AJAX und PHP</a></span><br />
+<span class="event_IND vevent"><abbr title="2012-09-20" class="dtstart">20</abbr>. <a href="/cal.php?id=2408" class="summary">Chennai PHP Training</a></span><br />
+<span class="event_USA vevent"><abbr title="2012-09-24" class="dtstart">24</abbr>. <a href="/cal.php?id=5362" class="summary">ZEND: Test Prep: Framework Cert</a></span><br />
+<span class="event_ZAF vevent"><abbr title="2012-09-24" class="dtstart">24</abbr>. <a href="/cal.php?id=5384" class="summary">PHP Course Johannesburg</a></span><br />
+<span class="event_GBR vevent"><abbr title="2012-09-25" class="dtstart">25</abbr>. <a href="/cal.php?id=231" class="summary">UK PHP Training</a></span><br />
+<span class="event_BRA vevent"><abbr title="2012-09-27" class="dtstart">27</abbr>. <a href="/cal.php?id=1137" class="summary">PHP Brasil - Training</a></span><br />
+<span class="event_DEU vevent"><abbr title="2012-09-28" class="dtstart">28</abbr>. <a href="/cal.php?id=4220" class="summary">PHP Training</a></span><br />
+</div>
+ <div id="content" class="conferences">
+<div class="newsItem hentry vevent">
+    <div class="newsImage"><a href="http://www.web-developer-conference.de"><img src="http://static.php.net/www.php.net/images/news/wdc-2012.jpg" alt="The Web Developer Conference" width="2172" height="591" style="float: right;" /></a></div>
+    <h2 class="summary entry-title"><a name="id2012-07-27-1" id="id2012-07-27-1" href="http://www.web-developer-conference.de" rel="bookmark" class="bookmark">The Web Developer Conference</a></h2>
+    <div class="entry-content description">
+        <abbr class="published newsdate" title="2012-07-27T17:15:23+01:00">27-Jul-2012</abbr>
+        <div>
+     <p>
+          <a href="http://www.web-developer-conference.de">The Web Developer Conference (WDC)</a>
+          for web developers from the 17th - 18th of September, 2012 in Hamburg, Germany.
+          The conference is geared towards developers of web applications,
+          content and online managers, agencies and web-masters.
+          </p>
+          <p>
+          The WDC will be represented by the German trade magazine web &amp; mobile developer.
+          More information about the conference can be found on
+          <a href="http://www.web-developer-conference.de">the conference website</a>.
+          </p>
+    </div>
+  
+    </div>
+</div>
+<div class="newsItem hentry vevent">
+    <div class="newsImage"><a href="http://www.northeastphp.org/"><img src="http://static.php.net/www.php.net/images/news/NENA_logo.png" alt="Northeast PHP Conference" width="352" height="191" style="float: right;" /></a></div>
+    <h2 class="summary entry-title"><a name="id2012-06-27-1" id="id2012-06-27-1" href="http://www.northeastphp.org/" rel="bookmark" class="bookmark">Northeast PHP Conference</a></h2>
+    <div class="entry-content description">
+        <abbr class="published newsdate" title="2012-06-27T16:20:12+01:00">27-Jun-2012</abbr>
+        <div>
+     <p>
+         The Northeast PHP conference is a two day event coordinated by three PHP user groups in the northeast region:
+         Boston PHP, Atlantic Canada PHP, and Vermont PHP. The entire event is being organized organized by community
+         volunteers and members just like you. We are completely non profit, and open source.
+     </p>
+     <p>
+         There will be nothing quite like it. With two fun-filled days full of great topics from over 40 experts, it's like three years of Meetups jam packed into two days!
+     </p>
+     <p>
+         Check out the <a href="http://www.northeastphp.org/">Northeast PHP website</a> for a listing of the talks and speakers lined up.
+     </p>
+     <p>
+         <ul>
+             <li><strong>What:</strong> Northeast PHP Conference</li>
+             <li><strong>When:</strong> Sat-Sun August 11-12, 2012 8am-5pm</li>
+             <li><strong>*Where:</strong> Microsoft NERD</li>
+             <li><strong>*Tickets:</strong> Tickets go on sale June 28th!</li>
+         </ul>
+     </p>
+    </div>
+  
+    </div>
+</div>
+<div class="newsItem hentry vevent">
+    <div class="newsImage"><a href="http://devconf.ru"><img src="http://static.php.net/www.php.net/images/news/devconfru2012.png" alt="DevConf 2012" width="373" height="86" style="float: right;" /></a></div>
+    <h2 class="summary entry-title"><a name="id2012-04-27-1" id="id2012-04-27-1" href="http://devconf.ru" rel="bookmark" class="bookmark">DevConf 2012</a></h2>
+    <div class="entry-content description">
+        <abbr class="published newsdate" title="2012-04-27T05:20:52+00:00">27-Apr-2012</abbr>
+        <div>
+     <p>
+      DevConf 2012 in Moscow, Russia on Jun 9 - Jun 10
+     </p>
+	 <p>
+      DevConf is the ultimate meeting place for russian-speaking web-developers, 
+      combining several language-specific conferences under one roof.  
+     </p>
+	 <p>
+      This year DevConf will include the following sections:
+     </p>
+     <ul>
+      <li>DevConf::PHP();</li>
+      <li>DevConf::Perl();</li>
+      <li>DevConf::RoR();</li>
+      <li>DevConf::Python();</li>
+      <li>DevConf::Javascript();</li>
+     </ul>
+     <p>
+       Each section will feature several talks from the active contributors/authors of the language. 
+       Among the invited speakers are Derick Rethans (<a href="http://xdebug.org">XDebug</a> creator), 
+	   David Soria Parra (active PHP contributor), Andrey Aksyonov (author of <a href="http://sphinxsearch.com">Sphinx</a>), 
+	   Alexander Makarov (one of the main contributors to <a href="http://www.yiiframework.com">Yii</a>), 
+	   Sergey Petrunya (of <a href="http://mariadb.org">MariaDB</a> fame), Ilya Alekseev (<a href="http://openstack.org">OpenStack</a> Nova contributor) 
+	   and many others, see more details on <a href="http://devconf.ru">the official website</a>.
+     </p>
+    </div>
+  
+    </div>
+</div>
+<div class="newsItem hentry vevent">
+    <div class="newsImage"></div>
+    <h2 class="summary entry-title"><a name="id2012-01-20-1" id="id2012-01-20-1" href="http://confoo.ca/" rel="bookmark" class="bookmark">ConFoo 2012</a></h2>
+    <div class="entry-content description">
+        <abbr class="published newsdate" title="2012-01-20T05:20:52+00:00">20-Jan-2012</abbr>
+        <div>
+     <p>
+      ConFoo 2012 in Montreal, Canada on Feb 29 - Mar 02
+     </p>
+     <p>
+      ConFoo is the unique web conference in Canada gathering different
+      tech communities in one place.
+     </p>
+     <ul>
+      <li>find working solutions for your day to day challenges;</li>
+      <li>discover new tools that increase your productivity;</li>
+      <li>network with people from some of the world’s biggest companies;</li>
+      <li>160 presentations focusing on core competencies improvement;</li>
+     </ul>
+     <p>
+      Don't miss this great opportunity and <a href="http://confoo.ca/en/register">register today</a>! 
+      Also check out our two <a href="http://confoo.ca/en/2012/training">training days</a>
+      around PHP, HTML5, Symfony2 and security topics right before the
+      conference.
+     </p>
+    </div>
+  
+    </div>
+</div>
+<div class="newsItem hentry vevent">
+    <div class="newsImage"><a href="http://conference.phpbenelux.eu/2012"><img src="http://static.php.net/www.php.net/images/news/phpbnl2012.png" alt="PHPBenelux 2012" width="347" height="68" style="float: right;" /></a></div>
+    <h2 class="summary entry-title"><a name="id2012-01-07-1" id="id2012-01-07-1" href="http://conference.phpbenelux.eu/2012" rel="bookmark" class="bookmark">PHPBenelux 2012</a></h2>
+    <div class="entry-content description">
+        <abbr class="published newsdate" title="2012-01-07T14:47:25+01:00">07-Jan-2012</abbr>
+        <div>
+     <p>
+     The PHPBenelux Conference is ready for its third edition and takes place
+     January 27th &amp; 28th in Antwerp (Belgium).
+     </p>
+     <p>We're very proud to have a great
+     lineup this year and some awesome social events. All information about the
+     conference  can be found on our conference website
+     <a href="http://conference.phpbenelux.eu/2012">http://conference.phpbenelux.eu/2012</a>.
+     </p>
+     <p>
+     There are some tickets still available, get them at <a href="http://shop.phpbenelux.eu">http://shop.phpbenelux.eu</a>.
+     </p>
+    </div>
+  
+    </div>
+</div>
+<div class="newsItem hentry vevent">
+    <div class="newsImage"><a href="http://www.phpconference.nl/"><img src="http://static.php.net/www.php.net/images/news/dpc_2012.png" alt="Dutch PHP Conference 2012" width="400" height="233" style="float: right;" /></a></div>
+    <h2 class="summary entry-title"><a name="id2011-12-23-1" id="id2011-12-23-1" href="http://www.phpconference.nl/" rel="bookmark" class="bookmark">Dutch PHP Conference 2012</a></h2>
+    <div class="entry-content description">
+        <abbr class="published newsdate" title="2011-12-23T11:11:49+01:00">23-Dec-2011</abbr>
+        <div>
+     <p>Ibuildings is proud to organise the sixth Dutch PHP Conference on June 8 and 9, plus a pre-conference tutorial day on June 7. Both programs will be completely in English so the only Dutch thing about it is the location. Keywords for these days: Know-how, Technology, Best Practices, Networking, Tips &amp; Tricks.
+     </p>
+     <p>
+         Website: <a href="http://www.phpconference.nl/">http://www.phpconference.nl/</a>
+     </p>
+    </div>
+  
+    </div>
+</div>
+<div class="newsItem hentry vevent">
+    <div class="newsImage"><a href="http://www.phpday.it/"><img src="http://static.php.net/www.php.net/images/news/phpday2012.png" alt="Italian phpDay" width="250" height="120" style="float: right;" /></a></div>
+    <h2 class="summary entry-title"><a name="id2011-11-17-1" id="id2011-11-17-1" href="http://www.phpday.it/" rel="bookmark" class="bookmark">Italian phpDay 2012</a></h2>
+    <div class="entry-content description">
+        <abbr class="published newsdate" title="2011-11-17T11:05:04+01:00">17-Nov-2011</abbr>
+        <div>
+     <p>
+         The <a href="http://www.grusp.it">Italian PHP user group GrUSP</a> is pleased to
+         announce the 9th edition of the <a href="http://www.phpday.it">Italian phpDay conference</a>, taking place
+         on May 18th and 19th, 2012 in Verona. We will show new development
+         traits, best-practices and success cases related to quality, revision
+         control, test-driven development, continuous integration and so on.
+         There are also talks about design, project management, agile and various
+         php-related technologies.
+     </p>
+     <p>
+         phpDay is the first historic Italian conference dedicated solely to PHP
+         development, technologies and management. It is aimed to IT managers,
+         developers and innovators. Each year it renews the opportunity to link
+         to new business partners.
+     </p>
+     <p>
+         The call for papers is open and will run until Feb 28th 2012. For more
+         information, please visit our website: <a href="http://www.phpday.it">http://www.phpday.it</a>
+     </p>
+    </div>
+  
+    </div>
+</div>
+
+ </div>
+ <div class="cleaner">&nbsp;</div>
+</div>
+
+<div id="footnav">
+  <a href="/feed.atom">Atom</a> | <a href="/source.php?url=/conferences/index.php">show source</a> |
+ <a href="/credits.php">credits</a> |
+ <a href="/stats/">stats</a> |
+ <a href="/sitemap.php">sitemap</a> |
+ <a href="/contact.php">contact</a> |
+ <a href="/contact.php#ads">advertising</a> |
+ <a href="/mirrors.php">mirror sites</a>
+</div>
+
+<div id="pagefooter">
+ <div id="copyright">
+  <a href="/copyright.php">Copyright &copy; 2001-2012 The PHP Group</a><br />
+  All rights reserved.
+ </div>
+
+ <div id="thismirror">
+  <a href="/mirror.php">This mirror</a> generously provided by:
+  <a href="http://developer.yahoo.com/">Yahoo! Inc.</a><br />
+  Last updated: Tue Jul 31 20:41:05 2012 UTC
+ </div>
+</div>
+<!--[if IE 6]>
+<script type="text/javascript">
+    /*Load jQuery if not already loaded*/ if(typeof jQuery == 'undefined'){ document.write("<script type=\"text/javascript\"   src=\"http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js\"></"+"script>"); var __noconflict = true; }
+    var IE6UPDATE_OPTIONS = {
+        icons_path: "/ie6update/images/"
+    }
+</script>
+<script type="text/javascript" src="/ie6update/ie6update.js"></script>
+<![endif]-->
+</body>
+</html>

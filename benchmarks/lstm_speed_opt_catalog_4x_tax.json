@@ -1,0 +1,130 @@
+{
+  "description": "Cut byte tax on the ≥4× iterate arm. Banked v4_lm (LSTM64 kitchen + LIGHT_MIX_EXTREME) = 4.07× @10 MiB / +543 856 B. Hypothesis: tax is kitchen (tiny LSTM + aggressive outer FP/AO/MATCH cuts), not LIGHT_MIX itself. Keep LIGHT_MIX_EXTREME; restore mid LSTM + milder outer skips.",
+  "base_defs": [
+    "-DSEED=923",
+    "-DUPDATE_LIMIT=3000",
+    "-DFXCM_ENTITY_FOLD",
+    "-DFXCM_MATCH_MAX=3000000ull",
+    "-DFXCM_SPEED_INLINE_GET",
+    "-DNDEBUG",
+    "-DFXCM_RECIPE_RUNTIME",
+    "-DFXCM_FRACTAL_PRED"
+  ],
+  "candidates": [
+    {
+      "name": "ctrl_v4_lm",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=64",
+        "-DFXCM_PPMD_MB=2048",
+        "-DFXCM_MATCH_MAX=1000000ull",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=2u",
+        "-DFXCM_SPEED_ADVANCE_ONLY",
+        "-DFXCM_SPEED_OUTER_AO_MIN=4u",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=2u",
+        "-DFXCM_SPEED_CM_MATCH_SKIP",
+        "-DFXCM_SPEED_CM_MATCH_MIN=4",
+        "-DFXCM_CM_SCALE=2",
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_EXTREME"
+      ],
+      "note": "control = banked iterate4x_lm"
+    },
+    {
+      "name": "l128_lm_fp4",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=128",
+        "-DFXCM_PPMD_MB=8192",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=4u",
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_EXTREME"
+      ],
+      "note": "l128 was +8 KiB plain @10 MiB; mild FP + extreme light-mix"
+    },
+    {
+      "name": "l128_lm_fp2",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=128",
+        "-DFXCM_PPMD_MB=8192",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=2u",
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_EXTREME"
+      ],
+      "note": "l128 + FP2 + lm — speed/tax middle"
+    },
+    {
+      "name": "l128_lm_fp2_cm",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=128",
+        "-DFXCM_PPMD_MB=8192",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=2u",
+        "-DFXCM_SPEED_CM_MATCH_SKIP",
+        "-DFXCM_SPEED_CM_MATCH_MIN=4",
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_EXTREME"
+      ],
+      "note": "l128 + FP2 + CM skip + lm (no AO / no MATCH_MAX cut)"
+    },
+    {
+      "name": "l192_lm_fp2_cm_ao",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=192",
+        "-DFXCM_PPMD_MB=8192",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=2u",
+        "-DFXCM_SPEED_ADVANCE_ONLY",
+        "-DFXCM_SPEED_OUTER_AO_MIN=8u",
+        "-DFXCM_SPEED_CM_MATCH_SKIP",
+        "-DFXCM_SPEED_CM_MATCH_MIN=4",
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_EXTREME"
+      ],
+      "note": "mid-192 kitchen-lite + lm"
+    },
+    {
+      "name": "l256_lm_fp4",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=256",
+        "-DFXCM_PPMD_MB=8192",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=4u",
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_EXTREME"
+      ],
+      "note": "large net, mild FP — byte-preserving 4× attempt"
+    },
+    {
+      "name": "l96_lm_fp2_ao",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=96",
+        "-DFXCM_PPMD_MB=4096",
+        "-DFXCM_MATCH_MAX=2000000ull",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=2u",
+        "-DFXCM_SPEED_ADVANCE_ONLY",
+        "-DFXCM_SPEED_OUTER_AO_MIN=4u",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=2u",
+        "-DFXCM_SPEED_CM_MATCH_SKIP",
+        "-DFXCM_SPEED_CM_MATCH_MIN=4",
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_EXTREME"
+      ],
+      "note": "between l64 kitchen and l128 — tax/speed probe"
+    },
+    {
+      "name": "l128_lm_only",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=128",
+        "-DFXCM_PPMD_MB=8192",
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_EXTREME"
+      ],
+      "note": "no outer FP — isolate lm tax vs plain l128"
+    }
+  ]
+}

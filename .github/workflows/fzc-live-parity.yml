@@ -1,0 +1,45 @@
+# Manual: compare local web-sim capability JSON vs a live fzc_capability_report.php?json=1 URL.
+# Requires workflow_dispatch input URL; optional repo secret FZC_WEB_API_SECRET for Bearer auth.
+name: fzc-live-parity
+
+on:
+  workflow_dispatch:
+    inputs:
+      live_capability_url:
+        description: 'Full URL (e.g. https://site/examples/fzc_capability_report.php?json=1)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pcntl, mbstring
+
+      - name: Local web-sim capability report
+        run: php examples/fzc_capability_report.php --label=gha-local-web --as-web --json --out=local.json
+
+      - name: Fetch live capability report
+        env:
+          FZC_WEB_API_SECRET: ${{ secrets.FZC_WEB_API_SECRET }}
+        run: |
+          CURL_AUTH=()
+          if [ -n "${FZC_WEB_API_SECRET:-}" ]; then
+            CURL_AUTH=(-H "Authorization: Bearer ${FZC_WEB_API_SECRET}")
+          fi
+          curl -fsSL "${CURL_AUTH[@]}" "${{ inputs.live_capability_url }}" -o live.json
+
+      - name: Compare local vs live (human + JSON)
+        run: |
+          php examples/fzc_capability_compare.php local.json live.json
+          php examples/fzc_capability_compare.php --json local.json live.json | tee compare.json
+          php -r '$j=json_decode(file_get_contents("compare.json"),true); exit(empty($j["ok"])?1:0);'

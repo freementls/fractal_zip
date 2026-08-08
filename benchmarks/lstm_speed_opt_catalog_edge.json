@@ -1,0 +1,88 @@
+{
+  "description": "Match-edge novel stride: force Perceive for E novel bytes after leaving a match, then novel2. Aims to cut tax of hard novel2 while keeping most of the wall win. Screen after push@10MiB.",
+  "base_defs": [
+    "-DSEED=923",
+    "-DUPDATE_LIMIT=3000",
+    "-DFXCM_ENTITY_FOLD",
+    "-DFXCM_MATCH_MAX=3000000ull",
+    "-DFXCM_SPEED_INLINE_GET",
+    "-DNDEBUG",
+    "-DFXCM_RECIPE_RUNTIME",
+    "-DFXCM_FRACTAL_PRED",
+    "-DFXCM_LSTM_HIDDEN=64",
+    "-DFXCM_PPMD_MB=2048",
+    "-DFXCM_MATCH_MAX=1000000ull",
+    "-DFXCM_SPEED_MATCH_FASTPATH",
+    "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+    "-DFXCM_SPEED_MATCH_SKIP_MIN=1u",
+    "-DFXCM_SPEED_CM_MATCH_SKIP",
+    "-DFXCM_SPEED_CM_MATCH_MIN=4",
+    "-DFXCM_SPEED_ADVANCE_ONLY",
+    "-DFXCM_SPEED_OUTER_AO_MIN=4u",
+    "-DFXCM_CM_SCALE=2"
+  ],
+  "candidates": [
+    {
+      "name": "edge_st_e2",
+      "extra_defs": [
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_AGGRESSIVE",
+        "-DFXCM_SPEED_LSTM_NOVEL_STRIDE=2u",
+        "-DFXCM_SPEED_LSTM_NOVEL_EDGE=2u"
+      ],
+      "note": "speed tip + edge2"
+    },
+    {
+      "name": "edge_st_e4",
+      "extra_defs": [
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_AGGRESSIVE",
+        "-DFXCM_SPEED_LSTM_NOVEL_STRIDE=2u",
+        "-DFXCM_SPEED_LSTM_NOVEL_EDGE=4u"
+      ],
+      "note": "speed tip + edge4"
+    },
+    {
+      "name": "edge_st_e8",
+      "extra_defs": [
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_AGGRESSIVE",
+        "-DFXCM_SPEED_LSTM_NOVEL_STRIDE=2u",
+        "-DFXCM_SPEED_LSTM_NOVEL_EDGE=8u"
+      ],
+      "note": "speed tip + edge8"
+    },
+    {
+      "name": "edge_p_e4",
+      "extra_defs": [
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_EXTREME",
+        "-DFXCM_SPEED_OUTER_AO_MIN=16u",
+        "-DFXCM_SPEED_LSTM_NOVEL_STRIDE=2u",
+        "-DFXCM_SPEED_LSTM_NOVEL_EDGE=4u"
+      ],
+      "note": "pareto + edge4"
+    },
+    {
+      "name": "edge_p_e4_aggr",
+      "extra_defs": [
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_AGGRESSIVE",
+        "-DFXCM_SPEED_OUTER_AO_MIN=16u",
+        "-DFXCM_SPEED_LSTM_NOVEL_STRIDE=2u",
+        "-DFXCM_SPEED_LSTM_NOVEL_EDGE=4u"
+      ],
+      "note": "ao16_n2_aggr + edge4"
+    },
+    {
+      "name": "edge_n3_e4",
+      "extra_defs": [
+        "-DFXCM_SPEED_LIGHT_MIX",
+        "-DFXCM_SPEED_LIGHT_MIX_AGGRESSIVE",
+        "-DFXCM_SPEED_LSTM_NOVEL_STRIDE=3u",
+        "-DFXCM_SPEED_LSTM_NOVEL_EDGE=4u"
+      ],
+      "note": "deeper novel + edge rescue"
+    }
+  ]
+}

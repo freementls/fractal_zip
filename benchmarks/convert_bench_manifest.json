@@ -1,0 +1,116 @@
+{
+    "generated_at": "2026-06-04T20:11:15+00:00",
+    "convert_root": "/srv/http/convert",
+    "experiments": [
+        {
+            "id": "test_files151_to_152",
+            "action": "csv_to_json",
+            "baseline_label": "test_files151",
+            "converted_label": "test_files152",
+            "parent_label": null,
+            "note": "CSV \u2192 JSON (large expansion on wide CSV)"
+        },
+        {
+            "id": "test_files151_to_153",
+            "action": "csv_to_xlsx",
+            "baseline_label": "test_files151",
+            "converted_label": "test_files153",
+            "parent_label": null,
+            "note": "CSV \u2192 XLSX (OOXML ZIP container)"
+        },
+        {
+            "id": "test_files154_to_155",
+            "action": "png_to_bmp",
+            "baseline_label": "test_files154",
+            "converted_label": "test_files155",
+            "parent_label": "test_files61",
+            "note": "PNG \u2192 BMP (BMP delta literal modes)"
+        },
+        {
+            "id": "test_files156_to_157",
+            "action": "svg_to_bmp",
+            "baseline_label": "test_files156",
+            "converted_label": "test_files157",
+            "parent_label": "test_files74",
+            "note": "SVG \u2192 BMP (vector \u2192 raster for BMP transforms)"
+        },
+        {
+            "id": "test_files158_to_159",
+            "action": "zip_to_7z",
+            "baseline_label": "test_files158",
+            "converted_label": "test_files159",
+            "parent_label": "test_files61",
+            "note": "ZIP \u2192 7z (container normalize)"
+        },
+        {
+            "id": "test_files160_to_161",
+            "action": "7z_to_zip",
+            "baseline_label": "test_files160",
+            "converted_label": "test_files161",
+            "parent_label": "test_files61",
+            "note": "7z \u2192 ZIP (semantic ZIP peel target)"
+        },
+        {
+            "id": "test_files162_to_163",
+            "action": "targz_to_zip",
+            "baseline_label": "test_files162",
+            "converted_label": "test_files163",
+            "parent_label": "test_files61",
+            "note": "tar.gz \u2192 ZIP"
+        },
+        {
+            "id": "test_files164_to_165",
+            "action": "flac_to_wav",
+            "baseline_label": "test_files164",
+            "converted_label": "test_files165",
+            "parent_label": "test_files60",
+            "note": "FLAC \u2192 WAV (PCM layout change)"
+        },
+        {
+            "id": "test_files166_to_167",
+            "action": "xlsx_to_csv",
+            "baseline_label": "test_files166",
+            "converted_label": "test_files167",
+            "parent_label": null,
+            "note": "XLSX \u2192 CSV (strip OOXML overhead)"
+        },
+        {
+            "id": "test_files168_to_169",
+            "action": "bmp_to_png",
+            "baseline_label": "test_files168",
+            "converted_label": "test_files169",
+            "parent_label": "test_files61",
+            "note": "BMP \u2192 PNG (raster re-pack)"
+        },
+        {
+            "id": "test_files165_to_170",
+            "action": "wav_to_flac",
+            "baseline_label": "test_files165",
+            "converted_label": "test_files170",
+            "parent_label": "test_files164",
+            "note": "WAV \u2192 FLAC (PCM re-pack after flac_to_wav)"
+        }
+    ],
+    "corpus_labels": [
+        "test_files151",
+        "test_files154",
+        "test_files156",
+        "test_files158",
+        "test_files160",
+        "test_files162",
+        "test_files164",
+        "test_files166",
+        "test_files168",
+        "test_files165",
+        "test_files152",
+        "test_files153",
+        "test_files155",
+        "test_files157",
+        "test_files159",
+        "test_files161",
+        "test_files163",
+        "test_files167",
+        "test_files169",
+        "test_files170"
+    ]
+}

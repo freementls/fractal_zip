@@ -1,0 +1,1210 @@
+{
+    "perf_test": 1,
+    "generated_at": "2026-04-18T22:02:22+00:00",
+    "argv": [
+        "perf_test.php",
+        "--profile-json=perf.json"
+    ],
+    "php_version": "8.5.4",
+    "php_os_family": "Linux",
+    "git_commit_short": "9ebfca44",
+    "php_runtime": "opcache.enable=1  opcache.enable_cli=1  opcache.jit=tracing  opcache_active=1",
+    "benchmark_config": {
+        "preset": "default",
+        "preset_label": "default",
+        "only": null,
+        "budget_sec": 300,
+        "zip_time_budget": true,
+        "verify": false,
+        "repeat": 1,
+        "large": false,
+        "legacy_folder_zip": false,
+        "bench_keep_shell_literal_env": false,
+        "xhprof_rows": 55,
+        "xhprof_sort": "exclusive",
+        "xhprof_edge_rows": 15,
+        "stack_sample_hz": 100,
+        "no_xhprof_cli": false,
+        "profiler_backend": "xhprof",
+        "speed_mode": false,
+        "quick_mode": false
+    },
+    "corpora": [
+        {
+            "label": "test_files2",
+            "zip_s": 0.7742750644683838,
+            "raw_bytes": 1100,
+            "fzc_bytes": 122,
+            "verify_ok": null
+        },
+        {
+            "label": "test_files4",
+            "zip_s": 0.05780982971191406,
+            "raw_bytes": 85,
+            "fzc_bytes": 102,
+            "verify_ok": null
+        },
+        {
+            "label": "test_files52",
+            "zip_s": 0.20497488975524902,
+            "raw_bytes": 380,
+            "fzc_bytes": 92,
+            "verify_ok": null
+        },
+        {
+            "label": "test_files10",
+            "zip_s": 0.12724900245666504,
+            "raw_bytes": 29076,
+            "fzc_bytes": 147,
+            "verify_ok": null
+        },
+        {
+            "label": "test_files62",
+            "zip_s": 0.6476149559020996,
+            "raw_bytes": 17364,
+            "fzc_bytes": 533,
+            "verify_ok": null
+        },
+        {
+            "label": "test_files63",
+            "zip_s": 8.05203890800476,
+            "raw_bytes": 178942,
+            "fzc_bytes": 1635,
+            "verify_ok": null
+        },
+        {
+            "label": "test_files64",
+            "zip_s": 4.441584825515747,
+            "raw_bytes": 165942,
+            "fzc_bytes": 1255,
+            "verify_ok": null
+        },
+        {
+            "label": "test_files49",
+            "zip_s": 0.46771788597106934,
+            "raw_bytes": 85083,
+            "fzc_bytes": 20336,
+            "verify_ok": null
+        },
+        {
+            "label": "test_files56_sample",
+            "zip_s": 37.20497703552246,
+            "raw_bytes": 1025429,
+            "fzc_bytes": 884184,
+            "verify_ok": null
+        },
+        {
+            "label": "test_files54_sample",
+            "zip_s": 21.314833164215088,
+            "raw_bytes": 1703075,
+            "fzc_bytes": 936856,
+            "verify_ok": null
+        },
+        {
+            "label": "test_files69",
+            "zip_s": 35.90791988372803,
+            "raw_bytes": 3534771,
+            "fzc_bytes": 3239099,
+            "verify_ok": null
+        }
+    ],
+    "zip_folder_sum_table_s": 109.20099544525146,
+    "xhprof_top_edges": [
+        {
+            "edge": "main()",
+            "wt_us": 109255268,
+            "wt_ms": 109255.268,
+            "calls": 11
+        },
+        {
+            "edge": "main()==>perf_zip_one_case",
+            "wt_us": 109255134,
+            "wt_ms": 109255.134,
+            "calls": 11
+        },
+        {
+            "edge": "perf_zip_one_case==>fractal_zip::zip_folder",
+            "wt_us": 109200599,
+            "wt_ms": 109200.599,
+            "calls": 11
+        },
+        {
+            "edge": "fractal_zip::zip_folder==>fractal_zip::choose_smallest_adaptive_literal_inner_or_raw_escaped",
+            "wt_us": 61745721,
+            "wt_ms": 61745.721,
+            "calls": 11
+        },
+        {
+            "edge": "fractal_zip::choose_smallest_adaptive_literal_inner_or_raw_escaped==>fractal_zip::adaptive_compress",
+            "wt_us": 48849901,
+            "wt_ms": 48849.901,
+            "calls": 35
+        },
+        {
+            "edge": "fractal_zip::zip_folder==>fractal_zip::collect_literal_bundle_inner_variants_for_folder",
+            "wt_us": 47408490,
+            "wt_ms": 47408.49,
+            "calls": 11
+        },
+        {
+            "edge": "fractal_zip::collect_literal_bundle_inner_variants_for_folder==>fractal_zip::encode_literal_bundle_payload",
+            "wt_us": 43577728,
+            "wt_ms": 43577.728,
+            "calls": 11
+        },
+        {
+            "edge": "fractal_zip::encode_literal_bundle_payload==>fractal_zip::choose_best_literal_bundle_transform",
+            "wt_us": 28491597,
+            "wt_ms": 28491.597,
+            "calls": 669
+        },
+        {
+            "edge": "fractal_zip::outer_brotli_blob==>fractal_zip::outer_codec_run_stdin_or_tmpfile_stdout",
+            "wt_us": 25105110,
+            "wt_ms": 25105.11,
+            "calls": 306
+        },
+        {
+            "edge": "fractal_zip_literal_deep_unwrap_with_layers==>fractal_zip_literal_pac_peel_mpq_semantic",
+            "wt_us": 24842384,
+            "wt_ms": 24842.384,
+            "calls": 30
+        },
+        {
+            "edge": "fractal_zip::adaptive_compress==>fractal_zip::outer_brotli_blob",
+            "wt_us": 21122887,
+            "wt_ms": 21122.887,
+            "calls": 34
+        },
+        {
+            "edge": "fractal_zip::outer_7z_single_attempt==>fractal_zip::outer_7z_pack_add_direct",
+            "wt_us": 12532054,
+            "wt_ms": 12532.054,
+            "calls": 31
+        },
+        {
+            "edge": "fractal_zip::adaptive_compress==>fractal_zip::outer_7z_best_blob",
+            "wt_us": 11772386,
+            "wt_ms": 11772.386,
+            "calls": 8
+        },
+        {
+            "edge": "fractal_zip::outer_7z_best_blob==>fractal_zip::outer_7z_single_attempt",
+            "wt_us": 11760675,
+            "wt_ms": 11760.675,
+            "calls": 26
+        },
+        {
+            "edge": "fractal_zip::choose_best_literal_bundle_transform==>fractal_zip_literal_deep_unwrap_with_layers",
+            "wt_us": 11029358,
+            "wt_ms": 11029.358,
+            "calls": 669
+        }
+    ],
+    "repeat": 1,
+    "wall_clock_total_s": 109.2607011795044,
+    "xhprof_zip_sum_vs_exclusive_ratio": 1.0004959804123368,
+    "xhprof_wall_vs_clock_ratio": 0.9999492573318262,
+    "xhprof_merged_edge_count": 385,
+    "wall_per_rep_s": [
+        109.26069808006287
+    ],
+    "wall_per_rep_stats": {
+        "min": 109.26069808006287,
+        "median": 109.26069808006287,
+        "p90": 109.26069808006287,
+        "max": 109.26069808006287,
+        "mean": 109.26069808006287
+    },
+    "zip_folder_sum_per_rep_s": [
+        109.20099544525146
+    ],
+    "zip_folder_sum_rep_stats": {
+        "min": 109.20099544525146,
+        "median": 109.20099544525146,
+        "p90": 109.20099544525146,
+        "max": 109.20099544525146,
+        "mean": 109.20099544525146
+    },
+    "xhprof_backend": "xhprof",
+    "xhprof_sort": "exclusive",
+    "xhprof_exclusive_rollups": [
+        {
+            "bucket": "fractal_zip:: (class methods)",
+            "exclusive_us": 76746240,
+            "exclusive_ms": 76746.24,
+            "exclusive_pct": 70.24495878029812
+        },
+        {
+            "bucket": "fractal_zip_literal_*",
+            "exclusive_us": 29734065,
+            "exclusive_ms": 29734.065,
+            "exclusive_pct": 27.2152508096254
+        },
+        {
+            "bucket": "image/raster/stream PAC",
+            "exclusive_us": 2700514,
+            "exclusive_ms": 2700.514,
+            "exclusive_pct": 2.471749685921004
+        },
+        {
+            "bucket": "perf_* (harness)",
+            "exclusive_us": 54148,
+            "exclusive_ms": 54.148,
+            "exclusive_pct": 0.04956104726479868
+        },
+        {
+            "bucket": "fractal_zip_* (globals)",
+            "exclusive_us": 15045,
+            "exclusive_ms": 15.045,
+            "exclusive_pct": 0.013770517029232772
+        },
+        {
+            "bucket": "load::*",
+            "exclusive_us": 5145,
+            "exclusive_ms": 5.145,
+            "exclusive_pct": 0.004709159861442513
+        }
+    ],
+    "xhprof_wall_by_function": [
+        {
+            "function": "fractal_zip::outer_codec_run_stdin_or_tmpfile_stdout",
+            "exclusive_us": 39190405,
+            "inclusive_us": 39192987,
+            "exclusive_ms": 39190.405,
+            "inclusive_ms": 39192.987,
+            "calls": 356,
+            "exclusive_pct_of_profiled_exclusive_sum": 35.87053103589426,
+            "exclusive_us_per_call": 110085.40730337078
+        },
+        {
+            "function": "fractal_zip_literal_pac_peel_mpq_semantic",
+            "exclusive_us": 24837966,
+            "inclusive_us": 24842384,
+            "exclusive_ms": 24837.966,
+            "inclusive_ms": 24842.384,
+            "calls": 30,
+            "exclusive_pct_of_profiled_exclusive_sum": 22.733907196710174,
+            "exclusive_us_per_call": 827932.2
+        },
+        {
+            "function": "fractal_zip::outer_7z_pack_add_direct",
+            "exclusive_us": 12531791,
+            "inclusive_us": 12532054,
+            "exclusive_ms": 12531.791,
+            "inclusive_ms": 12532.054,
+            "calls": 31,
+            "exclusive_pct_of_profiled_exclusive_sum": 11.47020547506055,
+            "exclusive_us_per_call": 404251.32258064515
+        },
+        {
+            "function": "fractal_zip::bmp_bss_cell_scalar_and_bgr_triple_delta",
+            "exclusive_us": 10045295,
+            "inclusive_us": 10045295,
+            "exclusive_ms": 10045.295,
+            "inclusive_ms": 10045.295,
+            "calls": 288453,
+            "exclusive_pct_of_profiled_exclusive_sum": 9.194344025335115,
+            "exclusive_us_per_call": 34.824720145049625
+        },
+        {
+            "function": "fractal_zip_literal_pac_tool_path_exit_code",
+            "exclusive_us": 3883201,
+            "inclusive_us": 3883201,
+            "exclusive_ms": 3883.201,
+            "inclusive_ms": 3883.201,
+            "calls": 93,
+            "exclusive_pct_of_profiled_exclusive_sum": 3.554249617709121,
+            "exclusive_us_per_call": 41754.84946236559
+        },
+        {
+            "function": "fractal_zip::xor_adjacent_encode_bytes",
+            "exclusive_us": 2514475,
+            "inclusive_us": 2514475,
+            "exclusive_ms": 2514.475,
+            "inclusive_ms": 2514.475,
+            "calls": 191,
+            "exclusive_pct_of_profiled_exclusive_sum": 2.3014703095433746,
+            "exclusive_us_per_call": 13164.79057591623
+        },
+        {
+            "function": "fractal_zip_image_pac_reencode_gd",
+            "exclusive_us": 2389624,
+            "inclusive_us": 2389624,
+            "exclusive_ms": 2389.624,
+            "inclusive_ms": 2389.624,
+            "calls": 27,
+            "exclusive_pct_of_profiled_exclusive_sum": 2.187195612194306,
+            "exclusive_us_per_call": 88504.5925925926
+        },
+        {
+            "function": "fractal_zip::delta_encode_bytes",
+            "exclusive_us": 1936288,
+            "inclusive_us": 1936288,
+            "exclusive_ms": 1936.288,
+            "inclusive_ms": 1936.288,
+            "calls": 595,
+            "exclusive_pct_of_profiled_exclusive_sum": 1.7722623381521478,
+            "exclusive_us_per_call": 3254.2655462184875
+        },
+        {
+            "function": "fractal_zip::literal_bundle_gzip_deflate_len",
+            "exclusive_us": 1847562,
+            "inclusive_us": 1847562,
+            "exclusive_ms": 1847.562,
+            "inclusive_ms": 1847.562,
+            "calls": 1844,
+            "exclusive_pct_of_profiled_exclusive_sum": 1.6910524415794854,
+            "exclusive_us_per_call": 1001.9316702819957
+        },
+        {
+            "function": "fractal_zip::bmp_bss_rim_body_raster_concat",
+            "exclusive_us": 1472747,
+            "inclusive_us": 1472747,
+            "exclusive_ms": 1472.747,
+            "inclusive_ms": 1472.747,
+            "calls": 3152,
+            "exclusive_pct_of_profiled_exclusive_sum": 1.3479885439183434,
+            "exclusive_us_per_call": 467.2420685279188
+        },
+        {
+            "function": "fractal_zip::literal_bundle_pick_fzbm_concat_key_order",
+            "exclusive_us": 1115724,
+            "inclusive_us": 3735333,
+            "exclusive_ms": 1115.724,
+            "inclusive_ms": 3735.333,
+            "calls": 9,
+            "exclusive_pct_of_profiled_exclusive_sum": 1.0212094610783453,
+            "exclusive_us_per_call": 123969.33333333333
+        },
+        {
+            "function": "fractal_zip::maybe_wrap_fzb_inner_with_fzws",
+            "exclusive_us": 1107263,
+            "inclusive_us": 4665138,
+            "exclusive_ms": 1107.263,
+            "inclusive_ms": 4665.138,
+            "calls": 254,
+            "exclusive_pct_of_profiled_exclusive_sum": 1.0134652042099943,
+            "exclusive_us_per_call": 4359.3031496062995
+        },
+        {
+            "function": "fractal_zip::adaptive_compress",
+            "exclusive_us": 1028053,
+            "inclusive_us": 48849901,
+            "exclusive_ms": 1028.053,
+            "inclusive_ms": 48849.901,
+            "calls": 35,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.9409651939816442,
+            "exclusive_us_per_call": 29372.942857142858
+        },
+        {
+            "function": "fractal_zip::bmp_bss_cell_bgr_triple_delta",
+            "exclusive_us": 720711,
+            "inclusive_us": 720711,
+            "exclusive_ms": 720.711,
+            "inclusive_ms": 720.711,
+            "calls": 322849,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.6596585642177055,
+            "exclusive_us_per_call": 2.2323470105219467
+        },
+        {
+            "function": "fractal_zip::encode_bmp_block_core_scalar_shift_payload",
+            "exclusive_us": 696339,
+            "inclusive_us": 12668349,
+            "exclusive_ms": 696.339,
+            "inclusive_ms": 12668.349,
+            "calls": 531,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.6373511503900909,
+            "exclusive_us_per_call": 1311.3728813559321
+        },
+        {
+            "function": "fractal_zip_literal_pac_shell_decompress",
+            "exclusive_us": 608585,
+            "inclusive_us": 865075,
+            "exclusive_ms": 608.585,
+            "inclusive_ms": 865.075,
+            "calls": 246,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.557030914339357,
+            "exclusive_us_per_call": 2473.9227642276423
+        },
+        {
+            "function": "fractal_zip::bmp_bss_extract_cell_core",
+            "exclusive_us": 423279,
+            "inclusive_us": 423279,
+            "exclusive_ms": 423.279,
+            "inclusive_ms": 423.279,
+            "calls": 598592,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.3874224445075851,
+            "exclusive_us_per_call": 0.7071243852239923
+        },
+        {
+            "function": "fractal_zip::invert_bytes",
+            "exclusive_us": 386410,
+            "inclusive_us": 386410,
+            "exclusive_ms": 386.41,
+            "inclusive_ms": 386.41,
+            "calls": 78,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.3536766690106903,
+            "exclusive_us_per_call": 4953.974358974359
+        },
+        {
+            "function": "fractal_zip::nibble_swap_bytes",
+            "exclusive_us": 372118,
+            "inclusive_us": 372118,
+            "exclusive_ms": 372.118,
+            "inclusive_ms": 372.118,
+            "calls": 78,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.34059536429937126,
+            "exclusive_us_per_call": 4770.74358974359
+        },
+        {
+            "function": "fractal_zip::{closure:{closure:fractal_zip::encode_literal_bundle_payload():6117}:6125}",
+            "exclusive_us": 280091,
+            "inclusive_us": 1149197,
+            "exclusive_ms": 280.091,
+            "inclusive_ms": 1149.197,
+            "calls": 16,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.2563641000488425,
+            "exclusive_us_per_call": 17505.6875
+        },
+        {
+            "function": "fractal_zip_raster_canonical_gd",
+            "exclusive_us": 277262,
+            "inclusive_us": 278724,
+            "exclusive_ms": 277.262,
+            "inclusive_ms": 278.724,
+            "calls": 16,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.2537747485915013,
+            "exclusive_us_per_call": 17328.875
+        },
+        {
+            "function": "fractal_zip_literal_pac_proc_argv_file_stdout",
+            "exclusive_us": 256382,
+            "inclusive_us": 256382,
+            "exclusive_ms": 256.382,
+            "inclusive_ms": 256.382,
+            "calls": 246,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.2346635225648891,
+            "exclusive_us_per_call": 1042.2032520325204
+        },
+        {
+            "function": "fractal_zip::delta_encode_columns_vertical",
+            "exclusive_us": 151777,
+            "inclusive_us": 151777,
+            "exclusive_ms": 151.777,
+            "inclusive_ms": 151.777,
+            "calls": 38,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.13891975826825273,
+            "exclusive_us_per_call": 3994.1315789473683
+        },
+        {
+            "function": "fractal_zip::delta_encode_rows_horizontal",
+            "exclusive_us": 144323,
+            "inclusive_us": 144323,
+            "exclusive_ms": 144.323,
+            "inclusive_ms": 144.323,
+            "calls": 38,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.13209719702292863,
+            "exclusive_us_per_call": 3797.9736842105262
+        },
+        {
+            "function": "fractal_zip::encode_literal_bundle_payload",
+            "exclusive_us": 137124,
+            "inclusive_us": 43577728,
+            "exclusive_ms": 137.124,
+            "inclusive_ms": 43577.728,
+            "calls": 11,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.12550803437132033,
+            "exclusive_us_per_call": 12465.818181818182
+        },
+        {
+            "function": "fractal_zip::unified_literal_multipass_synth_enabled_for_raw_bytes",
+            "exclusive_us": 78468,
+            "inclusive_us": 79351,
+            "exclusive_ms": 78.468,
+            "inclusive_ms": 79.351,
+            "calls": 22,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.07182086608506727,
+            "exclusive_us_per_call": 3566.7272727272725
+        },
+        {
+            "function": "fractal_zip::choose_best_literal_bundle_transform",
+            "exclusive_us": 74229,
+            "inclusive_us": 28491597,
+            "exclusive_ms": 74.229,
+            "inclusive_ms": 28491.597,
+            "calls": 669,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.06794095769776799,
+            "exclusive_us_per_call": 110.95515695067265
+        },
+        {
+            "function": "fractal_zip::literal_square_block_transpose_prefix",
+            "exclusive_us": 68278,
+            "inclusive_us": 68278,
+            "exclusive_ms": 68.278,
+            "inclusive_ms": 68.278,
+            "calls": 109,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.062494075222462954,
+            "exclusive_us_per_call": 626.4036697247707
+        },
+        {
+            "function": "fractal_zip::encode_bmp_block_scalar_shift_payload",
+            "exclusive_us": 58956,
+            "inclusive_us": 802150,
+            "exclusive_ms": 58.956,
+            "inclusive_ms": 802.15,
+            "calls": 531,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.053961754867095195,
+            "exclusive_us_per_call": 111.02824858757062
+        },
+        {
+            "function": "fractal_zip::collect_raw_files_for_bundle",
+            "exclusive_us": 39733,
+            "inclusive_us": 39733,
+            "exclusive_ms": 39.733,
+            "inclusive_ms": 39.733,
+            "calls": 11,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.03636716205533438,
+            "exclusive_us_per_call": 3612.090909090909
+        },
+        {
+            "function": "fractal_zip::bmp_bss_extract_cell",
+            "exclusive_us": 38591,
+            "inclusive_us": 38591,
+            "exclusive_ms": 38.591,
+            "inclusive_ms": 38.591,
+            "calls": 45218,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.03532190247092867,
+            "exclusive_us_per_call": 0.8534433190322438
+        },
+        {
+            "function": "fractal_zip::encode_fzbm_v1_merged_literal_with_concat_key_order",
+            "exclusive_us": 38155,
+            "inclusive_us": 42540,
+            "exclusive_ms": 38.155,
+            "inclusive_ms": 42.54,
+            "calls": 141,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.03492283664010478,
+            "exclusive_us_per_call": 270.60283687943263
+        },
+        {
+            "function": "perf_copy_dir",
+            "exclusive_us": 32615,
+            "inclusive_us": 32615,
+            "exclusive_ms": 32.615,
+            "inclusive_ms": 32.615,
+            "calls": 11,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.029852137780553463,
+            "exclusive_us_per_call": 2965
+        },
+        {
+            "function": "fractal_zip_literal_pac_try_recompress",
+            "exclusive_us": 32263,
+            "inclusive_us": 898789,
+            "exclusive_ms": 32.263,
+            "inclusive_ms": 898.789,
+            "calls": 246,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.029529956192365363,
+            "exclusive_us_per_call": 131.15040650406505
+        },
+        {
+            "function": "fractal_zip::outer_7z_single_attempt",
+            "exclusive_us": 32068,
+            "inclusive_us": 12564362,
+            "exclusive_ms": 32.068,
+            "inclusive_ms": 12564.362,
+            "calls": 31,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.02935147491481798,
+            "exclusive_us_per_call": 1034.4516129032259
+        },
+        {
+            "function": "fractal_zip_literal_deep_unwrap_with_layers",
+            "exclusive_us": 24360,
+            "inclusive_us": 32141310,
+            "exclusive_ms": 24.36,
+            "inclusive_ms": 32141.31,
+            "calls": 2007,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.02229643036438088,
+            "exclusive_us_per_call": 12.137518684603886
+        },
+        {
+            "function": "fractal_zip::encode_varint_u32",
+            "exclusive_us": 22770,
+            "inclusive_us": 22770,
+            "exclusive_ms": 22.77,
+            "inclusive_ms": 22.77,
+            "calls": 75294,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.020841121485917595,
+            "exclusive_us_per_call": 0.302414535022711
+        },
+        {
+            "function": "fractal_zip::encode_container_payload",
+            "exclusive_us": 19645,
+            "inclusive_us": 19668,
+            "exclusive_ms": 19.645,
+            "inclusive_ms": 19.668,
+            "calls": 22,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.017980844602145416,
+            "exclusive_us_per_call": 892.9545454545455
+        },
+        {
+            "function": "fractal_zip::outer_codec_reuse_tmp_ensure",
+            "exclusive_us": 17383,
+            "inclusive_us": 17399,
+            "exclusive_ms": 17.383,
+            "inclusive_ms": 17.399,
+            "calls": 58,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.015910461782595763,
+            "exclusive_us_per_call": 299.7068965517241
+        },
+        {
+            "function": "fractal_zip::literal_bundle_fzb4_payload_bytes_for_path_order",
+            "exclusive_us": 16137,
+            "inclusive_us": 18604,
+            "exclusive_ms": 16.137,
+            "inclusive_ms": 18.604,
+            "calls": 91,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.01477001218349812,
+            "exclusive_us_per_call": 177.32967032967034
+        },
+        {
+            "function": "perf_remove_dir",
+            "exclusive_us": 15581,
+            "inclusive_us": 15581,
+            "exclusive_ms": 15.581,
+            "inclusive_ms": 15.581,
+            "calls": 11,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.014261111720337375,
+            "exclusive_us_per_call": 1416.4545454545455
+        },
+        {
+            "function": "fractal_zip_literal_expand_outer_gzip_once",
+            "exclusive_us": 13077,
+            "inclusive_us": 13077,
+            "exclusive_ms": 13.077,
+            "inclusive_ms": 13.077,
+            "calls": 3807,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.011969229058908404,
+            "exclusive_us_per_call": 3.434988179669031
+        },
+        {
+            "function": "fractal_zip_literal_pac_try_woff2_smaller",
+            "exclusive_us": 12939,
+            "inclusive_us": 3896523,
+            "exclusive_ms": 12.939,
+            "inclusive_ms": 3896.523,
+            "calls": 39,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.011842919231721025,
+            "exclusive_us_per_call": 331.7692307692308
+        },
+        {
+            "function": "fractal_zip_ensure_literal_pac_stack_loaded",
+            "exclusive_us": 12594,
+            "inclusive_us": 16899,
+            "exclusive_ms": 12.594,
+            "inclusive_ms": 16.899,
+            "calls": 2482,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.011527144663752577,
+            "exclusive_us_per_call": 5.074133763094279
+        },
+        {
+            "function": "fractal_zip::escape_literal_for_storage",
+            "exclusive_us": 11851,
+            "inclusive_us": 11851,
+            "exclusive_ms": 11.851,
+            "inclusive_ms": 11.851,
+            "calls": 1338,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.010847085231866904,
+            "exclusive_us_per_call": 8.857249626307922
+        },
+        {
+            "function": "fractal_zip::outer_7z_best_blob",
+            "exclusive_us": 11513,
+            "inclusive_us": 11772386,
+            "exclusive_ms": 11.513,
+            "inclusive_ms": 11772.386,
+            "calls": 8,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.010537717684118104,
+            "exclusive_us_per_call": 1439.125
+        },
+        {
+            "function": "fractal_zip::outer_brotli_blob",
+            "exclusive_us": 9530,
+            "inclusive_us": 25114945,
+            "exclusive_ms": 9.53,
+            "inclusive_ms": 25114.945,
+            "calls": 306,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.008722700384751633,
+            "exclusive_us_per_call": 31.143790849673202
+        },
+        {
+            "function": "fractal_zip_literal_pac_preprocess_streams_multipass",
+            "exclusive_us": 9207,
+            "inclusive_us": 4822204,
+            "exclusive_ms": 9.207,
+            "inclusive_ms": 4822.204,
+            "calls": 1473,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.00842706216604494,
+            "exclusive_us_per_call": 6.25050916496945
+        },
+        {
+            "function": "fractal_zip_literal_append_consecutive_gzip_peels",
+            "exclusive_us": 8580,
+            "inclusive_us": 25487,
+            "exclusive_ms": 8.58,
+            "inclusive_ms": 25.487,
+            "calls": 3231,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.007853176212084891,
+            "exclusive_us_per_call": 2.6555246053853296
+        },
+        {
+            "function": "fractal_zip_image_pac_jpegtran_pipe",
+            "exclusive_us": 8438,
+            "inclusive_us": 8440,
+            "exclusive_ms": 8.438,
+            "inclusive_ms": 8.44,
+            "calls": 4,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.007723205230486282,
+            "exclusive_us_per_call": 2109.5
+        },
+        {
+            "function": "fractal_zip_image_pac_try_lossless_smaller",
+            "exclusive_us": 7830,
+            "inclusive_us": 2406579,
+            "exclusive_ms": 7.83,
+            "inclusive_ms": 2406.579,
+            "calls": 30,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.007166709759979567,
+            "exclusive_us_per_call": 261
+        },
+        {
+            "function": "fractal_zip::outer_likely_textlike",
+            "exclusive_us": 6878,
+            "inclusive_us": 7004,
+            "exclusive_ms": 6.878,
+            "inclusive_ms": 7.004,
+            "calls": 35,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.006295355010107212,
+            "exclusive_us_per_call": 196.5142857142857
+        },
+        {
+            "function": "fractal_zip::choose_smallest_adaptive_literal_inner_or_raw_escaped",
+            "exclusive_us": 6190,
+            "inclusive_us": 61745721,
+            "exclusive_ms": 6.19,
+            "inclusive_ms": 61745.721,
+            "calls": 11,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.005665636451375929,
+            "exclusive_us_per_call": 562.7272727272727
+        },
+        {
+            "function": "fractal_zip::bmp_parse_simple_uncompressed_rgb",
+            "exclusive_us": 5704,
+            "inclusive_us": 5704,
+            "exclusive_ms": 5.704,
+            "inclusive_ms": 5.704,
+            "calls": 3434,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.00522080619041168,
+            "exclusive_us_per_call": 1.6610366919044846
+        },
+        {
+            "function": "fractal_zip::literal_bundle_pick_fzb4_path_order",
+            "exclusive_us": 5620,
+            "inclusive_us": 1335188,
+            "exclusive_ms": 5.62,
+            "inclusive_ms": 1335.188,
+            "calls": 12,
+            "exclusive_pct_of_profiled_exclusive_sum": 0.005143921947775884,
+            "exclusive_us_per_call": 468.3333333333333
+        }
+    ],
+    "xhprof_total_exclusive_us": 109255157,
+    "xhprof_symbol_count": 276,
+    "xhprof_breakdown_rows_limit": 55,
+    "top_exclusive_us": [
+        [
+            "fractal_zip::outer_codec_run_stdin_or_tmpfile_stdout",
+            39190405
+        ],
+        [
+            "fractal_zip_literal_pac_peel_mpq_semantic",
+            24837966
+        ],
+        [
+            "fractal_zip::outer_7z_pack_add_direct",
+            12531791
+        ],
+        [
+            "fractal_zip::bmp_bss_cell_scalar_and_bgr_triple_delta",
+            10045295
+        ],
+        [
+            "fractal_zip_literal_pac_tool_path_exit_code",
+            3883201
+        ],
+        [
+            "fractal_zip::xor_adjacent_encode_bytes",
+            2514475
+        ],
+        [
+            "fractal_zip_image_pac_reencode_gd",
+            2389624
+        ],
+        [
+            "fractal_zip::delta_encode_bytes",
+            1936288
+        ],
+        [
+            "fractal_zip::literal_bundle_gzip_deflate_len",
+            1847562
+        ],
+        [
+            "fractal_zip::bmp_bss_rim_body_raster_concat",
+            1472747
+        ],
+        [
+            "fractal_zip::literal_bundle_pick_fzbm_concat_key_order",
+            1115724
+        ],
+        [
+            "fractal_zip::maybe_wrap_fzb_inner_with_fzws",
+            1107263
+        ],
+        [
+            "fractal_zip::adaptive_compress",
+            1028053
+        ],
+        [
+            "fractal_zip::bmp_bss_cell_bgr_triple_delta",
+            720711
+        ],
+        [
+            "fractal_zip::encode_bmp_block_core_scalar_shift_payload",
+            696339
+        ],
+        [
+            "fractal_zip_literal_pac_shell_decompress",
+            608585
+        ],
+        [
+            "fractal_zip::bmp_bss_extract_cell_core",
+            423279
+        ],
+        [
+            "fractal_zip::invert_bytes",
+            386410
+        ],
+        [
+            "fractal_zip::nibble_swap_bytes",
+            372118
+        ],
+        [
+            "fractal_zip::{closure:{closure:fractal_zip::encode_literal_bundle_payload():6117}:6125}",
+            280091
+        ],
+        [
+            "fractal_zip_raster_canonical_gd",
+            277262
+        ],
+        [
+            "fractal_zip_literal_pac_proc_argv_file_stdout",
+            256382
+        ],
+        [
+            "fractal_zip::delta_encode_columns_vertical",
+            151777
+        ],
+        [
+            "fractal_zip::delta_encode_rows_horizontal",
+            144323
+        ],
+        [
+            "fractal_zip::encode_literal_bundle_payload",
+            137124
+        ],
+        [
+            "fractal_zip::unified_literal_multipass_synth_enabled_for_raw_bytes",
+            78468
+        ],
+        [
+            "fractal_zip::choose_best_literal_bundle_transform",
+            74229
+        ],
+        [
+            "fractal_zip::literal_square_block_transpose_prefix",
+            68278
+        ],
+        [
+            "fractal_zip::encode_bmp_block_scalar_shift_payload",
+            58956
+        ],
+        [
+            "fractal_zip::collect_raw_files_for_bundle",
+            39733
+        ],
+        [
+            "fractal_zip::bmp_bss_extract_cell",
+            38591
+        ],
+        [
+            "fractal_zip::encode_fzbm_v1_merged_literal_with_concat_key_order",
+            38155
+        ],
+        [
+            "perf_copy_dir",
+            32615
+        ],
+        [
+            "fractal_zip_literal_pac_try_recompress",
+            32263
+        ],
+        [
+            "fractal_zip::outer_7z_single_attempt",
+            32068
+        ],
+        [
+            "fractal_zip_literal_deep_unwrap_with_layers",
+            24360
+        ],
+        [
+            "fractal_zip::encode_varint_u32",
+            22770
+        ],
+        [
+            "fractal_zip::encode_container_payload",
+            19645
+        ],
+        [
+            "fractal_zip::outer_codec_reuse_tmp_ensure",
+            17383
+        ],
+        [
+            "fractal_zip::literal_bundle_fzb4_payload_bytes_for_path_order",
+            16137
+        ],
+        [
+            "perf_remove_dir",
+            15581
+        ],
+        [
+            "fractal_zip_literal_expand_outer_gzip_once",
+            13077
+        ],
+        [
+            "fractal_zip_literal_pac_try_woff2_smaller",
+            12939
+        ],
+        [
+            "fractal_zip_ensure_literal_pac_stack_loaded",
+            12594
+        ],
+        [
+            "fractal_zip::escape_literal_for_storage",
+            11851
+        ],
+        [
+            "fractal_zip::outer_7z_best_blob",
+            11513
+        ],
+        [
+            "fractal_zip::outer_brotli_blob",
+            9530
+        ],
+        [
+            "fractal_zip_literal_pac_preprocess_streams_multipass",
+            9207
+        ],
+        [
+            "fractal_zip_literal_append_consecutive_gzip_peels",
+            8580
+        ],
+        [
+            "fractal_zip_image_pac_jpegtran_pipe",
+            8438
+        ],
+        [
+            "fractal_zip_image_pac_try_lossless_smaller",
+            7830
+        ],
+        [
+            "fractal_zip::outer_likely_textlike",
+            6878
+        ],
+        [
+            "fractal_zip::choose_smallest_adaptive_literal_inner_or_raw_escaped",
+            6190
+        ],
+        [
+            "fractal_zip::bmp_parse_simple_uncompressed_rgb",
+            5704
+        ],
+        [
+            "fractal_zip::literal_bundle_pick_fzb4_path_order",
+            5620
+        ]
+    ],
+    "top_inclusive_us": [
+        [
+            "perf_zip_one_case",
+            109255134
+        ],
+        [
+            "fractal_zip::zip_folder",
+            109200599
+        ],
+        [
+            "fractal_zip::choose_smallest_adaptive_literal_inner_or_raw_escaped",
+            61745721
+        ],
+        [
+            "fractal_zip::adaptive_compress",
+            48849901
+        ],
+        [
+            "fractal_zip::collect_literal_bundle_inner_variants_for_folder",
+            47408490
+        ],
+        [
+            "fractal_zip::encode_literal_bundle_payload",
+            43577728
+        ],
+        [
+            "fractal_zip::outer_codec_run_stdin_or_tmpfile_stdout",
+            39192987
+        ],
+        [
+            "fractal_zip_literal_deep_unwrap_with_layers",
+            32141310
+        ],
+        [
+            "fractal_zip::choose_best_literal_bundle_transform",
+            28491597
+        ],
+        [
+            "fractal_zip::outer_brotli_blob",
+            25114945
+        ],
+        [
+            "fractal_zip_literal_pac_peel_mpq_semantic",
+            24842384
+        ],
+        [
+            "fractal_zip::encode_bmp_block_core_scalar_shift_payload",
+            12668349
+        ],
+        [
+            "fractal_zip::outer_7z_single_attempt",
+            12564362
+        ],
+        [
+            "fractal_zip::outer_7z_pack_add_direct",
+            12532054
+        ],
+        [
+            "fractal_zip::literal_bundle_encode_one_transform_mode",
+            12025397
+        ]
+    ],
+    "top_calls": [
+        [
+            "fractal_zip::bmp_bss_extract_cell_core",
+            598592
+        ],
+        [
+            "fractal_zip::bmp_bss_cell_bgr_triple_delta",
+            322849
+        ],
+        [
+            "fractal_zip::bmp_bss_cell_scalar_and_bgr_triple_delta",
+            288453
+        ],
+        [
+            "fractal_zip::encode_varint_u32",
+            75294
+        ],
+        [
+            "fractal_zip::bmp_bss_extract_cell",
+            45218
+        ],
+        [
+            "fractal_zip_literal_pac_cmd_ok",
+            4784
+        ],
+        [
+            "fractal_zip_literal_expand_outer_gzip_once",
+            3807
+        ],
+        [
+            "fractal_zip::{closure:fractal_zip::literal_bundle_pick_fzbm_concat_key_order():5397}",
+            3745
+        ],
+        [
+            "fractal_zip::bmp_parse_simple_uncompressed_rgb",
+            3434
+        ],
+        [
+            "fractal_zip_literal_gzip_peel_max_layers",
+            3231
+        ],
+        [
+            "fractal_zip_literal_expand_gzip_inner_enabled",
+            3231
+        ],
+        [
+            "fractal_zip_literal_append_consecutive_gzip_peels",
+            3231
+        ],
+        [
+            "fractal_zip::bmp_bss_rim_body_raster_concat",
+            3152
+        ],
+        [
+            "fractal_zip_literal_pac_stream_enabled",
+            2946
+        ],
+        [
+            "fractal_zip_literal_pac_max_compressed_bytes",
+            2946
+        ],
+        [
+            "fractal_zip_ensure_literal_pac_stack_loaded",
+            2482
+        ],
+        [
+            "fractal_zip::{closure:fractal_zip::literal_bundle_pick_fzb4_path_order():5935}",
+            2212
+        ],
+        [
+            "fractal_zip_literal_semantic_mpq_enabled",
+            2139
+        ],
+        [
+            "fractal_zip_literal_semantic_zip_enabled",
+            2079
+        ],
+        [
+            "fractal_zip_literal_pac_peel_zip_single_semantic",
+            2079
+        ],
+        [
+            "fractal_zip_literal_semantic_7z_enabled",
+            2079
+        ],
+        [
+            "fractal_zip_literal_pac_seven_binary",
+            2079
+        ],
+        [
+            "fractal_zip_literal_pac_peel_seven_single_semantic",
+            2079
+        ],
+        [
+            "fractal_zip_literal_peel_stabilize_max_rounds",
+            2007
+        ],
+        [
+            "fractal_zip_literal_semantic_peel_max_total",
+            2007
+        ]
+    ]
+}

@@ -1,0 +1,129 @@
+{
+  "description": "4× v2: soft-stride failed (~1.03× on l320_s2 — ForwardOnly≈full Predict). Hard-stride (reuse probs) + kitchen-sink beyond fp2_l64_cm_ao (3.14×@10m). Minimize ΔB among ≥3.5× arms.",
+  "base_defs": [
+    "-DSEED=923",
+    "-DUPDATE_LIMIT=3000",
+    "-DFXCM_ENTITY_FOLD",
+    "-DFXCM_MATCH_MAX=3000000ull",
+    "-DFXCM_SPEED_INLINE_GET",
+    "-DNDEBUG",
+    "-DFXCM_RECIPE_RUNTIME",
+    "-DFXCM_FRACTAL_PRED"
+  ],
+  "candidates": [
+    {
+      "name": "l256_h2",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=256",
+        "-DFXCM_PPMD_MB=8192",
+        "-DFXCM_SPEED_LSTM_STRIDE=2u",
+        "-DFXCM_SPEED_LSTM_STRIDE_HARD"
+      ],
+      "note": "hard stride2 on mid-256 — byte-preserving 2× LSTM cut"
+    },
+    {
+      "name": "l320_h2",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=320",
+        "-DFXCM_PPMD_MB=8192",
+        "-DFXCM_SPEED_LSTM_STRIDE=2u",
+        "-DFXCM_SPEED_LSTM_STRIDE_HARD"
+      ],
+      "note": "hard stride on banked size"
+    },
+    {
+      "name": "l256_h4",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=256",
+        "-DFXCM_PPMD_MB=8192",
+        "-DFXCM_SPEED_LSTM_STRIDE=4u",
+        "-DFXCM_SPEED_LSTM_STRIDE_HARD"
+      ],
+      "note": "hard stride4"
+    },
+    {
+      "name": "l192_h2_fp2",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=192",
+        "-DFXCM_PPMD_MB=8192",
+        "-DFXCM_SPEED_LSTM_STRIDE=2u",
+        "-DFXCM_SPEED_LSTM_STRIDE_HARD",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=2u"
+      ],
+      "note": "hard stride + outer fp"
+    },
+    {
+      "name": "l128_h2_fp2",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=128",
+        "-DFXCM_PPMD_MB=8192",
+        "-DFXCM_SPEED_LSTM_STRIDE=2u",
+        "-DFXCM_SPEED_LSTM_STRIDE_HARD",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=2u"
+      ],
+      "note": "l128 + hard stride + fp"
+    },
+    {
+      "name": "l96_h2_fp2_ao",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=96",
+        "-DFXCM_PPMD_MB=2048",
+        "-DFXCM_MATCH_MAX=1000000ull",
+        "-DFXCM_SPEED_LSTM_STRIDE=2u",
+        "-DFXCM_SPEED_LSTM_STRIDE_HARD",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=2u",
+        "-DFXCM_SPEED_ADVANCE_ONLY",
+        "-DFXCM_SPEED_OUTER_AO_MIN=4u",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=2u",
+        "-DFXCM_SPEED_CM_MATCH_SKIP",
+        "-DFXCM_SPEED_CM_MATCH_MIN=4",
+        "-DFXCM_CM_SCALE=2"
+      ],
+      "note": "beyond prior 3.14× kitchen — aim ≥4×"
+    },
+    {
+      "name": "l64_fp1_ao_cm",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=64",
+        "-DFXCM_PPMD_MB=1024",
+        "-DFXCM_MATCH_MAX=1000000ull",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=1u",
+        "-DFXCM_SPEED_ADVANCE_ONLY",
+        "-DFXCM_SPEED_OUTER_AO_MIN=2u",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=1u",
+        "-DFXCM_SPEED_CM_MATCH_SKIP",
+        "-DFXCM_SPEED_CM_MATCH_MIN=2",
+        "-DFXCM_CM_SCALE=2"
+      ],
+      "note": "max skip — 4× hammer; measure byte floor"
+    },
+    {
+      "name": "l160_h2",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=160",
+        "-DFXCM_PPMD_MB=8192",
+        "-DFXCM_SPEED_LSTM_STRIDE=2u",
+        "-DFXCM_SPEED_LSTM_STRIDE_HARD"
+      ],
+      "note": "hard stride only, no outer fp — low tax?"
+    },
+    {
+      "name": "l256_h2_fp4",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=256",
+        "-DFXCM_PPMD_MB=8192",
+        "-DFXCM_SPEED_LSTM_STRIDE=2u",
+        "-DFXCM_SPEED_LSTM_STRIDE_HARD",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_FP_MIN=4u"
+      ],
+      "note": "mild outer fp + hard stride mid"
+    }
+  ]
+}

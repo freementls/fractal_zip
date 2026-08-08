@@ -1,0 +1,100 @@
+#!/usr/bin/env bash
+# fractal_zip desktop launcher (Linux / macOS)
+# Starts a local PHP server serving the packaged web UI and opens a browser.
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+VERSION="$(tr -d '[:space:]' < "$ROOT/VERSION" 2>/dev/null || echo 0.1.0)"
+PAYLOAD="$ROOT/payload"
+PORT="${FRACTAL_ZIP_DESKTOP_PORT:-17865}"
+HOST="${FRACTAL_ZIP_DESKTOP_HOST:-127.0.0.1}"
+
+find_php() {
+	if [[ -x "$ROOT/runtime/php" ]]; then
+		echo "$ROOT/runtime/php"
+		return 0
+	fi
+	if [[ -x "$ROOT/runtime/bin/php" ]]; then
+		echo "$ROOT/runtime/bin/php"
+		return 0
+	fi
+	if command -v php >/dev/null 2>&1; then
+		command -v php
+		return 0
+	fi
+	return 1
+}
+
+if [[ ! -d "$PAYLOAD" ]]; then
+	echo "fractal_zip desktop: missing payload/ next to this launcher." >&2
+	echo "Run desktop/scripts/package.sh from the repo, or use a release zip." >&2
+	exit 1
+fi
+
+PHP_BIN="$(find_php)" || {
+	echo "fractal_zip desktop: PHP not found." >&2
+	echo "Install PHP 8.1+ on PATH, or place a binary at runtime/php." >&2
+	exit 1
+}
+
+# Local desktop: no demo upload caps; jobs under user data dir.
+export FZC_WEB_MAX_UPLOAD_BYTES="${FZC_WEB_MAX_UPLOAD_BYTES:-0}"
+export FZC_WEB_MAX_EXTRACT_ARCHIVE_BYTES="${FZC_WEB_MAX_EXTRACT_ARCHIVE_BYTES:-0}"
+export FRACTAL_ZIP_PHP="${FRACTAL_ZIP_PHP:-$PAYLOAD/fractal_zip.php}"
+export FRACTAL_ZIP_SUPPRESS_HTML="${FRACTAL_ZIP_SUPPRESS_HTML:-1}"
+
+if [[ -z "${FRACTAL_ZIP_WEB_JOBS:-}" ]]; then
+	if [[ "$(uname -s)" == "Darwin" ]]; then
+		JOBS_ROOT="${HOME}/Library/Application Support/fractal_zip/web_jobs"
+	else
+		JOBS_ROOT="${XDG_DATA_HOME:-$HOME/.local/share}/fractal_zip/web_jobs"
+	fi
+	mkdir -p "$JOBS_ROOT"
+	export FRACTAL_ZIP_WEB_JOBS="$JOBS_ROOT"
+fi
+
+# Prefer a free port if the default is taken.
+pick_port() {
+	local p="$1"
+	local i
+	for i in $(seq 0 20); do
+		local try=$((p + i))
+		if ! (echo >/dev/tcp/"$HOST"/"$try") >/dev/null 2>&1; then
+			echo "$try"
+			return 0
+		fi
+	done
+	echo "$p"
+}
+
+PORT="$(pick_port "$PORT")"
+URL="http://${HOST}:${PORT}/"
+
+open_browser() {
+	local u="$1"
+	if [[ "$(uname -s)" == "Darwin" ]]; then
+		open "$u" >/dev/null 2>&1 || true
+	elif command -v xdg-open >/dev/null 2>&1; then
+		xdg-open "$u" >/dev/null 2>&1 || true
+	elif command -v gio >/dev/null 2>&1; then
+		gio open "$u" >/dev/null 2>&1 || true
+	fi
+}
+
+echo "fractal_zip desktop ${VERSION}"
+echo "PHP: $($PHP_BIN -v | head -1)"
+echo "UI:  $URL"
+echo "Jobs: $FRACTAL_ZIP_WEB_JOBS"
+echo "Stop with Ctrl-C."
+echo
+
+open_browser "$URL"
+exec "$PHP_BIN" \
+	-d upload_max_filesize=2G \
+	-d post_max_size=2G \
+	-d max_file_uploads=2000 \
+	-d max_execution_time=0 \
+	-d memory_limit=1024M \
+	-S "${HOST}:${PORT}" \
+	-t "$PAYLOAD" \
+	"$PAYLOAD/router.php"

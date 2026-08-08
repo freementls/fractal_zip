@@ -1,0 +1,23 @@
+<?php
+declare(strict_types=1);
+
+/**
+ * Copy to fz_fractal_local_env.php (same directory) — that name is gitignored.
+ * fz_local_env_bootstrap.php loads it before fractal_zip.php (web + CLI).
+ *
+ * Recommended on the live host (SSH):
+ *   ./examples/setup_fractal_zip_extract_tools_env.sh
+ *   bash scripts/fzc_live_setup_check.sh
+ *
+ * Manual paths (freement.cloud layout):
+ */
+putenv('FZC_WEB_ENFORCE_EXTRACT_COMPAT=1');
+putenv('FZC_WEB_MAX_UPLOAD_BYTES=33554432');
+putenv('FZC_WEB_MAX_EXTRACT_ARCHIVE_BYTES=335544320');
+
+putenv('FRACTAL_ZIP_ZPAQ=/home/freement/bin/zpaq');
+putenv('FRACTAL_ZIP_7Z=/usr/bin/7zz');   // or /usr/bin/7z — p7zip on the server
+putenv('FRACTAL_ZIP_ARC=/home/freement/bin/arc');
+putenv('FRACTAL_ZIP_BROTLI=/usr/bin/brotli');
+putenv('FRACTAL_ZIP_XZ=/usr/bin/xz');
+putenv('FRACTAL_ZIP_ZSTD=/usr/bin/zstd');

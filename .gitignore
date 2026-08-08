@@ -1,0 +1,121 @@
+# --- Large / regenerable corpora (keep small challenge trees tracked) ---
+# Generated benchmark slice (~100+ MiB); regenerate with benchmarks/sample_large_corpus.php
+test_files59_sample/
+test_files59/
+# Stratified HTML slice of test_files55 (~72 MiB default); see benchmarks/build_test_files55_sample.php
+test_files55_stratified/
+test_files55/
+test_files55_full/
+test_files55_sample/
+# Site / media lakes — local only
+test_files54/
+test_files58/
+test_files58_sample/
+# Full SC2 tree (keep test_files56_sample/)
+test_files56/
+test_files56_full/
+# Diverse PDF slice; regenerate with benchmarks/build_test_files72_sample.php
+test_files72/
+test_files72_sample/
+test_files72_sample_micro/
+test_files72_sample_micro_qf/
+test_files72_sample_micro_qf_sem/
+test_files72_sample_micro_qf_sem*/
+test_files72_sample_micro_qf_ref/
+test_files72_sample_micro_qfc/
+# Registry-order PDF repack A/B (benchmarks/pdf_micro_repack_to_dir.php --order=registry)
+test_files72_sample_micro_reg/
+test_files72_sample_micro_ocr/
+# Semantic image experiment corpora (benchmarks/image_semantic_repack_to_dir.php)
+test_files61_semimg*/
+# Semantic image tournament outputs (benchmarks/image_semantic_tournament.php)
+test_files61_semt_*/
+# Byteslice / GP working trees
+test_files*_byteslice/
+test_files204_sample/
+
+__pycache__/
+*.pyc
+benchmarks/.work*/
+benchmarks/.probe_tmp/
+benchmarks/.ladder_cache/
+benchmarks/.flacbench/
+benchmarks/.hutter_logs/
+# Ephemeral bench driver output (local machine; FRACTAL_ZIP_BENCH_LAST_JSON / --out-json= for checked-in snapshots)
+benchmarks/.last_bench.json
+benchmarks/.last_skipped_cases.json
+benchmarks/.bytes_win_scan_last.json
+benchmarks/ocr_rebuild_output/
+benchmarks/.squash_corpus_cache/
+# Local large-corpus sweep JSON (gt2mb batches); regenerate with run_benchmarks.php --out-json=…
+benchmarks/.gt2mb_*.json
+benchmarks/.bench_fs_*.json
+benchmarks/.bench_fs_*.log
+benchmarks/.baseline_*.json
+benchmarks/.abjad_*.json
+benchmarks/.all_substrings_*.json
+# zpaq v7.05 removed — prefer PATH zpaq 7.15 / zpaqfranz (benchmarks/build_zpaq705.sh exits disabled)
+# benchmarks/zpaq705
+# benchmarks/vendor_zpaq705_build/
+# Squash benchmark mirror corpora (php benchmarks/build_test_files_squash_corpora.php)
+test_files10[5-9]/
+test_files11[0-9]/
+test_files12[0-9]/
+test_files130/
+test_files131/
+test_files132/
+test_files133/
+test_files133_sample/
+test_files200/
+# Public GP lakes (multi‑GiB); materialize: php benchmarks/build_test_files202_210_gp.php — do NOT commit
+test_files202/
+test_files203/
+test_files204/
+test_files205/
+test_files206/
+test_files207/
+test_files208/
+test_files209/
+test_files210/
+benchmarks/.gp_corpus_cache/
+
+# Local encode artifacts / dumps (not challenge corpora)
+*.fz
+*.fzc
+*.fractalzip
+fzi_*.fractalzip
+fztmp_*
+fzarc_*/
+enwik8
+enwik9
+-o/
+tmp/
+tmp.*/
+Shining Force*.zip
+calgary.zip
+cc580.zip
+
+# Hutter fx2-cmix local build products
+tools/hutter/fx2-cmix/cmix
+tools/hutter/fx2-cmix/run/
+tools/hutter/fx2-cmix/*.o
+tools/hutter/fx2-cmix/pgo_data/
+tools/hutter/**/ppm.temp
+tools/lpaq/lpaq9l
+tools/lpaq/lpaq9m
+tools/lpaq/lpqdict0.dic
+tools/mcm/mcm
+tools/mcm/*.o
+tools/lpaq/primer_english.drt
+
+# Desktop packaging outputs / optional bundled PHP
+desktop/dist/
+desktop/runtimes/
+desktop/payload/
+desktop/.payload_build/
+desktop/.dev_run/
+desktop/app/target/
+
+*.paq8px215
+benchmarks/.lifestyle_full_table.json
+benchmarks/.lifestyle_full_table.log

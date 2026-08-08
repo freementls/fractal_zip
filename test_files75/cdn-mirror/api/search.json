@@ -1,0 +1,17 @@
+{
+    "query": "lossless",
+    "count": 2,
+    "items": [
+        {
+            "id": "a1",
+            "title": "Benchmark notes",
+            "url": "https://example.invalid/a1"
+        },
+        {
+            "id": "b2",
+            "title": "Archive format comparison",
+            "url": "https://example.invalid/b2"
+        }
+    ],
+    "ms": 8
+}

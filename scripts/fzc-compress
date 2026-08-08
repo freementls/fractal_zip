@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+# Compress a directory to a sibling <name>.fzc (same as: fz zip <dir>).
+ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+exec php "$ROOT/fractal_zip_cli.php" zip "$@"

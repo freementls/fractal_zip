@@ -1,0 +1,120 @@
+{
+  "description": "Beat the ~base wall floor (~67s@256k). LSTM skips alone plateau at base; need PPMD/CM_SCALE/smaller-LSTM/AO. Target ≤47s (~2× vs lstm320@94s).",
+  "base_defs": [
+    "-DSEED=923",
+    "-DUPDATE_LIMIT=3000",
+    "-DFXCM_ENTITY_FOLD",
+    "-DFXCM_MATCH_MAX=3000000ull",
+    "-DFXCM_SPEED_INLINE_GET",
+    "-DNDEBUG",
+    "-DFXCM_RECIPE_RUNTIME",
+    "-DFXCM_FRACTAL_PRED"
+  ],
+  "baseline_name": "lstm320",
+  "beat_name": "lstm320",
+  "candidates": [
+    {
+      "name": "ppmd2k_l320",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=320",
+        "-DFXCM_PPMD_MB=2048"
+      ],
+      "note": "PPMD 2k only on 320"
+    },
+    {
+      "name": "cm2_l320",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=320",
+        "-DFXCM_PPMD_MB=8192",
+        "-DFXCM_CM_SCALE=2"
+      ],
+      "note": "CM_SCALE=2 on 320"
+    },
+    {
+      "name": "l200",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=200",
+        "-DFXCM_PPMD_MB=8192"
+      ],
+      "note": "default-size LSTM (fractalv2b-like hidden)"
+    },
+    {
+      "name": "l128",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=128",
+        "-DFXCM_PPMD_MB=8192"
+      ],
+      "note": "LSTM128"
+    },
+    {
+      "name": "l128_ppmd2k_cm2",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=128",
+        "-DFXCM_PPMD_MB=2048",
+        "-DFXCM_CM_SCALE=2"
+      ],
+      "note": "RAM7-like shrink on fractal recipe"
+    },
+    {
+      "name": "ao_fp_ppmd2k",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=320",
+        "-DFXCM_PPMD_MB=2048",
+        "-DFXCM_SPEED_ADVANCE_ONLY",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_AO_MIN=8u"
+      ],
+      "note": "ao_fp (was ~base wall) + PPMD2k"
+    },
+    {
+      "name": "ao_fp_cm2_ppmd2k",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=320",
+        "-DFXCM_PPMD_MB=2048",
+        "-DFXCM_CM_SCALE=2",
+        "-DFXCM_SPEED_ADVANCE_ONLY",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_AO_MIN=8u",
+        "-DFXCM_SPEED_CM_MATCH_SKIP",
+        "-DFXCM_SPEED_CM_MATCH_MIN=6"
+      ],
+      "note": "max skip + shrink — chase ≤47s"
+    },
+    {
+      "name": "ao_fp_l128_ppmd2k_cm2",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=128",
+        "-DFXCM_PPMD_MB=2048",
+        "-DFXCM_CM_SCALE=2",
+        "-DFXCM_SPEED_ADVANCE_ONLY",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_OUTER_AO_MIN=8u",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=2u",
+        "-DFXCM_SPEED_CM_MATCH_SKIP"
+      ],
+      "note": "kitchen sink toward 2×"
+    },
+    {
+      "name": "fp2_l128_ppmd2k",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=128",
+        "-DFXCM_PPMD_MB=2048",
+        "-DFXCM_SPEED_MATCH_FASTPATH",
+        "-DFXCM_SPEED_MATCH_SKIP_MIN=2u",
+        "-DFXCM_SPEED_LSTM_MATCH_SKIP"
+      ],
+      "note": "smaller net + aggressive fastpath"
+    },
+    {
+      "name": "inline_mix_pf_l320",
+      "extra_defs": [
+        "-DFXCM_LSTM_HIDDEN=320",
+        "-DFXCM_PPMD_MB=8192",
+        "-DFXCM_SPEED_INLINE_MIX",
+        "-DFXCM_SPEED_PREFETCH"
+      ],
+      "note": "hygiene speed on full 320"
+    }
+  ]
+}

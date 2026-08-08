@@ -1,0 +1,64 @@
+# Bytes-and-time guards for lifestyle corpora (74/75/76) and six-case proxy set.
+# Undeep sync also runs in php-smokes.yml (fast, before apt); kept here for workflow_dispatch / guard-only PRs.
+# Requires gzip (PHP), brotli, zstd, 7z, xz, zpaq on PATH — installed via apt below. FreeArc (`arc`) is optional;
+# guards remain green when arc is absent (outer arc lanes skipped).
+
+name: benchmark-guards
+
+permissions:
+  contents: read
+
+concurrency:
+  group: benchmark-guards-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/benchmark-guards.yml'
+      - 'fractal_zip.php'
+      - 'fractal_zip-undeep-unwrap.php'
+      - 'fractal_zip_encode_pipeline.php'
+      - 'fractal_zip_outer_predict.php'
+      - 'benchmarks/guard_lifestyle_bytes_and_time.php'
+      - 'benchmarks/guard_sixcase_stable_perf.php'
+      - 'benchmarks/run_benchmarks.php'
+      - 'benchmarks/check_undeep_fzb_brotli_sync.php'
+  pull_request:
+    paths:
+      - '.github/workflows/benchmark-guards.yml'
+      - 'fractal_zip.php'
+      - 'fractal_zip-undeep-unwrap.php'
+      - 'fractal_zip_encode_pipeline.php'
+      - 'fractal_zip_outer_predict.php'
+      - 'benchmarks/guard_lifestyle_bytes_and_time.php'
+      - 'benchmarks/guard_sixcase_stable_perf.php'
+      - 'benchmarks/run_benchmarks.php'
+      - 'benchmarks/check_undeep_fzb_brotli_sync.php'
+
+jobs:
+  guards:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pcntl, mbstring
+
+      - name: Install compressor CLI tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y brotli zstd p7zip-full xz-utils zpaq
+
+      - name: Undeep FZB Brotli marker sync
+        run: php benchmarks/run_benchmarks.php --check-undeep-sync
+
+      - name: Lifestyle guard (74/75/76)
+        run: php benchmarks/guard_lifestyle_bytes_and_time.php --repeat=1
+
+      - name: Six-case stable perf guard
+        run: php benchmarks/guard_sixcase_stable_perf.php --repeat=1

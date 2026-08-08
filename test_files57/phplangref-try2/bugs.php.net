@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+		<base href="https://bugs.php.net/" />
+	<title>PHP :: Bugs</title>
+	<link rel="shortcut icon" href="https://bugs.php.net/images/favicon.ico" />
+	<link rel="stylesheet" href="https://bugs.php.net/css/style.css" />
+</head>
+
+<body>
+
+<div><a id="TOP"></a></div>
+
+<table id="head-menu" class="head" cellspacing="0" cellpadding="0">
+	<tr>
+		<td class="head-logo">
+			<a href="/"><img src="images/logo.gif" alt="Bugs" vspace="2" hspace="2" /></a>
+		</td>
+
+		<td class="head-menu">
+			<a href="http://www.php.net/" class="menuWhite">php.net</a>&nbsp;|&nbsp;
+			<a href="http://www.php.net/support.php" class="menuWhite">support</a>&nbsp;|&nbsp;
+			<a href="http://www.php.net/docs.php" class="menuWhite">documentation</a>&nbsp;|&nbsp;
+			<a href="report.php" class="menuWhite">report a bug</a>&nbsp;|&nbsp;
+			<a href="search.php" class="menuWhite">advanced search</a>&nbsp;|&nbsp;
+			<a href="search-howto.php" class="menuWhite">search howto</a>&nbsp;|&nbsp;
+			<a href="stats.php" class="menuWhite">statistics</a>&nbsp;|&nbsp;
+			<a href="random" class="menuWhite">random bug</a>&nbsp;|&nbsp;
+			<a href="login.php" class="menuWhite">login</a>	
+		</td>
+	</tr>
+
+	<tr>
+		<td class="head-search" colspan="2">
+			<form method="get" action="search.php">
+				<p class="head-search">
+					<input type="hidden" name="cmd" value="display" />
+					<small>go to bug id or search bugs for</small>
+					<input class="small" type="text" name="search_for" value="" size="30" />
+					<input type="image" src="images/small_submit_white.gif" alt="search" style="vertical-align: middle;" />
+				</p>
+			</form>
+		</td>
+	</tr>
+</table>
+
+<table class="middle" cellspacing="0" cellpadding="0">
+	<tr>
+		<td class="content">
+
+<script type="text/javascript">
+var bugid = window.location.hash.substr(1) * 1;
+if (bugid > 0) {
+	var loc = window.location;
+	loc.href = loc.protocol + '//' + loc.host+(loc.port ? ':'+loc.port : '')+'/'+bugid;
+}
+</script>
+
+<h1>PHP Bug Tracking System</h1>
+
+<p>Before you report a bug, please make sure you have completed the following steps:</p>
+
+<ul>
+	<li>
+		Used the form above or our <a href="search.php">advanced search page</a> 
+		to make sure nobody has reported the bug already.
+	</li>
+
+	<li>
+		Made sure you are using the latest stable version or a build from Git, if
+		similar bugs have recently been fixed and committed. You can download snapshots at
+		<a href="http://snaps.php.net/">http://snaps.php.net</a>
+	</li>
+
+	<li>
+		Read our tips on <a href="how-to-report.php">how to report a bug that someone will want to help fix</a>.
+	</li>
+	
+	<li>
+		See how to get a backtrace in case of a crash: 
+		<a href="bugs-generating-backtrace.php">for *NIX</a> and
+		<a href="bugs-generating-backtrace-win32.php">for Windows</a>.
+	</li>
+	
+	<li>
+		Make sure it isn't a support question. For support,
+		see the <a href="http://www.php.net/support.php">support page</a>.
+	</li>
+</ul>
+
+<p>Once you've double-checked that the bug you've found hasn't already been
+reported, and that you have collected all the information you need to file an
+excellent bug report, you can do so on our <a href="report.php">bug reporting
+page</a>.</p>
+
+<h1>Search the Bug System</h1>
+
+<p>You can search all of the bugs that have been reported on our
+<a href="search.php">advanced search page</a>, or use the form
+at the top of the page for a basic default search.  Read the 
+<a href="search-howto.php">search howto</a> for instructions on 
+how search works.</p>
+
+<p>If you have 10 minutes to kill and you want to help us out, grab a
+random open bug and see if you can help resolve it. We have made it 
+easy. Hit <a href="https://bugs.php.net/random">
+https://bugs.php.net/random</a> to go directly
+to a random open bug.</p>
+
+<p>Common searches</p>
+<ul>
+<li><a href="https://bugs.php.net/search.php?boolean=0&limit=30&order_by=id&direction=DESC&cmd=display&status=Open&bug_age=0&bug_updated=0&bug_type=All">Most recent open bugs (all)</a></li>
+<li><a href="https://bugs.php.net/search.php?boolean=0&limit=30&order_by=id&direction=DESC&cmd=display&status=Open&bug_age=0&bug_updated=0&bug_type=All&patch=Y">Most recent open bugs (all) with patches</a></li>
+<li><a href="https://bugs.php.net/search.php?boolean=0&limit=30&order_by=id&direction=DESC&cmd=display&status=Open&bug_age=0&bug_updated=0&bug_type=All&phpver=5.3">Most recent open bugs (PHP 5.3)</a></li>
+<li><a href="https://bugs.php.net/search.php?boolean=0&limit=30&order_by=id&direction=DESC&cmd=display&status=Open&bug_age=0&bug_updated=0&bug_type=All&phpver=5.4">Most recent open bugs (PHP 5.4)</a></li>
+<li><a href="https://bugs.php.net/search.php?boolean=0&limit=30&order_by=id&direction=DESC&cmd=display&status=Open&bug_age=0&bug_updated=0&bug_type=Documentation+Problem">Open Documentation bugs</a></li>
+<li><a href="https://bugs.php.net/search.php?boolean=0&limit=30&order_by=id&direction=DESC&cmd=display&status=Open&bug_age=0&bug_updated=0&bug_type=Documentation+Problem&patch=Y">Open Documentation bugs (with patches)</a></li>
+</ul>
+
+<h1>Bug System Statistics</h1>
+
+<p>You can view a variety of statistics about the bugs that have been
+reported on our <a href="stats.php">bug statistics page</a>.</p>
+
+		</td>
+	</tr>
+</table>
+
+
+<table class="foot" cellspacing="0" cellpadding="0">
+	<tr>
+		<td class="foot-bar" colspan="2">&nbsp;</td>
+	</tr>
+
+	<tr>
+		<td class="foot-copy">
+			<small>
+				<a href="http://www.php.net/"><img src="images/logo-small.gif" align="left" valign="middle" hspace="3" alt="PHP" /></a>
+				<a href="http://www.php.net/copyright.php">Copyright &copy; 2001-2012 The PHP Group</a><br />
+				All rights reserved.
+			</small>
+		</td>
+		<td class="foot-source">
+			<small>Last updated: Tue Jul 31 17:30:02 2012 UTC</small>
+		</td>
+	</tr>
+</table>
+</body>
+</html>

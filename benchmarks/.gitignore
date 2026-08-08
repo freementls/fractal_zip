@@ -1,0 +1,11 @@
+.work/
+.work*/
+.bench_case_ipc/
+.tools/bin/
+.last_skipped_cases.json
+.phase1_staging.json
+.phase1_case_cache.json
+.ablation.json
+.gaia_transfer_benefits.json
+logs/
+.enwik8_world_record.json

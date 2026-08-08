@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+# List members inside a .fzc (same as: fz member-list <file.fzc>).
+ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+exec php "$ROOT/fractal_zip_cli.php" member-list "$@"

@@ -1,0 +1,1 @@
+Optional stress corpus (not run by default benchmarks). If you maintain `q0000.txt` … or a nested layout under `g*/`, include it with `php benchmarks/run_benchmarks.php --with-synthetic-micro`. See repo README for memory-related env vars. Generated paths are gitignored.

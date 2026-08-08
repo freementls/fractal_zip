@@ -1,0 +1,1 @@
+raw_bytes=113503105 gzip9=113482086 seven_zip=113391093 best_ext=113411716 fzc=113448530 outer_codec=zstd folder_gzip_fast=false folder_unified_stream=true verify_ok=false zip_s=927.7587 extract_s=14.1152

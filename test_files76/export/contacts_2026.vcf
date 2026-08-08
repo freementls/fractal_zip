@@ -1,0 +1,15 @@
+BEGIN:VCARD
+VERSION:3.0
+FN:Test User One
+N:One;Test;;;
+TEL;TYPE=CELL:(555) 010-0199
+EMAIL;TYPE=INTERNET:test1@example.invalid
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+N:User;Test Two;;;
+FN:Test User Two
+TEL;TYPE=HOME:555-0102
+item1.EMAIL;TYPE=INTERNET:two@example.invalid
+item1.X-ABLabel:work
+END:VCARD
