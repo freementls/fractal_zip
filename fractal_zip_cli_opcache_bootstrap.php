@@ -18,6 +18,100 @@ if (PHP_SAPI !== 'cli') {
 if (getenv('FRACTAL_ZIP_NO_CLI_OPACHE_REEXEC') === '1') {
 	return;
 }
+
+/**
+ * -d flags to load libfss PHP extension (preserve across CLI re-execs).
+ *
+ * @return list<string>
+ */
+$fractalZipCliFssIniArgs = static function (): array {
+	if (getenv('FRACTAL_ZIP_NO_CLI_FSS_REEXEC') === '1' || getenv('FRACTAL_ZIP_FSS') === '0') {
+		return array();
+	}
+	if (extension_loaded('fss') && function_exists('fss_ext_count')) {
+		/* Already loaded — still pass -d so grandchild re-execs keep it. */
+	}
+	$fssSo = null;
+	$fssRoot = getenv('FRACTAL_ZIP_FSS_ROOT');
+	$fssCands = array();
+	if(is_string($fssRoot) && trim($fssRoot) !== '') {
+		$fssCands[] = rtrim(trim($fssRoot), "/\\") . '/bindings/php_ext/modules/fss.so';
+	}
+	$extEnv = getenv('FRACTAL_ZIP_FSS_EXT');
+	if(is_string($extEnv) && trim($extEnv) !== '') {
+		$fssCands[] = trim($extEnv);
+	}
+	$fssCands[] = dirname(__DIR__) . '/fractal_substring/bindings/php_ext/modules/fss.so';
+	$fssCands[] = __DIR__ . '/../fractal_substring/bindings/php_ext/modules/fss.so';
+	$fssCands[] = '/srv/http/fractal_substring/bindings/php_ext/modules/fss.so';
+	foreach($fssCands as $cand) {
+		if(is_file($cand)) {
+			$fssSo = $cand;
+			break;
+		}
+	}
+	if($fssSo === null) {
+		return array();
+	}
+	return array('-d', 'extension=' . $fssSo);
+};
+$fssIniArgs = $fractalZipCliFssIniArgs();
+
+// Load FFI so libfzmem.so can back the PHP intern (fmem/fcache). Independent
+// of OPcache; one extra re-exec when the module exists but is not loaded.
+if (getenv('FRACTAL_ZIP_NO_CLI_FFI_REEXEC') !== '1'
+	&& getenv('FRACTAL_ZIP_INTERNAL_FFI_CLI_REEXEC') !== '1') {
+	$ffiOn = extension_loaded('ffi');
+	$ffiIni = strtolower((string) ini_get('ffi.enable'));
+	$ffiIniOff = in_array($ffiIni, array('0', 'false', 'off'), true);
+	$ffiSo = '/usr/lib/php/modules/ffi.so';
+	if ((!$ffiOn && is_file($ffiSo)) || ($ffiOn && $ffiIniOff)) {
+		$scriptFfi = $_SERVER['SCRIPT_FILENAME'] ?? ($argv[0] ?? '');
+		if (is_string($scriptFfi) && $scriptFfi !== '' && @is_file($scriptFfi) && isset($argv) && is_array($argv)) {
+			putenv('FRACTAL_ZIP_INTERNAL_FFI_CLI_REEXEC=1');
+			$ffiArgv = array(PHP_BINARY);
+			if (!$ffiOn) {
+				$ffiArgv[] = '-d';
+				$ffiArgv[] = 'extension=ffi';
+			}
+			$ffiArgv[] = '-d';
+			$ffiArgv[] = 'ffi.enable=1';
+			foreach ($fssIniArgs as $a) {
+				$ffiArgv[] = $a;
+			}
+			$ffiArgv[] = $scriptFfi;
+			$ffiArgv = array_merge($ffiArgv, array_slice($argv, 1));
+			$procFfi = @proc_open($ffiArgv, array(0 => STDIN, 1 => STDOUT, 2 => STDERR), $pipesFfi, getcwd() !== false ? getcwd() : null, null, array('bypass_shell' => true));
+			if (is_resource($procFfi)) {
+				exit(proc_close($procFfi));
+			}
+			putenv('FRACTAL_ZIP_INTERNAL_FFI_CLI_REEXEC');
+		}
+	}
+}
+// Load libfss PHP extension when nothing else re-execs (KEEP ~3× COUNT).
+if (getenv('FRACTAL_ZIP_NO_CLI_FSS_REEXEC') !== '1'
+	&& getenv('FRACTAL_ZIP_INTERNAL_FSS_CLI_REEXEC') !== '1'
+	&& getenv('FRACTAL_ZIP_FSS') !== '0'
+	&& $fssIniArgs !== array()) {
+	$fssOn = extension_loaded('fss') && function_exists('fss_ext_count');
+	if (!$fssOn) {
+		$argvFss = $GLOBALS['argv'] ?? ($_SERVER['argv'] ?? null);
+		$scriptFss = $_SERVER['SCRIPT_FILENAME'] ?? '';
+		if ($scriptFss === '' && is_array($argvFss) && isset($argvFss[0])) {
+			$scriptFss = (string) $argvFss[0];
+		}
+		if (is_string($scriptFss) && $scriptFss !== '' && @is_file($scriptFss) && is_array($argvFss)) {
+			putenv('FRACTAL_ZIP_INTERNAL_FSS_CLI_REEXEC=1');
+			$fssArgv = array_merge(array(PHP_BINARY), $fssIniArgs, array($scriptFss), array_slice($argvFss, 1));
+			$procFss = @proc_open($fssArgv, array(0 => STDIN, 1 => STDOUT, 2 => STDERR), $pipesFss, getcwd() !== false ? getcwd() : null, null, array('bypass_shell' => true));
+			if (is_resource($procFss)) {
+				exit(proc_close($procFss));
+			}
+			putenv('FRACTAL_ZIP_INTERNAL_FSS_CLI_REEXEC');
+		}
+	}
+}
 if (getenv('FRACTAL_ZIP_INTERNAL_CLI_OPACHE') === '1' || getenv('FRACTAL_ZIP_INTERNAL_JIT_CLI_REEXEC') === '1') {
 	return;
 }
@@ -105,6 +199,7 @@ if ($enableCli) {
 	$childArgv = array_merge(
 		array(PHP_BINARY, '-d', 'opcache.enable_cli=1'),
 		$jitArgs,
+		$fssIniArgs,
 		array($script),
 		array_slice($argv, 1)
 	);
@@ -132,6 +227,7 @@ putenv('FRACTAL_ZIP_INTERNAL_CLI_OPACHE=1');
 $childArgv = array_merge(
 	array(PHP_BINARY, '-d', 'opcache.enable_cli=1'),
 	$jitArgs,
+	$fssIniArgs,
 	array($script),
 	array_slice($argv, 1)
 );

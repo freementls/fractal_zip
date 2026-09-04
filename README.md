@@ -103,6 +103,7 @@ Small type-census smoke (synthetic fixtures, committed when present): **`test_fi
 - **`7z`** on `PATH` (p7zip) for competitive outer wrapping.
 - **ffmpeg + ffprobe** for **FZCD** merged‑FLAC exploration (`FRACTAL_ZIP_FLACPAC=1`).
 - Optional: **Arc**, **zstd**, **brotli**, **xz**, **zpaq** for min‑ext baselines and outer lanes (see `benchmarks/run_benchmarks.php` footer).
+- Optional: sibling [**fractal_substring**](https://github.com/freementls/fractal_substring) (`libfss` / `fss.so`) for hastok / count / repeats — default **ON** when present (`FRACTAL_ZIP_FSS=0` to disable; `FRACTAL_ZIP_FSS_ROOT` overrides path).
 
 ---
 
