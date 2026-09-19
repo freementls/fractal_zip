@@ -60,7 +60,9 @@ Unless noted, a **bytes win** means **`.fz` is ≤ the smallest of**: gzip‑9 *
 | **Small SC2 slice** | **`test_files56_sample`** (~1 MiB, nine `.SC2Replay`) | Fast MPQ / PAC loop vs full tree (`verify_ok` **yes**). |
 | **Single‑file absurd ratio** | **`test_files29`** | Artificial 1.28 MiB fractal `.txt` where `.fz` collapses to **hundreds of bytes** — demonstrates the inner machinery, **not** typical files. |
 
-### Squash benchmark mirrors
+### Squash plugin (C) and benchmark mirrors
+
+**`tools/fzcodec`** is a general-purpose C buffer library + CLI (`fz-lifestyle` / `fz-ultra`) and a [Squash](https://github.com/quixdb/squash) plugin. It sniffs content, transcodes JPEG with Lepton when available, then races codecs by class — not by corpus name. Build: `cd tools/fzcodec && make && make test`. Docs: [`tools/fzcodec/README.md`](tools/fzcodec/README.md), [local page](http://localhost/fractal_zip/examples/fzcodec/).
 
 Corpora **`test_files105`–`test_files132`** mirror the [Squash Compression Benchmark](https://quixdb.github.io/squash-benchmark/) file set. Build: `php benchmarks/build_test_files_squash_corpora.php`. Optional **Silesia twelve-file folder** (**`test_files133`**, ~212 MiB raw, skipped in default bench discovery): `php benchmarks/build_test_files133_silesia12.php --dry-run` then `php benchmarks/build_test_files133_silesia12.php`; bench with `php benchmarks/run_benchmarks.php --only=133 --large --no-case-timeout --json` (or **`--only=test_files133`**), or **`bash benchmarks/run_large_corpus_bytes_push.sh --only=test_files133 --large --json --no-case-timeout`** for the **`large-bytes`** threading preset — see **`benchmarks/SILESIA_BENCHMARK.md`**, **`benchmarks/LARGE_CORPUS_SPEED.md`**, and **`benchmarks/silesia_sum_fzc_from_bench_json.php`** for Mahoney-style totals. **`test_files107`** (`cp.html`): **`benchmarks/squash_benchmarks.php`** often reports **`.fz` smaller than the published Squash CSV best** for that row (pipeline differs from single‑file Squash plugins — treat as an honest apples‑to‑oranges sanity check, not a tournament trophy).
 

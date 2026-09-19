@@ -100,6 +100,10 @@ tools/hutter/fx2-cmix/cmix
 tools/hutter/fx2-cmix/run/
 tools/hutter/fx2-cmix/*.o
 tools/hutter/fx2-cmix/pgo_data/
+# cmix-lex lab binaries (prize S1 stays in run/, never this tree)
+tools/hutter/cmix-lex/cmix
+tools/hutter/cmix-lex/cmix_lex_lean
+tools/hutter/cmix-lex/*.o
 tools/hutter/**/ppm.temp
 tools/lpaq/lpaq9l
 tools/lpaq/lpaq9m
@@ -115,6 +119,10 @@ desktop/payload/
 desktop/.payload_build/
 desktop/.dev_run/
 desktop/app/target/
+
+tools/fzcodec/build/
+tools/fzcodec/cmake-build/
+tools/fzcodec/.deps/
 
 *.paq8px215
 benchmarks/.lifestyle_full_table.json
